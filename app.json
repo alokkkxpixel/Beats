@@ -7,6 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "beats",
     "userInterfaceStyle": "automatic",
+
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -23,6 +24,7 @@
     },
     "web": {
       "output": "static",
+      "bundler": "metro",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
