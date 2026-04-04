@@ -6,5 +6,8 @@ module.exports = defineConfig([
   expoConfig,
   {
     ignores: ['dist/*'],
+    rules: {
+      'import/no-unresolved': ['error', { ignore: ['^@shopify/flash-list$'] }],
+    },
   },
 ]);
