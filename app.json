@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "beats",
     "userInterfaceStyle": "automatic",
-
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -40,7 +39,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

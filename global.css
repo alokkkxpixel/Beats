@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@theme {
+  --font-sans: sans-regular;
+  --font-sans-thin: sans-thin;
+  --font-sans-medium: sans-medium;
+  --font-sans-semibold: sans-semibold;
+  --font-sans-bold: sans-bold;
+  --font-sans-extrabold: sans-extrabold;
+}
+@layer base {
+  text {
+    font-family: "sans-regular";
+  }
+}
