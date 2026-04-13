@@ -1,4 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import React from "react";
 import {
   Dimensions,
@@ -9,103 +13,221 @@ import {
   Text,
   View,
 } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 const { width, height } = Dimensions.get("window");
 
-const FullPlayer = () => {
+const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
+  const [position, setPosition] = React.useState(38); // Percentage state for time labels
+  const duration = 240; // Example: 4 minutes total
+
+  const progress = useSharedValue(38);
+  const isDragging = useSharedValue(false);
+
+  // Function to sync animated value back to React state when drag ends
+  const onEnd = () => {
+    setPosition(progress.value);
+  };
+
+  const gesture = Gesture.Pan()
+    .onStart(() => {
+      isDragging.value = true;
+    })
+    .onUpdate((event) => {
+      // Calculate progress based on touch position relative to the track width
+      const trackWidth = width - 50; // paddingHorizontal is 25 on each side
+      const newProgress = Math.min(
+        100,
+        Math.max(0, (event.x / trackWidth) * 100),
+      );
+      progress.value = newProgress;
+    })
+    .onEnd(() => {
+      isDragging.value = false;
+      runOnJS(onEnd)();
+    });
+
+  const animatedFillStyle = useAnimatedStyle(() => ({
+    width: `${progress.value}%`,
+  }));
+
+  const animatedKnobStyle = useAnimatedStyle(() => ({
+    left: `${progress.value}%`,
+    transform: [{ scale: withSpring(isDragging.value ? 1.4 : 1) }],
+  }));
+
+  // Time calculations based on current position state
+  const currentSeconds = Math.floor((position / 100) * duration);
+  const remainingSeconds = duration - currentSeconds;
+
+  const formatTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${mins}:${s < 10 ? "0" : ""}${s}`;
+  };
+
   return (
-    <ScrollView
-      style={styles.container}
-      bounces={true}
-      contentContainerStyle={styles.scrollContent}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Ionicons name="chevron-down" size={28} color="white" />
-        <Text style={styles.headerTitle}>Now Playing</Text>
-        <Ionicons name="ellipsis-vertical" size={24} color="white" />
-      </View>
-
-      {/* Main Artwork */}
-      <View style={styles.artWrapper}>
-        <Image
-          source={{ uri: "https://placeholder.com/artwork_large.jpg" }}
-          style={styles.mainArt}
-        />
-      </View>
-
-      {/* Track Info */}
-      <View style={styles.trackInfo}>
-        <View>
-          <Text style={styles.songTitle}>Neon Shadows</Text>
-          <Text style={styles.songArtist}>Midnight Pulse</Text>
-        </View>
-        <Ionicons name="heart" size={28} color="#FF6F61" />
-      </View>
-
-      {/* Progress Bar */}
-      <View style={styles.progressArea}>
-        <View style={styles.track}>
-          <View style={[styles.fill, { width: "45%" }]} />
-          <View style={[styles.knob, { left: "45%" }]} />
-        </View>
-        <View style={styles.timeRow}>
-          <Text style={styles.timeText}>1:42</Text>
-          <Text style={styles.timeText}>3:58</Text>
-        </View>
-      </View>
-
-      {/* Main Controls */}
-      <View style={styles.mainControls}>
-        <Ionicons name="play-skip-back" size={35} color="white" />
-        <Pressable style={styles.playButton}>
-          <Ionicons name="play" size={45} color="black" />
-        </Pressable>
-        <Ionicons name="play-skip-forward" size={35} color="white" />
-      </View>
-
-      {/* --- NEW ARTIST DETAILS CARD (Spotify Style) --- */}
-      <View style={styles.artistCard}>
-        {/* The Card's Top Rounded Image and Title */}
-        <View style={styles.artistHeader}>
-          <Image
-            source={{ uri: "https://placeholder.com/artist_photo.jpg" }} // Use a photo of the actual artist
-            style={styles.artistPhoto}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        bounces={true}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* --- Header --- */}
+        <View style={styles.header}>
+          <Ionicons
+            name="chevron-down"
+            size={28}
+            color="white"
+            onPress={() => handleCloseSheet()}
           />
-          <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
+          <Text style={styles.headerTitle}></Text>
+          <Ionicons name="ellipsis-horizontal" size={24} color="white" />
         </View>
 
-        {/* The Artist Details Content */}
-        <View style={styles.artistDetailsBody}>
-          <View style={styles.artistNameRow}>
-            <Text style={styles.artistNameText}>Midnight Pulse</Text>
-            {/* Optional Verified Badge */}
-            <Ionicons
-              name="checkmark-circle"
-              size={18}
-              color="#1DB954"
-              style={styles.verifiedBadge}
-            />
-          </View>
+        {/* --- Album Artwork --- */}
+        <View style={styles.artWrapper}>
+          <Image
+            source={{
+              uri: "https://images.genius.com/c92ea26f198481e5bd6baec27e97448c.1000x1000x1.jpg",
+            }}
+            style={styles.mainArt}
+          />
+        </View>
 
-          <Text style={styles.artistDescription} numberOfLines={4}>
-            Midnight Pulse is an experimental electronic duo based in Berlin.
-            Known for blending glitch-pop elements with deep, atmospheric house,
-            they create immersive auditory landscapes that explore themes of
-            urban isolation and nocturnal introspection. "Neon Shadows" is their
-            latest acclaimed release.
+        {/* --- Track Info --- */}
+        <View style={styles.trackInfo}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.songTitle} numberOfLines={1}>
+              From Me to You - Mono / Remast
+            </Text>
+            <Text style={styles.songArtist}>The Beatles</Text>
+          </View>
+          <Ionicons name="heart-outline" size={28} color="white" />
+        </View>
+
+        {/* --- Progress Bar --- */}
+        <View style={styles.progressArea}>
+          <GestureDetector gesture={gesture}>
+            <View style={styles.sliderContainer}>
+              <View style={styles.track}>
+                <Animated.View style={[styles.fill, animatedFillStyle]} />
+                <Animated.View style={[styles.knob, animatedKnobStyle]} />
+              </View>
+            </View>
+          </GestureDetector>
+          <View style={styles.timeRow}>
+            <Text style={styles.timeText}>{formatTime(currentSeconds)}</Text>
+            <Text style={styles.timeText}>-{formatTime(remainingSeconds)}</Text>
+          </View>
+        </View>
+
+        {/* --- Main Controls --- */}
+        <View style={styles.mainControls}>
+          <Ionicons name="shuffle" size={24} color="#1DB954" />
+          <Ionicons name="play-skip-back" size={38} color="white" />
+          <Pressable style={styles.playButton}>
+            <Ionicons name="pause" size={40} color="black" />
+          </Pressable>
+          <Ionicons name="play-skip-forward" size={38} color="white" />
+          <View style={styles.repeatContainer}>
+            <Ionicons name="repeat" size={24} color="#1DB954" />
+            <View style={styles.repeatDot} />
+          </View>
+        </View>
+
+        {/* --- Footer Controls --- */}
+        <View style={styles.footerControls}>
+          <View style={styles.deviceIndicator}>
+            <MaterialIcons name="bluetooth" size={16} color="#1DB954" />
+            <Text style={styles.deviceText}>BEATSPILL+</Text>
+          </View>
+          <View style={styles.footerRightIcons}>
+            <Ionicons
+              name="share-outline"
+              size={22}
+              color="white"
+              style={{ marginRight: 25 }}
+            />
+            <MaterialIcons name="playlist-play" size={28} color="white" />
+          </View>
+        </View>
+
+        {/* --- Lyrics Card --- */}
+        <View style={styles.lyricsCard}>
+          <View style={styles.lyricsHeader}>
+            <Text style={styles.lyricsTitle}>Lyrics</Text>
+            <Pressable style={styles.moreButton}>
+              <Text style={styles.moreText}>MORE</Text>
+              <MaterialCommunityIcons
+                name="arrow-expand"
+                size={14}
+                color="white"
+              />
+            </Pressable>
+          </View>
+          <Text style={styles.lyricsPreview}>
+            Da-da-da, da-da-dun-dun-da {"\n"}
+            If there's anything that you want {"\n"}
+            If there's anything I can do {"\n"}
+            Just call on me and I'll send it along {"\n"}
+            With love from me to you
           </Text>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* --- Artist Details Card --- */}
+        <View style={styles.artistCard}>
+          <View style={styles.artistHeader}>
+            <Image
+              source={{
+                uri: "https://images.genius.com/c92ea26f198481e5bd6baec27e97448c.1000x1000x1.jpg",
+              }}
+              style={styles.artistPhoto}
+            />
+            <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
+          </View>
+
+          <View style={styles.artistDetailsBody}>
+            <View style={styles.artistNameRow}>
+              <Text style={styles.artistNameText}>The Beatles</Text>
+              <Ionicons
+                name="checkmark-circle"
+                size={18}
+                color="#1DB954"
+                style={styles.verifiedBadge}
+              />
+            </View>
+            <Text style={styles.artistDescription} numberOfLines={4}>
+              The Beatles were an English rock band formed in Liverpool in 1960.
+              With a line-up comprising John Lennon, Paul McCartney, George
+              Harrison and Ringo Starr, they are regarded as the most
+              influential band of all time.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: height,
-    backgroundColor: "#000000ff",
+    backgroundColor: "#7a1b16",
+  },
+  scrollContent: {
+    paddingBottom: 40,
     paddingTop: 50,
   },
   header: {
@@ -116,60 +238,67 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 14,
+    fontWeight: "600",
   },
   artWrapper: {
     alignItems: "center",
-    marginVertical: 40,
+    marginTop: 50,
+    marginBottom: 40,
   },
   mainArt: {
-    width: width * 0.85,
-    height: width * 0.85,
-    borderRadius: 20,
-    backgroundColor: "#222", // Placeholder color
-  },
-  scrollContent: {
-    paddingBottom: 40, // Ensure card doesn't get cut off
+    width: width * 0.88,
+    height: width * 0.88,
+    borderRadius: 8,
   },
   trackInfo: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 30,
+    paddingHorizontal: 25,
     alignItems: "center",
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 20,
   },
   songTitle: {
     color: "white",
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "bold",
   },
   songArtist: {
-    color: "#AAA",
-    fontSize: 18,
-    marginTop: 5,
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 16,
+    marginTop: 4,
   },
   progressArea: {
-    paddingHorizontal: 30,
-    marginTop: 30,
+    paddingHorizontal: 25,
+    marginTop: 25,
+  },
+  sliderContainer: {
+    height: 40,
+    justifyContent: "center",
   },
   track: {
-    height: 3,
-    backgroundColor: "#333",
+    height: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 2,
     position: "relative",
   },
   fill: {
-    height: 3,
-    backgroundColor: "#FF6F61",
+    height: 4,
+    backgroundColor: "white",
     borderRadius: 2,
+    position: "absolute",
   },
   knob: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#FF6F61",
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "white",
     position: "absolute",
-    top: -4,
+    marginLeft: -7,
+    top: -5,
   },
   timeRow: {
     flexDirection: "row",
@@ -177,60 +306,118 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   timeText: {
-    color: "#777",
-    fontSize: 12,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 11,
   },
   mainControls: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 40,
+    paddingHorizontal: 25,
+    marginTop: 20,
   },
   playButton: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    color: "#000000ff",
-    backgroundColor: "#ffffffff",
+    width: 75,
+    height: 75,
+    borderRadius: 38,
+    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
-    // shadowColor: "#0e0101ff",
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 10,
   },
-  /* --- ARTIST DETAILS CARD STYLES --- */
-  artistCard: {
-    backgroundColor: "#1E2126", // Sightly lighter than main background
+  repeatContainer: {
+    alignItems: "center",
+  },
+  repeatDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#1DB954",
+    marginTop: 2,
+  },
+  footerControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 25,
+    marginTop: 30,
+  },
+  deviceIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  deviceText: {
+    color: "#1DB954",
+    fontSize: 10,
+    fontWeight: "bold",
+    marginLeft: 5,
+  },
+  footerRightIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  lyricsCard: {
+    backgroundColor: "#e06126",
     marginHorizontal: 20,
+    marginTop: 30,
+    borderRadius: 15,
+    padding: 20,
+    minHeight: 200,
+  },
+  lyricsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  lyricsTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  moreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  moreText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+    marginRight: 5,
+  },
+  lyricsPreview: {
+    color: "white",
+    fontSize: 18,
+    lineHeight: 28,
+    fontWeight: "600",
+  },
+  artistCard: {
+    backgroundColor: "#1E2126",
+    marginHorizontal: 20,
+    marginTop: 20,
     borderRadius: 16,
-    overflow: "hidden", // Required for upper rounded image to work correctly
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.06)",
   },
   artistHeader: {
     position: "relative",
-    height: 140, // Standard header image height
+    height: 160,
     width: "100%",
   },
   artistPhoto: {
     ...StyleSheet.absoluteFillObject,
-    // The top-left/top-right rounding applies here because of the card's overflow:'hidden'
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
   },
   artistCardLabel: {
     position: "absolute",
-    bottom: 12,
-    left: 16,
+    top: 15,
+    left: 15,
     color: "white",
     fontSize: 11,
     fontWeight: "800",
-    backgroundColor: "rgba(0,0,0,0.6)", // Semi-transparent overlay for text readability
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    overflow: "hidden",
   },
   artistDetailsBody: {
     paddingHorizontal: 16,
@@ -243,17 +430,16 @@ const styles = StyleSheet.create({
   },
   artistNameText: {
     color: "white",
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
   },
   verifiedBadge: {
     marginLeft: 8,
-    marginTop: 2, // Fine-tuning vertical alignment
   },
   artistDescription: {
     color: "#CCCCCC",
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
 

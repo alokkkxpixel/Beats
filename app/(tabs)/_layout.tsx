@@ -26,6 +26,11 @@ export default function TabLayout() {
     setIsOpen(true);
   }, []);
 
+  const handleCloseSheet = useCallback(() => {
+    sheetRef.current?.close();
+    setIsOpen(false);
+  }, []);
+
   return (
     <View style={styles.container}>
       <Tabs
@@ -91,13 +96,13 @@ export default function TabLayout() {
             borderTopRightRadius: 20,
           }}
           onClose={() => setIsOpen(false)}
-          handleIndicatorStyle={{ backgroundColor: "#000000ff", width: 40 }}
+          handleComponent={null}
         >
           <BottomSheetScrollView
             // contentContainerStyle={{ padding: 20 }}
             style={{ flex: 1 }}
           >
-            <FullPlayer />
+            <FullPlayer handleCloseSheet={handleCloseSheet} />
           </BottomSheetScrollView>
         </BottomSheet>
       </View>
