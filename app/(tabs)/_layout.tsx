@@ -1,15 +1,14 @@
-import { Tabs } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
-import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import FullPlayer from "@/components/FullPlayer";
 import { HapticTab } from "@/components/haptic-tab";
 import MiniPlayer from "@/components/MiniPlayer";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { Tabs } from "expo-router";
+import { Compass, Home, Library } from "lucide-react-native";
+import React, { useCallback, useRef, useState } from "react";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
@@ -53,9 +52,7 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={24} name="house.fill" color={color} />
-            ),
+            tabBarIcon: ({ color }) => <Home size={24} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -63,9 +60,14 @@ export default function TabLayout() {
           options={{
             title: "Explore",
 
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={24} name="paperplane.fill" color={color} />
-            ),
+            tabBarIcon: ({ color }) => <Compass size={24} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="library"
+          options={{
+            title: "Library",
+            tabBarIcon: ({ color }) => <Library size={24} color={color} />,
           }}
         />
       </Tabs>
