@@ -6,7 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "beats",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050505",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -34,9 +35,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#050505",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#050505"
           }
         }
       ],

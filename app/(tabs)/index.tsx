@@ -1,5 +1,4 @@
 import QuickPicksSection from "@/components/home/QuickPicksSection";
-import SpeedDialSection from "@/components/home/SpeedDialSection";
 import { FlashList } from "@shopify/flash-list";
 import React from "react";
 import { StatusBar, StyleSheet, View } from "react-native";
@@ -116,7 +115,7 @@ export default function Index() {
         }}
         renderItem={({ item }: any) => {
           if (item.type === "quickPicks") return <QuickPicksSection />;
-          if (item.type === "speedDial") return <SpeedDialSection />;
+          // if (item.type === "speedDial") return <SpeedDialSection />;
           return (
             <>
               <TrendingSection />;

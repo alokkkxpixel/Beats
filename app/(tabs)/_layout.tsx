@@ -70,6 +70,12 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <Library size={24} color={color} />,
           }}
         />
+        <Tabs.Screen
+          name="album-detail"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
 
       {/* Layer 2: Mini Player (only visible when BottomSheet is closed) */}

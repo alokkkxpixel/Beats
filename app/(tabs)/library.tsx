@@ -1,17 +1,16 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { 
-  List, 
-  LayoutGrid, 
-  MoreVertical, 
-  ThumbsUp, 
-  FastForward,
-  ChevronRight
-} from "lucide-react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { FlashList } from "@shopify/flash-list";
+import {
+  FastForward,
+  LayoutGrid,
+  List,
+  MoreVertical,
+  ThumbsUp,
+} from "lucide-react-native";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TypedFlashList = FlashList as any;
 
@@ -39,14 +38,16 @@ const LIBRARY_DATA: LibraryItemData[] = [
     title: "2Pac",
     subtitle: "Artist",
     type: "artist",
-    image: "https://images.unsplash.com/photo-1514525253361-b83f60d6f5c1?w=400&h=400&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1514525253361-b83f60d6f5c1?w=400&h=400&fit=crop",
   },
   {
     id: "3",
     title: "Supermix",
     subtitle: "Ed Sheeran, Rick Astley and more",
     type: "playlist",
-    image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=400&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=400&fit=crop",
   },
   {
     id: "4",
@@ -61,34 +62,37 @@ const LIBRARY_DATA: LibraryItemData[] = [
     title: "Following My Intuition",
     subtitle: "Craig David",
     type: "album",
-    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop",
   },
   {
     id: "6",
     title: "90's Hip Hop",
     subtitle: "Let's go back in time",
     type: "playlist",
-    image: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop",
   },
   {
     id: "7",
     title: "Imagine Dragons",
     subtitle: "Artist",
     type: "artist",
-    image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&h=400&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&h=400&fit=crop",
   },
 ];
 
 const LibraryItem = ({ item }: { item: LibraryItemData }) => {
   const Icon = item.icon;
-  
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       activeOpacity={0.7}
       className="flex-row items-center px-4 py-2.5"
     >
-      <View 
-        className="w-16 h-16 mr-3.5 overflow-hidden bg-white/5" 
+      <View
+        className="w-16 h-16 mr-3.5 overflow-hidden bg-white/5"
         style={{ borderRadius: item.type === "artist" ? 32 : 10 }}
       >
         {item.gradient ? (
@@ -106,9 +110,12 @@ const LibraryItem = ({ item }: { item: LibraryItemData }) => {
           />
         )}
       </View>
-      
+
       <View className="flex-1 justify-center">
-        <Text className="text-white text-[17px] font-semibold tracking-tight" numberOfLines={1}>
+        <Text
+          className="text-white text-[17px] font-semibold tracking-tight"
+          numberOfLines={1}
+        >
           {item.title}
         </Text>
         {item.subtitle && item.type !== "artist" && (
@@ -117,7 +124,7 @@ const LibraryItem = ({ item }: { item: LibraryItemData }) => {
           </Text>
         )}
       </View>
-      
+
       <TouchableOpacity className="p-2 ml-1">
         <MoreVertical size={20} color="#9ca3af" />
       </TouchableOpacity>
@@ -129,7 +136,9 @@ export default function LibraryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#050505]" edges={["top"]}>
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
-        <Text className="text-white text-[32px] font-bold tracking-tight">Library</Text>
+        <Text className="text-white text-[32px] font-bold tracking-tight">
+          Library
+        </Text>
         <View className="flex-row items-center">
           <TouchableOpacity className="p-2 mr-1">
             <List size={26} color="white" strokeWidth={2.5} />
@@ -139,14 +148,14 @@ export default function LibraryScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <TypedFlashList
         data={LIBRARY_DATA}
         renderItem={({ item }: any) => <LibraryItem item={item} />}
         estimatedItemSize={84}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           paddingBottom: 180, // Space for mini player and tab bar
-          paddingTop: 8 
+          paddingTop: 8,
         }}
       />
     </SafeAreaView>

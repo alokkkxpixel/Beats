@@ -2,8 +2,10 @@ import { FlashList as OriginalFlashList } from "@shopify/flash-list"; // Use sta
 import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { playlists } from "./data";
+import { ALBUMS } from "@/constants/album-data";
+import { useNavigation } from "@react-navigation/native";
 export default function TrendingSection(): React.JSX.Element {
+  const navigation = useNavigation<any>();
   return (
     <View style={styles.container}>
       {/* Section Header */}
@@ -15,16 +17,19 @@ export default function TrendingSection(): React.JSX.Element {
       </View>
 
       <OriginalFlashList
-        data={playlists}
+        data={ALBUMS}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Pressable style={styles.card}>
+          <Pressable
+            style={styles.card}
+            onPress={() => navigation.navigate("album-detail", { albumId: item.id })}
+          >
             <View style={styles.imageContainer}>
               <Image
-                source={{ uri: item.image }}
+                source={{ uri: item.cover }}
                 style={styles.image}
                 contentFit="cover"
                 transition={300}

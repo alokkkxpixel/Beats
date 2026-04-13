@@ -1,4 +1,3 @@
-import "react-native-gesture-handler";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
 import {
@@ -8,7 +7,8 @@ import {
 } from "@react-navigation/native";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../global.css";
@@ -19,6 +19,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  
   const [fontsLoaded] = useFonts({
     "sans-regular": require("../assets/fonts/Inter-Regular.ttf"),
     "sans-bold": require("../assets/fonts/Inter-Bold.ttf"),
@@ -33,17 +34,30 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
   if (!fontsLoaded) return null;
 
+  const customDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: "#050505",
+      card: "#050505",
+    },
+  };
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
+      <ThemeProvider
+        value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
+      >
+        <Stack
+          screenOptions={{
+            contentStyle: { backgroundColor: "#050505" },
+            headerShown: false,
+          }}
+        >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
         </Stack>
 
         <StatusBar style="light" translucent={true} />
