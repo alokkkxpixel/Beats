@@ -1,18 +1,29 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { FastForward, MoreVertical, ThumbsUp } from "lucide-react-native";
 import {
-  FastForward,
-  LayoutGrid,
-  List,
-  MoreVertical,
-  ThumbsUp,
-} from "lucide-react-native";
-import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  interpolateColor,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Header from "../../components/Header";
 
-const TypedFlashList = FlashList as any;
+// ... your other imports
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
+// const TypedFlashList = FlashList as any;
 
 interface LibraryItemData {
   id: string;
@@ -81,6 +92,30 @@ const LIBRARY_DATA: LibraryItemData[] = [
     image:
       "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&h=400&fit=crop",
   },
+  {
+    id: "8",
+    title: "Imagine Dragons",
+    subtitle: "Artist",
+    type: "artist",
+    image:
+      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&h=400&fit=crop",
+  },
+  {
+    id: "9",
+    title: "Rewind '23",
+    subtitle: "What you listened to in 2023",
+    type: "playlist",
+    gradient: ["#8b5cf6", "#ec4899"],
+    icon: FastForward,
+  },
+  {
+    id: "10",
+    title: "Supermix",
+    subtitle: "Ed Sheeran, Rick Astley and more",
+    type: "playlist",
+    image:
+      "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=400&fit=crop",
+  },
 ];
 
 const LibraryItem = ({ item }: { item: LibraryItemData }) => {
@@ -133,31 +168,132 @@ const LibraryItem = ({ item }: { item: LibraryItemData }) => {
 };
 
 export default function LibraryScreen() {
-  return (
-    <SafeAreaView className="flex-1 bg-[#050505]" edges={["top"]}>
-      <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
-        <Text className="text-white text-[32px] font-bold tracking-tight">
-          Library
-        </Text>
-        <View className="flex-row items-center">
-          <TouchableOpacity className="p-2 mr-1">
-            <List size={26} color="white" strokeWidth={2.5} />
-          </TouchableOpacity>
-          <TouchableOpacity className="p-2">
-            <LayoutGrid size={24} color="white" strokeWidth={2.5} />
-          </TouchableOpacity>
-        </View>
-      </View>
+  const insets = useSafeAreaInsets();
+  const HEADER_HEIGHT = 54;
+  const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
 
-      <TypedFlashList
+  const translateY = useSharedValue(0);
+  const scrollY = useSharedValue(0);
+  const lastContentOffset = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      const currentOffset = event.contentOffset.y;
+      scrollY.value = currentOffset;
+
+      const diff = currentOffset - lastContentOffset.value;
+
+      if (currentOffset <= 0) {
+        translateY.value = withTiming(0);
+      } else {
+        translateY.value = Math.max(
+          -TOTAL_HEADER_HEIGHT,
+          Math.min(0, translateY.value - diff),
+        );
+      }
+      lastContentOffset.value = currentOffset;
+    },
+  });
+
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, 50], [1, 0], Extrapolation.CLAMP),
+  }));
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      scrollY.value,
+      [0, 50],
+      ["transparent", "#000000"],
+    );
+
+    return {
+      transform: [{ translateY: translateY.value }],
+      backgroundColor: backgroundColor,
+      opacity: interpolate(
+        translateY.value,
+        [-TOTAL_HEADER_HEIGHT, 0],
+        [0, 1],
+        Extrapolation.CLAMP,
+      ),
+    };
+  });
+
+  return (
+    <View style={[styles.container, { backgroundColor: "#000" }]}>
+      <StatusBar barStyle="light-content" />
+      {/* Wrap glows in Animated.View to fade them out */}
+      <Animated.View style={[StyleSheet.absoluteFill, glowAnimatedStyle]}>
+        <View style={styles.backgroundGlowTop} />
+        <View style={styles.backgroundGlowCenter} />
+      </Animated.View>
+
+      <Animated.View
+        style={[
+          styles.headerWrapper,
+          headerAnimatedStyle,
+          { height: TOTAL_HEADER_HEIGHT, paddingTop: insets.top },
+        ]}
+      >
+        <Header title="Library" />
+      </Animated.View>
+      <AnimatedFlashList
         data={LIBRARY_DATA}
         renderItem={({ item }: any) => <LibraryItem item={item} />}
         estimatedItemSize={84}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         contentContainerStyle={{
-          paddingBottom: 180, // Space for mini player and tab bar
-          paddingTop: 8,
+          paddingTop: TOTAL_HEADER_HEIGHT + 20,
+          paddingBottom: 180,
         }}
+        // ListHeaderComponent={
+        //   <View className="px-4 pt-0 pb-2">
+        //     <View className="flex-row items-center justify-between mt-2">
+        //       <View className="flex-row items-center">
+        //         <TouchableOpacity className="p-2 mr-1">
+        //           <List size={26} color="white" strokeWidth={2.5} />
+        //         </TouchableOpacity>
+        //         <TouchableOpacity className="p-2">
+        //           <LayoutGrid size={24} color="white" strokeWidth={2.5} />
+        //         </TouchableOpacity>
+        //       </View>
+        //     </View>
+        //   </View>
+        // }
       />
-    </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  headerWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    justifyContent: "center",
+  },
+  // ... your existing glow styles remain the same
+  backgroundGlowTop: {
+    position: "absolute",
+    top: -120,
+    right: -40,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: "rgba(165, 42, 42, 0.45)",
+  },
+  backgroundGlowCenter: {
+    position: "absolute",
+    top: 120,
+    left: 140,
+    width: 140,
+    height: 320,
+    borderRadius: 80,
+    backgroundColor: "rgba(255, 166, 77, 0.12)",
+  },
+});

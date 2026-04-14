@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { ArrowUpRight, AudioLines, History, Mic } from "lucide-react-native";
 import React, { useState } from "react";
@@ -37,6 +38,7 @@ const RECENT_SEARCHES: SearchHistoryItem[] = [
 
 export default function SearchScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -67,7 +69,7 @@ export default function SearchScreen() {
         {/* Search Header */}
         <View className="flex-row items-center px-2 py-2 mb-2">
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
             className="p-2 active:opacity-60"
           >
             <Ionicons name="arrow-back" size={26} color="white" />

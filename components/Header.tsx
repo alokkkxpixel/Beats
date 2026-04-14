@@ -14,7 +14,7 @@ import Animated, {
 
 const HEADER_HEIGHT = 40;
 
-export default function App() {
+export default function App({ title }: { title: string }) {
   const router = useRouter();
   const translateY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
@@ -63,8 +63,8 @@ export default function App() {
     <View style={{ flex: 1 }}>
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
-        <View className="flex-row items-center justify-between px-[20px] py-2 w-full">
-          <Text className="text-white font-bold text-2xl">Beats</Text>
+        <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
+          <Text className="text-white font-bold text-3xl">{title}</Text>
 
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>

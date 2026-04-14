@@ -33,6 +33,7 @@ export default function TabLayout() {
   return (
     <View style={styles.container}>
       <Tabs
+        backBehavior="history"
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
           headerShown: false,

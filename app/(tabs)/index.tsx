@@ -99,7 +99,7 @@ export default function Index() {
           { height: TOTAL_HEADER_HEIGHT, paddingTop: insets.top },
         ]}
       >
-        <Header />
+        <Header title="Beats" />
       </Animated.View>
 
       <AnimatedFlashList
@@ -118,9 +118,9 @@ export default function Index() {
           // if (item.type === "speedDial") return <SpeedDialSection />;
           return (
             <>
-              <TrendingSection />;
-              <TrendingSection />;
-              <TrendingSection />;
+              <TrendingSection />
+              <TrendingSection />
+              <TrendingSection />
             </>
           );
         }}
