@@ -39,7 +39,7 @@ const LIBRARY_DATA: LibraryItemData[] = [
     subtitle: "Artist",
     type: "artist",
     image:
-      "https://images.unsplash.com/photo-1514525253361-b83f60d6f5c1?w=400&h=400&fit=crop",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmC-bgMEYLL5bqDyQ4LYqI3eVLaearVecZo3Ngzej7nF9nmLcAa3TDS09J3uy4-2kXrUrS9zZYhhD0NSF7HTkmoGMOhdxZfYBXbd-j6_M&s=10",
   },
   {
     id: "3",
@@ -85,7 +85,6 @@ const LIBRARY_DATA: LibraryItemData[] = [
 
 const LibraryItem = ({ item }: { item: LibraryItemData }) => {
   const Icon = item.icon;
-
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -105,8 +104,9 @@ const LibraryItem = ({ item }: { item: LibraryItemData }) => {
         ) : (
           <Image
             source={{ uri: item.image }}
-            className="w-full h-full"
+            style={{ width: "100%", height: "100%" }}
             contentFit="cover"
+            transition={300}
           />
         )}
       </View>

@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -14,6 +15,7 @@ import Animated, {
 const HEADER_HEIGHT = 40;
 
 export default function App() {
+  const router = useRouter();
   const translateY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
   const isScrolling = useSharedValue(false);
@@ -65,7 +67,7 @@ export default function App() {
           <Text className="text-white font-bold text-2xl">Beats</Text>
 
           <View className="flex-row items-center gap-8">
-            <Pressable onPress={() => console.log("search")}>
+            <Pressable onPress={() => router.push("/search")}>
               <Ionicons name="search" size={20} color="white" />
             </Pressable>
             <Pressable onPress={() => console.log("profile")}>

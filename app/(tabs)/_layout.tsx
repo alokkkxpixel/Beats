@@ -76,6 +76,12 @@ export default function TabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="search"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
 
       {/* Layer 2: Mini Player (only visible when BottomSheet is closed) */}
