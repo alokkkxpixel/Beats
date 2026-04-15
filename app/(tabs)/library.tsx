@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: "rgba(165, 42, 42, 0.45)",
+    // backgroundColor: "rgba(165, 42, 42, 0.45)",
   },
   backgroundGlowCenter: {
     position: "absolute",
@@ -294,6 +294,6 @@ const styles = StyleSheet.create({
     width: 140,
     height: 320,
     borderRadius: 80,
-    backgroundColor: "rgba(255, 166, 77, 0.12)",
+    // backgroundColor: "rgba(255, 166, 77, 0.12)",
   },
 });
