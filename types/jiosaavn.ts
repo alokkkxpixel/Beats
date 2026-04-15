@@ -167,3 +167,24 @@ export interface GetAlbumResponse {
   success: boolean;
   data: AlbumDetail;
 }
+
+export interface PlaylistDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  year: string | number | null;
+  type: string;
+  playCount: number | null;
+  language: string;
+  explicitContent: boolean;
+  songCount: number | null;
+  url: string;
+  image: ImageQuality[];
+  songs: SongDetail[];
+  artists: SongArtistDetails[];
+}
+
+export interface GetPlaylistResponse {
+  success: boolean;
+  data: PlaylistDetail;
+}
