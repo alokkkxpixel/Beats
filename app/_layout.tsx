@@ -12,6 +12,9 @@ import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../global.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -47,21 +50,23 @@ export default function RootLayout() {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
-      <ThemeProvider
-        value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
-      >
-        <Stack
-          screenOptions={{
-            contentStyle: { backgroundColor: "#050505" },
-            headerShown: false,
-          }}
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
         >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+          <Stack
+            screenOptions={{
+              contentStyle: { backgroundColor: "#050505" },
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
 
-        <StatusBar style="light" translucent={true} />
-      </ThemeProvider>
-    </GestureHandlerRootView>
+          <StatusBar style="light" translucent={true} />
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

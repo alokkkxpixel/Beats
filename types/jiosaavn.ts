@@ -188,3 +188,87 @@ export interface GetPlaylistResponse {
   success: boolean;
   data: PlaylistDetail;
 }
+
+// Nested Artist details for the Trending section
+export interface TrendingArtist {
+  id: string;
+  name: string;
+}
+
+// Nested Music details for the New Albums section
+export interface MusicContributor {
+  id: string;
+  name: string;
+}
+
+// Main Trending Item
+export interface TrendingItem {
+  type: string;
+  details: {
+    title: string;
+    secondary_subtitle: string;
+    image: string;
+    albumid: string;
+    release_date: string;
+    song_count: string; // Note: provided as string in your data
+    language: string;
+    perma_url: string;
+    artist: TrendingArtist;
+  };
+  weight: number;
+  language: string;
+}
+
+// Playlist Item
+export interface PlaylistItem {
+  listid: string;
+  secondary_subtitle: string;
+  firstname: string;
+  listname: string;
+  data_type: string;
+  count: number;
+  image: string;
+  sponsored: boolean;
+  perma_url: string;
+  follower_count: string;
+  uid: string;
+  last_updated: number; // Unix timestamp
+}
+
+// New Album Item
+export interface NewAlbumItem {
+  query: string;
+  text: string;
+  year: string;
+  image: string;
+  albumid: string;
+  title: string;
+  Artist: {
+    music: MusicContributor[];
+  };
+  weight: number;
+  language: string;
+}
+
+// New specific type for Chart items
+export interface ChartItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  perma_url: string;
+  more_info: {
+    firstname: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
+// Root Object
+export interface RootResponse {
+  new_trending: TrendingItem[];
+  top_playlists: PlaylistItem[];
+  new_albums: NewAlbumItem[];
+  charts: ChartItem[];
+}

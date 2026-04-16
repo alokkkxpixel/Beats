@@ -2,14 +2,14 @@ import AlbumDetailScreen from "@/components/AlbumDetailScreen";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-import { useAlbum } from "@/src/hooks/useQueries";
-import { transformAlbumToUI } from "@/src/utils/transform";
+import { usePlaylist } from "@/src/hooks/useQueries";
+import { transformPlaylistToUI } from "@/src/utils/transform";
 
-export default function AlbumDetailRoute() {
-  const { albumId } = useLocalSearchParams();
+export default function PlayListDetailRoute() {
+  const { playlistId } = useLocalSearchParams();
   const navigation = useNavigation();
 
-  const { data, isLoading, error } = useAlbum(albumId as string);
+  const { data, isLoading, error } = usePlaylist(playlistId as string);
 
   // Fallback UI for loading
   if (isLoading) {
@@ -24,12 +24,17 @@ export default function AlbumDetailRoute() {
   if (error || !data?.success) {
     return (
       <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ color: "white" }}>{error ? "Error loading album" : "Album not found"}</Text>
+        <Text style={{ color: "white" }}>{error ? "Error loading playlist" : "Playlist not found"}</Text>
       </View>
     );
   }
 
-  const album = transformAlbumToUI(data.data);
+  const playlist = transformPlaylistToUI(data.data);
 
-  return <AlbumDetailScreen route={{ params: { album } } as any} navigation={navigation} />;
+  return (
+    <AlbumDetailScreen
+      route={{ params: { album: playlist } } as any}
+      navigation={navigation}
+    />
+  );
 }

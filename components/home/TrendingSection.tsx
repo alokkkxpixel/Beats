@@ -1,48 +1,105 @@
-import { FlashList as OriginalFlashList } from "@shopify/flash-list"; // Use standard, not Animated
+import { FlashList as OriginalFlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
+import { useNavigation } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ALBUMS } from "@/constants/album-data";
-import { useNavigation } from "@react-navigation/native";
-export default function TrendingSection(): React.JSX.Element {
+
+interface TrendingSectionProps {
+  title: string;
+  data: any[];
+  type: string;
+}
+
+export default function TrendingSection({
+  title,
+  data,
+  type,
+}: TrendingSectionProps): React.JSX.Element {
   const navigation = useNavigation<any>();
+
+  if (!data || data.length === 0) return <></>;
+  // console.log("trending data", data);
+
+  const renderItem = ({ item }: { item: any }) => {
+    let displayTitle = "";
+    let displayImage = "";
+    let displaySubtitle = "";
+    let id = "";
+    let route = "";
+    let routeParamName = "";
+
+    // Normalize different API structures
+    if (type === "trending") {
+      displayTitle = item.details?.title;
+      displayImage = item.details?.image;
+      displaySubtitle = item.details?.secondary_subtitle;
+      id = item.details?.albumid;
+      route = "album-detail";
+      routeParamName = "albumId";
+    } else if (type === "playlists") {
+      displayTitle = item.listname;
+      displayImage = item.image;
+      displaySubtitle = item.secondary_subtitle;
+      id = item.listid;
+      route = "playlist-detail";
+      routeParamName = "playlistId";
+    } else if (type === "albums") {
+      displayTitle = item.title;
+      displayImage = item.image;
+      displaySubtitle = item.text;
+      id = item.albumid;
+      route = "album-detail";
+      routeParamName = "albumId";
+    } else if (type === "charts") {
+      displayTitle = item.title;
+      displayImage = item.image;
+      displaySubtitle = item.subtitle;
+      id = item.id;
+      route = "playlist-detail"; // Charts are usually playlists
+      routeParamName = "playlistId";
+    }
+
+    return (
+      <Pressable
+        style={styles.card}
+        onPress={() => navigation.navigate(route, { [routeParamName]: id })}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: displayImage }}
+            style={styles.image}
+            contentFit="cover"
+            transition={300}
+          />
+        </View>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {displayTitle}
+        </Text>
+        <Text style={styles.description} numberOfLines={2}>
+          {displaySubtitle}
+        </Text>
+      </Pressable>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Section Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Trending Albums</Text>
+        <Text style={styles.title}>{title}</Text>
         <Pressable hitSlop={10}>
           <Text style={styles.moreBtn}>More</Text>
         </Pressable>
       </View>
 
       <OriginalFlashList
-        data={ALBUMS}
+        data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() => navigation.navigate("album-detail", { albumId: item.id })}
-          >
-            <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: item.cover }}
-                style={styles.image}
-                contentFit="cover"
-                transition={300}
-              />
-            </View>
-            <Text style={styles.cardTitle} numberOfLines={1}>
-              {item.title}
-            </Text>
-            <Text style={styles.description} numberOfLines={2}>
-              {item.description}
-            </Text>
-          </Pressable>
-        )}
+        keyExtractor={(item: any, index: number) =>
+          item.id || item.listid || item.albumid || index.toString()
+        }
+        renderItem={renderItem}
       />
     </View>
   );

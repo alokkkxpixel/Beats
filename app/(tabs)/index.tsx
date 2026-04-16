@@ -1,7 +1,8 @@
 import QuickPicksSection from "@/components/home/QuickPicksSection";
+import { useHomeData } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import React from "react";
-import { StatusBar, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -13,7 +14,6 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Header from "../../components/Header";
-import { homeSections } from "../../components/home/data";
 import TrendingSection from "../../components/home/TrendingSection";
 
 // ... your other imports
@@ -25,45 +25,34 @@ export default function Index() {
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
 
   const translateY = useSharedValue(0);
-  const scrollY = useSharedValue(0); // <--- Added to track absolute scroll
+  const scrollY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
 
+  // 1. Fetch Home Data using TanStack Query
+  const { data, isLoading } = useHomeData();
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const currentOffset = event.contentOffset.y;
-
-      // 1. Update absolute scroll for background/header transparency
       scrollY.value = currentOffset;
-
-      // 2. Header Hide/Show Logic
       const diff = currentOffset - lastContentOffset.value;
 
       if (currentOffset <= 0) {
         translateY.value = withTiming(0);
       } else {
         translateY.value = Math.max(
-          -TOTAL_HEADER_HEIGHT, // Use Total height to hide behind notch
+          -TOTAL_HEADER_HEIGHT,
           Math.min(0, translateY.value - diff),
         );
       }
-
       lastContentOffset.value = currentOffset;
     },
   });
 
-  // NEW: Style for the background glows
   const glowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [0, 50], // Fades out completely after 50px of scroll
-      [1, 0],
-      Extrapolation.CLAMP,
-    ),
+    opacity: interpolate(scrollY.value, [0, 50], [1, 0], Extrapolation.CLAMP),
   }));
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
-    // Determine the background color based on scroll position
-    // If scrollY is 0, it's transparent. By 50px scroll, it's solid black.
     const backgroundColor = interpolateColor(
       scrollY.value,
       [0, 50],
@@ -72,7 +61,7 @@ export default function Index() {
 
     return {
       transform: [{ translateY: translateY.value }],
-      backgroundColor: backgroundColor, // Apply the dynamic color here
+      backgroundColor: backgroundColor,
       opacity: interpolate(
         translateY.value,
         [-TOTAL_HEADER_HEIGHT, 0],
@@ -82,11 +71,35 @@ export default function Index() {
     };
   });
 
+  // Loading State
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#000",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="white" />
+      </View>
+    );
+  }
+
+  // Map home data to flat list items
+  const sections = [
+    { id: "quick", title: "Quick Picks", type: "quickPicks" },
+    // { id: 'trending', title: 'New & Trending', type: 'trending', data: data?.new_trending },
+    { id: "playlists", title: "Top Playlists", type: "playlists", data: data },
+    // { id: 'albums', title: 'New Albums', type: 'albums', data: data?.new_albums },
+    // { id: 'charts', title: 'Top Charts', type: 'charts', data: data?.charts },
+  ];
+
   return (
     <View style={[styles.container, { backgroundColor: "#000" }]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Wrap glows in Animated.View to fade them out */}
       <Animated.View style={[StyleSheet.absoluteFill, glowAnimatedStyle]}>
         <View style={styles.backgroundGlowTop} />
         <View style={styles.backgroundGlowCenter} />
@@ -103,7 +116,7 @@ export default function Index() {
       </Animated.View>
 
       <AnimatedFlashList
-        data={homeSections}
+        data={sections}
         estimatedItemSize={320}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -111,17 +124,17 @@ export default function Index() {
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{
           paddingTop: TOTAL_HEADER_HEIGHT,
-          paddingBottom: 40,
+          paddingBottom: 100,
         }}
         renderItem={({ item }: any) => {
           if (item.type === "quickPicks") return <QuickPicksSection />;
-          // if (item.type === "speedDial") return <SpeedDialSection />;
+
           return (
-            <>
-              <TrendingSection />
-              <TrendingSection />
-              <TrendingSection />
-            </>
+            <TrendingSection
+              title={item.title}
+              data={item.data}
+              type={item.type}
+            />
           );
         }}
       />
@@ -141,7 +154,6 @@ const styles = StyleSheet.create({
     zIndex: 100,
     justifyContent: "center",
   },
-  // ... your existing glow styles remain the same
   backgroundGlowTop: {
     position: "absolute",
     top: -120,
