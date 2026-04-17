@@ -101,7 +101,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
         <RNImage
           source={{ uri: highResCover }}
           style={StyleSheet.absoluteFill}
-          blurRadius={50}
+          blurRadius={30}
         />
         <LinearGradient
           colors={[

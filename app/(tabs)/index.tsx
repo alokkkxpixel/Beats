@@ -1,8 +1,15 @@
 import QuickPicksSection from "@/components/home/QuickPicksSection";
 import { useHomeData } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { ActivityIndicator, StatusBar, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image as RNImage,
+  StatusBar,
+  StyleSheet,
+  View,
+} from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -31,13 +38,29 @@ export default function Index() {
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomeData();
 
-  [1, 2, 3, 4, 5, 6, 7].forEach((i) => {
-    console.log(
-      JSON.stringify(
-        data?.newtrending[i].url || data?.newtrending[i].perma_url,
-      ),
-    );
-  });
+  // Time-based background logic
+  const getBackgroundData = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 16) {
+      return {
+        image: require("../../assets/images/morning_default_image.png"),
+        greeting: "Good Morning",
+      };
+    } else if (hour >= 16 && hour < 20) {
+      return {
+        image: require("../../assets/images/evening_bg.jpg"),
+        greeting: "Good Evening",
+      };
+    } else {
+      return {
+        image: require("../../assets/images/night_bg.jpg"),
+        greeting: "Good Night",
+      };
+    }
+  };
+
+  const { image: bgImage, greeting } = getBackgroundData();
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const currentOffset = event.contentOffset.y;
@@ -128,9 +151,29 @@ export default function Index() {
     <View style={[styles.container, { backgroundColor: "#000" }]}>
       <StatusBar barStyle="light-content" />
 
-      <Animated.View style={[StyleSheet.absoluteFill, glowAnimatedStyle]}>
-        <View style={styles.backgroundGlowTop} />
-        <View style={styles.backgroundGlowCenter} />
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          glowAnimatedStyle,
+          { backgroundColor: "#050505" },
+        ]}
+      >
+        <RNImage
+          source={bgImage}
+          style={{ width: "100%", height: 550, position: "absolute", top: 0 }}
+          resizeMode="cover"
+          blurRadius={0}
+        />
+        <LinearGradient
+          colors={[
+            "rgba(0, 0, 0, 0.6)",
+            "rgba(0, 0, 0, 0.7)",
+            "rgba(5, 5, 5, 0.8)",
+            "#050505",
+          ]}
+          locations={[0, 0.4, 0.7, 1]}
+          style={{ width: "100%", height: 600, position: "absolute", top: 0 }}
+        />
       </Animated.View>
 
       <Animated.View
@@ -183,23 +226,5 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 100,
     justifyContent: "center",
-  },
-  backgroundGlowTop: {
-    position: "absolute",
-    top: -120,
-    right: -40,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: "rgba(165, 42, 42, 0.45)",
-  },
-  backgroundGlowCenter: {
-    position: "absolute",
-    top: 120,
-    left: 140,
-    width: 140,
-    height: 320,
-    borderRadius: 80,
-    backgroundColor: "rgba(255, 166, 77, 0.12)",
   },
 });
