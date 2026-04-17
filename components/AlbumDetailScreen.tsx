@@ -35,6 +35,19 @@ const TypedFlashList = FlashList as any;
 const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
   const { album } = route.params;
 
+  // Calculate total duration
+  const totalDurationSeconds = album.songs.reduce(
+    (acc, song) => acc + (song.duration || 0),
+    0,
+  );
+  const formatTotalTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins} min ${secs} sec`;
+  };
+
+  // console.log("album:", JSON.stringify(album, null, 2));
+
   if (!album) {
     return (
       <View
@@ -94,7 +107,10 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
 
           <View style={styles.headerTitleContainer}>
             <View style={styles.headerArtistRow}>
-              <Image source={{ uri: highResCover }} style={styles.headerAvatar} />
+              <Image
+                source={{ uri: highResCover }}
+                style={styles.headerAvatar}
+              />
               <Text style={styles.headerArtist} numberOfLines={1}>
                 {artistName}
               </Text>
@@ -150,6 +166,19 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
                   <MoreVertical color="white" size={24} strokeWidth={1.2} />
                 </TouchableOpacity>
               </View>
+            </View>
+          )}
+          ListFooterComponent={() => (
+            <View style={styles.footerContainer}>
+              <Text style={styles.footerText}>
+                {album.songs.length} songs •{" "}
+                {formatTotalTime(totalDurationSeconds)}
+              </Text>
+              {album.playCount && (
+                <Text style={styles.footerSubText}>
+                  {Number(album.playCount).toLocaleString()} plays
+                </Text>
+              )}
             </View>
           )}
           contentContainerStyle={{ paddingBottom: 150 }}
@@ -314,6 +343,21 @@ const styles = StyleSheet.create({
   },
   trackMore: {
     padding: 4,
+  },
+  footerContainer: {
+    paddingTop: 30,
+    paddingBottom: 60,
+    alignItems: "center",
+  },
+  footerText: {
+    color: "#9ca3af",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  footerSubText: {
+    color: "#6b7280",
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 
