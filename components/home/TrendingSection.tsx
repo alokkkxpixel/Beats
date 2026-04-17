@@ -27,7 +27,19 @@ export default function TrendingSection({
     let routeParamName = "";
     let isLoaded = null;
     let url = "";
-    // console.log("item", item);
+    let artists = "";
+    let itemType = "";
+    let year = "";
+
+    // Extract artist name from various possible locations in JioSaavn API
+    const extractedArtist =
+      item.more_info?.artistMap?.primary_artists?.[0]?.name ||
+      item.more_info?.artistMap?.artists?.[0]?.name ||
+      item.artists?.[0]?.name ||
+      item.artists ||
+      item.subtitle || // Sometimes subtitle contains artist name
+      "";
+
     // Normalize different API structures
     if (type === "trending") {
       id = item?.id;
@@ -35,29 +47,40 @@ export default function TrendingSection({
       displayTitle = item?.title;
       displayImage = item?.image;
       displaySubtitle = item?.subtitle;
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
     } else if (type === "playlists") {
       id = item.listid || item.id;
       url = item?.url || item?.perma_url;
       displayTitle = item.title;
       displayImage = item.image;
       displaySubtitle = item.subtitle;
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
     } else if (type === "albums") {
       id = item.id || item.albumid;
       url = item?.url || item?.perma_url;
       displayTitle = item.title;
       displayImage = item.image;
       displaySubtitle = item.subtitle || item.text;
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
     } else if (type === "charts") {
       id = item.id;
       url = item?.url || item?.perma_url;
       displayTitle = item.title;
       displayImage = item.image;
-      displaySubtitle = item.subtitle;
+      displaySubtitle = item.title;
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
     }
 
     // Smart routing: detect album URLs vs playlist/featured URLs or explicit types
     const isAlbumUrl = url?.includes("/album/");
-    const isSongType = (item.type || item.details?.type) === "song";
 
     if (isAlbumUrl) {
       route = "album-detail";
@@ -66,9 +89,10 @@ export default function TrendingSection({
     }
 
     // Pass BOTH id and url to be safe
-    const navParams = route === "album-detail"
-      ? { albumId: id, albumUrl: url }
-      : { playlistId: id, playlistUrl: url };
+    const navParams =
+      route === "album-detail"
+        ? { albumId: id, albumUrl: url }
+        : { playlistId: id, playlistUrl: url };
 
     return (
       <Pressable
@@ -83,11 +107,24 @@ export default function TrendingSection({
             transition={300}
           />
         </View>
-        <Text style={styles.cardTitle} numberOfLines={1}>
+        <Text
+          style={styles.cardTitle}
+          className="font-sans-medium"
+          numberOfLines={1}
+        >
           {displayTitle}
         </Text>
-        <Text style={styles.description} numberOfLines={2}>
-          {displaySubtitle}
+        <Text
+          style={styles.description}
+          className="font-sans-light"
+          numberOfLines={2}
+        >
+          {displaySubtitle ||
+            (itemType && artists ? `${itemType} • ${artists}` : "") ||
+            (year && artists ? `${year} • ${artists}` : "") ||
+            itemType ||
+            year ||
+            ""}
         </Text>
       </Pressable>
     );

@@ -31,8 +31,12 @@ export default function Index() {
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomeData();
 
-  [1,2,3,4,5,6,7].forEach((i) => {
-    console.log(JSON.stringify(data?.newtrending[i].url || data?.newtrending[i].perma_url));
+  [1, 2, 3, 4, 5, 6, 7].forEach((i) => {
+    console.log(
+      JSON.stringify(
+        data?.newtrending[i].url || data?.newtrending[i].perma_url,
+      ),
+    );
   });
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -148,7 +152,7 @@ export default function Index() {
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{
           paddingTop: TOTAL_HEADER_HEIGHT,
-          paddingBottom: 100,
+          paddingBottom: 250,
         }}
         renderItem={({ item }: any) => {
           if (item.type === "quickPicks")
@@ -162,6 +166,7 @@ export default function Index() {
             />
           );
         }}
+        //  contentContainerStyle={{ paddingBottom: 150 }}
       />
     </View>
   );

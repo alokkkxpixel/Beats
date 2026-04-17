@@ -14,6 +14,7 @@ import {
 import React from "react";
 import {
   ActivityIndicator,
+  Image as RNImage,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -93,10 +94,18 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
   return (
     <View style={styles.container}>
       {/* Background Mood Gradient */}
-      <LinearGradient
-        colors={["rgba(255, 0, 0, 0.15)", "transparent"]}
-        style={StyleSheet.absoluteFill}
-      />
+      {/* Dynamic Blurred Background */}
+      <View style={StyleSheet.absoluteFill}>
+        <RNImage
+          source={{ uri: highResCover }}
+          style={StyleSheet.absoluteFill}
+          blurRadius={70} // High blur for that aesthetic feel
+        />
+        <LinearGradient
+          colors={["rgba(0,0,0,0.3)", "rgba(5,5,5,0.8)", "#050505"]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
       <SafeAreaView style={{ flex: 1 }}>
         {/* HEADER */}
@@ -245,7 +254,7 @@ const styles = StyleSheet.create({
   mainTitle: {
     color: "white",
     fontSize: 32,
-    fontWeight: "800",
+    fontWeight: "500",
     textAlign: "center",
     paddingHorizontal: 24,
     lineHeight: 38,
