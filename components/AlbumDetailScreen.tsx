@@ -94,15 +94,22 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
   return (
     <View style={styles.container}>
       {/* Background Mood Gradient */}
-      {/* Dynamic Blurred Background */}
-      <View style={StyleSheet.absoluteFill}>
+      {/* Top Blurred Backdrop */}
+      <View
+        style={{ height: 450, position: "absolute", top: 0, left: 0, right: 0 }}
+      >
         <RNImage
           source={{ uri: highResCover }}
           style={StyleSheet.absoluteFill}
-          blurRadius={70} // High blur for that aesthetic feel
+          blurRadius={50}
         />
         <LinearGradient
-          colors={["rgba(0,0,0,0.3)", "rgba(5,5,5,0.8)", "#050505"]}
+          colors={[
+            "rgba(5,5,5,0.2)",
+            "rgba(5,5,5,0.5)",
+            "rgba(5,5,5,0.8)",
+            "#050505",
+          ]}
           style={StyleSheet.absoluteFill}
         />
       </View>
