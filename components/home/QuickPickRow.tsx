@@ -16,8 +16,12 @@ export default function QuickPickRow({
     <Pressable style={styles.row}>
       <Image source={{ uri: item.cover }} style={styles.cover} />
       <View style={styles.meta}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.artist}>{item.artist}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.artist} numberOfLines={1}>
+          {item.artist}
+        </Text>
       </View>
       <View style={styles.menu}>
         <Ionicons name="ellipsis-vertical" size={20} color="#A3A3A3" />

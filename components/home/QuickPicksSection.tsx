@@ -58,21 +58,44 @@ import QuickPickRow from "./QuickPickRow";
 //     </View>
 //   );
 // }
-export default function QuickPicksSection() {
+interface QuickPicksSectionProps {
+  data?: any[];
+}
+
+export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
   const { width: screenWidth } = useWindowDimensions();
 
   const padding = 16;
   const columnGap = 12;
-
   const columnWidth = screenWidth * 0.9;
   const snapInterval = columnWidth + columnGap;
+
+  // 1. Group the flat list into columns of 4
+  const columns = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    // Normalize and chunk
+    const normalized = data.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      artist: item.subtitle || item.artist || "Unknown Artist",
+      cover: item.image || item.cover,
+    }));
+
+    const chunks = [];
+    for (let i = 0; i < normalized.length; i += 4) {
+      chunks.push(normalized.slice(i, i + 4));
+    }
+    return chunks;
+  }, [data]);
+
+  if (columns.length === 0) return <></>;
 
   return (
     <View style={styles.section}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.heading}>Quick picks</Text>
-
         <Pressable style={styles.playAllButton}>
           <Text style={styles.playAllText}>Play all</Text>
         </Pressable>
@@ -80,15 +103,12 @@ export default function QuickPicksSection() {
 
       {/* Horizontal Rail */}
       <FlatList
-        data={quickPickColumns}
+        data={columns}
         horizontal
         showsHorizontalScrollIndicator={false}
-        // estimatedItemSize={columnWidth}
         snapToInterval={snapInterval}
-        // snapToInterval={snapInterval} // Item width + margin
         snapToAlignment="start"
         decelerationRate="fast"
-        // decelerationRate="fast"
         contentContainerStyle={{ paddingLeft: padding }}
         keyExtractor={(_, index) => `quick-column-${index}`}
         renderItem={({ item }) => (
@@ -107,6 +127,7 @@ export default function QuickPicksSection() {
     </View>
   );
 }
+
 
 // const styles = StyleSheet.create({
 //   section: {

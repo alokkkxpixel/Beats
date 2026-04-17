@@ -3,7 +3,6 @@ import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-
 interface TrendingSectionProps {
   title: string;
   data: any[];
@@ -16,9 +15,8 @@ export default function TrendingSection({
   type,
 }: TrendingSectionProps): React.JSX.Element {
   const navigation = useNavigation<any>();
-
   if (!data || data.length === 0) return <></>;
-  // console.log("trending data", data);
+  // console.log("new data", data.newReleases as any[]);
 
   const renderItem = ({ item }: { item: any }) => {
     let displayTitle = "";
@@ -27,42 +25,55 @@ export default function TrendingSection({
     let id = "";
     let route = "";
     let routeParamName = "";
-
+    let isLoaded = null;
+    let url = "";
+    // console.log("item", item);
     // Normalize different API structures
     if (type === "trending") {
-      displayTitle = item.details?.title;
-      displayImage = item.details?.image;
-      displaySubtitle = item.details?.secondary_subtitle;
-      id = item.details?.albumid;
-      route = "album-detail";
-      routeParamName = "albumId";
+      id = item?.id;
+      url = item?.url || item?.perma_url;
+      displayTitle = item?.title;
+      displayImage = item?.image;
+      displaySubtitle = item?.subtitle;
     } else if (type === "playlists") {
-      displayTitle = item.listname;
-      displayImage = item.image;
-      displaySubtitle = item.secondary_subtitle;
-      id = item.listid;
-      route = "playlist-detail";
-      routeParamName = "playlistId";
-    } else if (type === "albums") {
-      displayTitle = item.title;
-      displayImage = item.image;
-      displaySubtitle = item.text;
-      id = item.albumid;
-      route = "album-detail";
-      routeParamName = "albumId";
-    } else if (type === "charts") {
+      id = item.listid || item.id;
+      url = item?.url || item?.perma_url;
       displayTitle = item.title;
       displayImage = item.image;
       displaySubtitle = item.subtitle;
+    } else if (type === "albums") {
+      id = item.id || item.albumid;
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title;
+      displayImage = item.image;
+      displaySubtitle = item.subtitle || item.text;
+    } else if (type === "charts") {
       id = item.id;
-      route = "playlist-detail"; // Charts are usually playlists
-      routeParamName = "playlistId";
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title;
+      displayImage = item.image;
+      displaySubtitle = item.subtitle;
     }
+
+    // Smart routing: detect album URLs vs playlist/featured URLs or explicit types
+    const isAlbumUrl = url?.includes("/album/");
+    const isSongType = (item.type || item.details?.type) === "song";
+
+    if (isAlbumUrl) {
+      route = "album-detail";
+    } else {
+      route = "playlist-detail";
+    }
+
+    // Pass BOTH id and url to be safe
+    const navParams = route === "album-detail"
+      ? { albumId: id, albumUrl: url }
+      : { playlistId: id, playlistUrl: url };
 
     return (
       <Pressable
         style={styles.card}
-        onPress={() => navigation.navigate(route, { [routeParamName]: id })}
+        onPress={() => navigation.navigate(route, navParams)}
       >
         <View style={styles.imageContainer}>
           <Image
@@ -85,7 +96,9 @@ export default function TrendingSection({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title} className="font-sans-light">
+          {title}
+        </Text>
         <Pressable hitSlop={10}>
           <Text style={styles.moreBtn}>More</Text>
         </Pressable>

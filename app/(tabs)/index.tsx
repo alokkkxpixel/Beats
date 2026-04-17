@@ -30,6 +30,10 @@ export default function Index() {
 
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomeData();
+
+  [1,2,3,4,5,6,7].forEach((i) => {
+    console.log(JSON.stringify(data?.newtrending[i].url || data?.newtrending[i].perma_url));
+  });
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const currentOffset = event.contentOffset.y;
@@ -89,11 +93,31 @@ export default function Index() {
 
   // Map home data to flat list items
   const sections = [
-    { id: "quick", title: "Quick Picks", type: "quickPicks" },
-    // { id: 'trending', title: 'New & Trending', type: 'trending', data: data?.new_trending },
-    { id: "playlists", title: "Top Playlists", type: "playlists", data: data },
-    // { id: 'albums', title: 'New Albums', type: 'albums', data: data?.new_albums },
-    // { id: 'charts', title: 'Top Charts', type: 'charts', data: data?.charts },
+    {
+      id: "quick",
+      title: "Quick Picks",
+      type: "quickPicks",
+      data: data?.quick_picks,
+    },
+    {
+      id: "trending",
+      title: "New & Trending",
+      type: "trending",
+      data: data?.newtrending,
+    },
+    {
+      id: "playlists",
+      title: "Top Playlists",
+      type: "playlists",
+      data: data?.topPlaylists,
+    },
+    {
+      id: "albums",
+      title: "New Releases",
+      type: "albums",
+      data: data?.newreleases,
+    },
+    { id: "charts", title: "Top Charts", type: "charts", data: data?.charts },
   ];
 
   return (
@@ -127,7 +151,8 @@ export default function Index() {
           paddingBottom: 100,
         }}
         renderItem={({ item }: any) => {
-          if (item.type === "quickPicks") return <QuickPicksSection />;
+          if (item.type === "quickPicks")
+            return <QuickPicksSection data={item.data} />;
 
           return (
             <TrendingSection

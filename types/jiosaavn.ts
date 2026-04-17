@@ -32,7 +32,7 @@ export interface SongDetail {
   id: string;
   name: string;
   type: string;
-  year: string | number | null; 
+  year: string | number | null;
   releaseDate: string | null;
   duration: number | null;
   label: string | null;
@@ -116,11 +116,10 @@ export interface GlobalSearchData {
     position: number;
   };
   topQuery: {
-    results: SearchSong[]; 
+    results: SearchSong[];
     position: number;
   };
 }
-
 
 // ----------------------------------------------------
 // 3. FULL ENDPOINT RESPONSE TYPES
@@ -144,7 +143,7 @@ export interface SearchSongsResponse {
 
 export interface GetSongsResponse {
   success: boolean;
-  data: SongDetail[]; 
+  data: SongDetail[];
 }
 
 export interface AlbumDetail {
@@ -160,7 +159,7 @@ export interface AlbumDetail {
   songCount: number | null;
   url: string;
   image: ImageQuality[];
-  songs: SongDetail[]; 
+  songs: SongDetail[];
 }
 
 export interface GetAlbumResponse {
@@ -191,8 +190,12 @@ export interface GetPlaylistResponse {
 
 // Nested Artist details for the Trending section
 export interface TrendingArtist {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
+  role?: string;
+  type?: string;
+  image?: ImageQuality[] | string;
+  url?: string;
 }
 
 // Nested Music details for the New Albums section
@@ -235,19 +238,108 @@ export interface PlaylistItem {
   last_updated: number; // Unix timestamp
 }
 
+// Common types
+export interface Image {
+  quality: string;
+  url: string;
+}
+
+export interface DownloadUrl {
+  quality: string;
+  url: string;
+}
+
+export interface Artist {
+  id: string;
+  name: string;
+  role: string;
+  image: Image[];
+  type: "artist";
+  url: string;
+}
+
+export interface ArtistGroup {
+  primary: Artist[];
+  featured: Artist[];
+  all: Artist[];
+}
+
+// Album (light version used inside song)
+export interface AlbumRef {
+  id: string;
+  name: string;
+  url: string;
+}
+
+// Song type
+export interface Song {
+  id: string;
+  name: string;
+  type: "song";
+  year: string;
+  releaseDate: string;
+  duration: number;
+  label: string;
+  explicitContent: boolean;
+  playCount: number | null;
+  language: string;
+  hasLyrics: boolean;
+  lyricsId: string | null;
+  url: string;
+  copyright: string;
+
+  album: AlbumRef;
+  artists: ArtistGroup;
+
+  image: Image[];
+  downloadUrl: DownloadUrl[];
+}
+
+// Main Album type
+export interface AlbumResponse {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  type: "album" | "playlist";
+  year: number | string;
+  playCount: number | null;
+  language: string;
+  explicitContent: boolean;
+  url: string;
+  songCount: number;
+
+  artists?: ArtistGroup;
+  image: Image[];
+  songs: Song[];
+}
+
+// Root response
+// export interface AlbumResponse {
+//   data: Album;
+// }
+
 // New Album Item
 export interface NewAlbumItem {
   query: string;
   text: string;
+  id: string;
   year: string;
   image: string;
   albumid: string;
   title: string;
-  Artist: {
+  description?: string;
+  subtitle?: string;
+  url?: string;
+  artists: {
     music: MusicContributor[];
   };
   weight: number;
-  language: string;
+  play_count?: string;
+  language?: string;
+  song_count?: string;
+  explicit_content?: string;
+  songs: [];
 }
 
 // New specific type for Chart items
@@ -265,10 +357,111 @@ export interface ChartItem {
   mini_obj: boolean;
   language: string;
 }
+
+export interface NewRelease {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count: string;
+  song_count?: string;
+
+  more_info: {
+    firstname?: string;
+    song_count?: string;
+    artistMap: {
+      primary?: TrendingArtist[];
+      featured?: TrendingArtist[];
+      all?: TrendingArtist[];
+      artists?: TrendingArtist[];
+    };
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
+export interface TopPlaylists {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count?: string;
+  more_info: {
+    firstname?: string;
+    song_count?: string;
+    follower_count?: string;
+    last_updated?: number | string;
+    uid?: string;
+    artistMap?: {
+      primary?: TrendingArtist[];
+      featured?: TrendingArtist[];
+      all?: TrendingArtist[];
+      artists?: TrendingArtist[];
+    };
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
+
+export interface Charts {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+
+  url: string;
+  count?: string;
+  more_info: {
+    firstname?: string;
+  };
+  explicit_content?: string; // "0" for false, "1" for true
+  mini_obj?: boolean;
+  language?: string;
+}
+export interface NewTrending {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count?: string;
+  song_count?: string;
+  year?: string;
+  perma_url?: string;
+  more_info: {
+    firstname?: string;
+    song_count?: string;
+    follower_count?: string;
+    last_updated?: number | string;
+    uid?: string;
+    artistMap?: {
+      primary?: TrendingArtist[];
+      featured?: TrendingArtist[];
+      all?: TrendingArtist[];
+      artists?: TrendingArtist[];
+    };
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
+
 // Root Object
+
 export interface RootResponse {
-  new_trending: TrendingItem[];
-  top_playlists: PlaylistItem[];
-  new_albums: NewAlbumItem[];
-  charts: ChartItem[];
+  newtrending: NewTrending[];
+  topPlaylists: TopPlaylists[];
+  newreleases: NewRelease[];
+  quick_picks: any[];
+  charts: Charts[];
 }

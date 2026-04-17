@@ -3,9 +3,11 @@ import {
   GetAlbumResponse,
   GetPlaylistResponse,
   GlobalSearchResponse,
+  RootResponse,
   SearchSongsResponse,
 } from "../../types/jiosaavn";
-const BASE_URL = "https://saavn.sumit.co/api";
+const BASE_URL =
+  "https://jiosaavn-c451wwyru-sumit-kolhes-projects-94a4846a.vercel.app/api";
 const API_SERVER =
   "https://jiosaavn-c451wwyru-sumit-kolhes-projects-94a4846a.vercel.app";
 
@@ -43,15 +45,15 @@ export const jioSaavnService = {
 };
 
 export const SaavnService = {
-  async getHomePreviews(languages: string[]): Promise<any[]> {
+  async getHomePreviews(languages: string[]): Promise<RootResponse> {
+    const EMPTY: RootResponse = {
+      newtrending: [],
+      topPlaylists: [],
+      newreleases: [],
+      quick_picks: [],
+      charts: [],
+    };
     try {
-      // ROOT CAUSE: JioSaavn's server sends `Set-Cookie: L=hindi` on first response
-      // (based on India IP geolocation). Android's OkHttp cookie jar stores this and
-      // re-injects L=hindi on every subsequent request, overriding any L=english we send.
-      //
-      // FIX: Use `credentials: "omit"` — this tells OkHttp to NOT consult its cookie jar
-      // for this request. We then manually set the `cookie` header with our desired language.
-      // Confirmed: p_langs URL param is completely ignored by JioSaavn's server.
       const langCookie = languages.map((l) => l.toLowerCase()).join(",");
 
       const url =
@@ -60,7 +62,7 @@ export const SaavnService = {
 
       const response = await fetch(url, {
         method: "GET",
-        credentials: "omit", // Prevents OkHttp/URLSession from injecting stored L=hindi cookie
+        credentials: "omit",
         headers: {
           cookie: `L=${langCookie}; DL=english;`,
           "User-Agent":
@@ -71,53 +73,102 @@ export const SaavnService = {
       });
 
       const json = await response.json();
-      console.log("First playlist:", json.top_playlists?.[0]?.title);
-      const topPlaylists = json?.top_playlists || [];
+      const rawTopPlaylists: any[] = json?.top_playlists || [];
+      const rawNewAlbums: any[] = json?.new_albums || [];
+      const rawNewTrending: any[] = json?.new_trending || [];
+      const rawCharts: any[] = json?.charts || [];
 
-      if (!topPlaylists.length) {
-        return [];
-      }
-
-      const data = topPlaylists.map((item: any) => {
+      const mapImage = (item: any) => {
         let imageUrl = item.image || "";
-        if (imageUrl.includes("150x150")) {
+        if (imageUrl.includes("150x150"))
           imageUrl = imageUrl.replace("150x150", "500x500");
-        } else if (!imageUrl.includes("500x500")) {
+        else if (!imageUrl.includes("500x500"))
           imageUrl = imageUrl.replace(".jpg", "_500x500.jpg");
-        }
+        return imageUrl;
+      };
 
-        return {
-          url: item.perma_url,
-          image: imageUrl,
-          title: item.title || "Untitled Playlist",
-          subtitle: item.subtitle || "Featured Playlist",
-          isLoaded: false,
-        };
+      const quick_picks: any[] = [];
+
+      // 1. Process New Releases (Songs -> QuickPicks, Albums -> NewReleases)
+      const new_releases: any[] = [];
+      rawNewAlbums.forEach((item: any) => {
+        const upgraded = { ...item, url: item.perma_url, image: mapImage(item) };
+        if (item.type === "song") {
+          quick_picks.push(upgraded);
+        } else {
+          new_releases.push(upgraded);
+        }
       });
 
-      const uniqueData = Array.from(
-        new Map(data.map((item: any) => [item.url, item])).values(),
-      );
+      // 2. Process Trending (Songs -> QuickPicks, Others -> Trending)
+      const new_trending: any[] = [];
+      rawNewTrending.forEach((item: any) => {
+        // Handle both flat and nested structures
+        const target = item.details || item;
+        const upgraded = {
+          ...item,
+          details: item.details ? { ...item.details, image: mapImage(item.details) } : undefined,
+          image: !item.details ? mapImage(item) : item.image,
+          url: target.perma_url || item.url,
+        };
+
+        const type = target.type || item.type;
+        if (type === "song") {
+          quick_picks.push(upgraded.details || upgraded);
+        } else {
+          new_trending.push(upgraded);
+        }
+      });
+
+      const top_playlists = rawTopPlaylists.map((item: any) => ({
+        ...item,
+        url: item.perma_url,
+        image: mapImage(item),
+      }));
 
       console.log(
-        `✅ Successfully fetched ${uniqueData.length} valid playlists`,
+        `✅ top_playlists: ${top_playlists.length}, new_releases: ${new_releases.length}, trending: ${new_trending.length}, quick_picks: ${quick_picks.length}`,
       );
-      return uniqueData;
+
+      return {
+        newtrending: new_trending,
+        topPlaylists: top_playlists,
+        newreleases: new_releases,
+        quick_picks: quick_picks,
+        charts: rawCharts,
+      };
     } catch (error) {
       console.error("❌ API Fetch Error:", error);
-      return [];
+      return EMPTY;
     }
   },
 
-  async getPlaylistDetails(playlistUrl: string): Promise<any> {
+
+  async getPlaylistDetails(
+    playlistId: string | null,
+    playlistUrl: string,
+  ): Promise<any> {
     try {
       const response = await fetch(
-        `${API_SERVER}/api/playlists?link=${playlistUrl}`,
+        `${API_SERVER}/api/playlists?id=${playlistId}&link=${playlistUrl}`,
       );
       const json = await response.json();
       return json.success ? json.data : null;
     } catch (error) {
       console.error("Detail fetch failed:", error);
+      return null;
+    }
+  },
+
+  async getAlbumDetails(albumUrl: string): Promise<any> {
+    try {
+      const response = await fetch(
+        `${API_SERVER}/api/albums?link=${albumUrl}`,
+      );
+      const json = await response.json();
+      return json.success ? json.data : null;
+    } catch (error) {
+      console.error("Album detail fetch failed:", error);
       return null;
     }
   },

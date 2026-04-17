@@ -1,4 +1,4 @@
-import { Album, Track } from "@/constants/album-data";
+import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -24,7 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 interface AlbumDetailProps {
   route: {
     params: {
-      album: Album;
+      album: AlbumResponse;
     };
   };
   navigation: any;
@@ -34,7 +34,6 @@ const TypedFlashList = FlashList as any;
 
 const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
   const { album } = route.params;
-  //   console.log(album);
 
   if (!album) {
     return (
@@ -49,22 +48,26 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
     );
   }
 
-  const renderTrack = ({ item, index }: { item: Track; index: number }) => (
+  const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
+  const highResCover = album.image?.[album.image?.length - 1]?.url || "";
+
+  const renderTrack = ({ item, index }: { item: Song; index: number }) => (
     <TouchableOpacity activeOpacity={0.7} style={styles.trackItem}>
       <Text style={styles.trackIndex}>{index + 1}</Text>
       <View style={styles.trackInfo}>
         <Text style={styles.trackTitle} numberOfLines={1}>
-          {item.title}
+          {item.name}
         </Text>
         <View style={styles.trackSubRow}>
-          {/* Mocking explicit badge for UI fidelity */}
-          {(index < 2 || item.id.includes("t9")) && (
+          {item.explicitContent && (
             <View style={styles.explicitBadge}>
               <Text style={styles.explicitText}>E</Text>
             </View>
           )}
           <Text style={styles.trackSub} numberOfLines={1}>
-            {item.artist} • {item.duration} • {item.plays}
+            {item.artists?.primary?.[0]?.name || artistName} •{" "}
+            {(item.duration / 60).toFixed(2)} •{" "}
+            {item.playCount ? (item.playCount / 1000000).toFixed(1) + "M" : "0"}
           </Text>
         </View>
       </View>
@@ -91,15 +94,14 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
 
           <View style={styles.headerTitleContainer}>
             <View style={styles.headerArtistRow}>
-              <Image
-                source={{ uri: album.cover }}
-                style={styles.headerAvatar}
-              />
+              <Image source={{ uri: highResCover }} style={styles.headerAvatar} />
               <Text style={styles.headerArtist} numberOfLines={1}>
-                {album.artist}
+                {artistName}
               </Text>
             </View>
-            <Text style={styles.headerSubtitle}>Album • {album.year}</Text>
+            <Text style={styles.headerSubtitle}>
+              {album.type} • {album.year}
+            </Text>
           </View>
 
           <TouchableOpacity className="p-2">
@@ -108,20 +110,20 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
         </View>
 
         <TypedFlashList
-          data={album.tracks}
+          data={album.songs}
           renderItem={renderTrack}
           estimatedItemSize={70}
-          keyExtractor={(item: Track) => item.id}
+          keyExtractor={(item: Song) => item.id}
           ListHeaderComponent={() => (
             <View style={styles.listHeader}>
               <Image
-                source={{ uri: album.cover }}
+                source={{ uri: highResCover }}
                 style={styles.mainCover}
                 contentFit="cover"
                 transition={500}
               />
 
-              <Text style={styles.mainTitle}>{album.title}</Text>
+              <Text style={styles.mainTitle}>{album.name || album.title}</Text>
 
               <View style={styles.descriptionContainer}>
                 <Text style={styles.descriptionText} numberOfLines={2}>

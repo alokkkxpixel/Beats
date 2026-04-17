@@ -6,12 +6,20 @@ import { usePlaylist } from "@/src/hooks/useQueries";
 import { transformPlaylistToUI } from "@/src/utils/transform";
 
 export default function PlayListDetailRoute() {
-  const { playlistId } = useLocalSearchParams();
+  const { playlistId, playlistUrl } = useLocalSearchParams<{
+    playlistId?: string;
+    playlistUrl?: string;
+  }>();
   const navigation = useNavigation();
 
-  const { data, isLoading, error } = usePlaylist(playlistId as string);
+  // usePlaylist handles both cases:
+  // - playlistId  → fetch by id  (jioSaavnService.getPlaylistById)
+  // - playlistUrl → fetch by url (SaavnService.getPlaylistDetails via Vercel)
+  const { data, isLoading, error } = usePlaylist(
+    playlistId ?? null,
+    playlistUrl ?? null,
+  );
 
-  // Fallback UI for loading
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: "#050505", justifyContent: "center", alignItems: "center" }}>
@@ -20,16 +28,20 @@ export default function PlayListDetailRoute() {
     );
   }
 
-  // Fallback UI for error or not found
-  if (error || !data?.success) {
+  if (error || !data) {
     return (
       <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ color: "white" }}>{error ? "Error loading playlist" : "Playlist not found"}</Text>
+        <Text style={{ color: "white" }}>
+          {error ? "Error loading playlist" : "Playlist not found"}
+        </Text>
       </View>
     );
   }
 
-  const playlist = transformPlaylistToUI(data.data);
+  // getPlaylistById returns { success, data: {...} }
+  // getPlaylistDetails (URL-based) returns the playlist object directly
+  const rawPlaylist = data?.data ?? data;
+  const playlist = transformPlaylistToUI(rawPlaylist);
 
   return (
     <AlbumDetailScreen
