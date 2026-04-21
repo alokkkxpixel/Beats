@@ -9,26 +9,28 @@ import { Compass, Home, Library } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const [isPlaying, setIsPlaying] = useState(true);
+  const { isFullPlayerOpen, minimizeFullPlayer, expandFullPlayer } = usePlayerStore();
   const tabBarHeight = 55 + insets.bottom;
-  const { height } = useWindowDimensions();
-  const sheetRef = useRef<BottomSheet>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  // const snapPoints = useMemo(() => [height], [height]);
   const snapPoints = ["100%"];
 
-  const handleOpenSheet = useCallback((index: number) => {
-    sheetRef.current?.expand();
-    setIsOpen(true);
-  }, []);
+  const sheetRef = useRef<BottomSheet>(null);
+
+  // Sync BottomSheet with Zustand state
+  React.useEffect(() => {
+    if (isFullPlayerOpen) {
+      sheetRef.current?.expand();
+    } else {
+      sheetRef.current?.close();
+    }
+  }, [isFullPlayerOpen]);
 
   const handleCloseSheet = useCallback(() => {
-    sheetRef.current?.close();
-    setIsOpen(false);
-  }, []);
+    minimizeFullPlayer();
+  }, [minimizeFullPlayer]);
 
   return (
     <View style={styles.container}>
@@ -94,7 +96,7 @@ export default function TabLayout() {
       {/* Layer 2: Mini Player (only visible when BottomSheet is closed) */}
 
       <Pressable
-        onPress={() => handleOpenSheet(0)}
+        onPress={() => expandFullPlayer()}
         className="absolute w-full bg-red-500 z-50 h-20"
         style={{ bottom: tabBarHeight }}
       >
@@ -116,7 +118,7 @@ export default function TabLayout() {
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           }}
-          onClose={() => setIsOpen(false)}
+          onClose={() => minimizeFullPlayer()}
           handleComponent={null}
         >
           <BottomSheetScrollView

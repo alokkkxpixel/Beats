@@ -231,7 +231,7 @@ export default function LibraryScreen() {
         style={[
           styles.headerWrapper,
           headerAnimatedStyle,
-          { height: TOTAL_HEADER_HEIGHT, paddingTop: insets.top },
+          { height: HEADER_HEIGHT, paddingTop: insets.top },
         ]}
       >
         <Header title="Library" />

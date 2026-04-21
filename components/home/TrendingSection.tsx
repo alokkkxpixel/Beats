@@ -3,6 +3,9 @@ import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 interface TrendingSectionProps {
   title: string;
   data: any[];
@@ -15,6 +18,7 @@ export default function TrendingSection({
   type,
 }: TrendingSectionProps): React.JSX.Element {
   const navigation = useNavigation<any>();
+  const { setCurrentTrack } = usePlayerStore();
   if (!data || data.length === 0) return <></>;
   // console.log("new data", data.newReleases as any[]);
 
@@ -94,11 +98,19 @@ export default function TrendingSection({
         ? { albumId: id, albumUrl: url }
         : { playlistId: id, playlistUrl: url };
 
+    const handlePress = async () => {
+      if (itemType === "song") {
+        const response = await jioSaavnService.getSongByIdandLink(id, url);
+        if (response.success && response.data[0]) {
+          setCurrentTrack(response.data[0]);
+        }
+      } else {
+        navigation.navigate(route, navParams);
+      }
+    };
+
     return (
-      <Pressable
-        style={styles.card}
-        onPress={() => navigation.navigate(route, navParams)}
-      >
+      <Pressable style={styles.card} onPress={handlePress}>
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: displayImage }}

@@ -28,8 +28,16 @@ export const jioSaavnService = {
     return response.json();
   },
 
-  getSongById: async (ids: string): Promise<any> => {
-    const response = await fetch(`${BASE_URL}/songs?ids=${ids}`);
+  getSongByIdandLink: async (ids: string, link?: string): Promise<any> => {
+    // Construct the base URL
+    let url = `${BASE_URL}/songs?ids=${ids}`;
+
+    // Only append link if it's actually provided
+    if (link) {
+      url += `&link=${link}`;
+    }
+
+    const response = await fetch(url);
     return response.json();
   },
 
@@ -92,7 +100,11 @@ export const SaavnService = {
       // 1. Process New Releases (Songs -> QuickPicks, Albums -> NewReleases)
       const new_releases: any[] = [];
       rawNewAlbums.forEach((item: any) => {
-        const upgraded = { ...item, url: item.perma_url, image: mapImage(item) };
+        const upgraded = {
+          ...item,
+          url: item.perma_url,
+          image: mapImage(item),
+        };
         if (item.type === "song") {
           quick_picks.push(upgraded);
         } else {
@@ -107,7 +119,9 @@ export const SaavnService = {
         const target = item.details || item;
         const upgraded = {
           ...item,
-          details: item.details ? { ...item.details, image: mapImage(item.details) } : undefined,
+          details: item.details
+            ? { ...item.details, image: mapImage(item.details) }
+            : undefined,
           image: !item.details ? mapImage(item) : item.image,
           url: target.perma_url || item.url,
         };
@@ -129,7 +143,8 @@ export const SaavnService = {
       console.log(
         `✅ top_playlists: ${top_playlists.length}, new_releases: ${new_releases.length}, trending: ${new_trending.length}, quick_picks: ${quick_picks.length}`,
       );
-    
+
+      console.log("quick songs", quick_picks[0]);
       return {
         newtrending: new_trending,
         topPlaylists: top_playlists,
@@ -142,7 +157,6 @@ export const SaavnService = {
       return EMPTY;
     }
   },
-
 
   async getPlaylistDetails(
     playlistId: string | null,
@@ -162,9 +176,7 @@ export const SaavnService = {
 
   async getAlbumDetails(albumUrl: string): Promise<any> {
     try {
-      const response = await fetch(
-        `${API_SERVER}/api/albums?link=${albumUrl}`,
-      );
+      const response = await fetch(`${API_SERVER}/api/albums?link=${albumUrl}`);
       const json = await response.json();
       return json.success ? json.data : null;
     } catch (error) {

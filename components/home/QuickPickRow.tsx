@@ -3,6 +3,8 @@ import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { QuickPick } from "./types";
 
 type QuickPickRowProps = {
@@ -12,8 +14,17 @@ type QuickPickRowProps = {
 export default function QuickPickRow({
   item,
 }: QuickPickRowProps): React.JSX.Element {
+  const { setCurrentTrack } = usePlayerStore();
+
+  const handlePlay = async (id: string, link?: string) => {
+    const response = await jioSaavnService.getSongByIdandLink(id, link);
+    if (response.success && response.data[0]) {
+      setCurrentTrack(response.data[0]);
+    }
+  };
+
   return (
-    <Pressable style={styles.row}>
+    <Pressable style={styles.row} onPress={() => handlePlay(item.id, item.url)}>
       <Image source={{ uri: item.cover }} style={styles.cover} />
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={1}>

@@ -1,13 +1,10 @@
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   Dimensions,
   Image,
   Pressable,
+  Image as RNImage,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,18 +22,39 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-const { width, height } = Dimensions.get("window");
+import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { LinearGradient } from "expo-linear-gradient";
+import { useWindowDimensions } from "react-native";
+
+const { width } = Dimensions.get("window");
 
 const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
-  const [position, setPosition] = React.useState(38); // Percentage state for time labels
-  const duration = 240; // Example: 4 minutes total
+  const { height, width: windowWidth } = useWindowDimensions();
+  const {
+    currentTrack,
+    isPlaying,
+    position: storePosition,
+    duration: storeDuration,
+    togglePlay,
+    next,
+    previous,
+    seek,
+  } = usePlayerStore();
 
-  const progress = useSharedValue(38);
+  const duration = storeDuration || 0;
+  const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
 
-  // Function to sync animated value back to React state when drag ends
+  // Sync progress value with store position when not dragging
+  React.useEffect(() => {
+    if (!isDragging.value && duration > 0) {
+      progress.value = (storePosition / duration) * 100;
+    }
+  }, [storePosition, duration]);
+
   const onEnd = () => {
-    setPosition(progress.value);
+    const newPosition = (progress.value / 100) * duration;
+    seek(newPosition);
   };
 
   const gesture = Gesture.Pan()
@@ -44,8 +62,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
       isDragging.value = true;
     })
     .onUpdate((event) => {
-      // Calculate progress based on touch position relative to the track width
-      const trackWidth = width - 50; // paddingHorizontal is 25 on each side
+      const trackWidth = windowWidth - 50;
       const newProgress = Math.min(
         100,
         Math.max(0, (event.x / trackWidth) * 100),
@@ -66,53 +83,99 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
     transform: [{ scale: withSpring(isDragging.value ? 1.4 : 1) }],
   }));
 
-  // Time calculations based on current position state
-  const currentSeconds = Math.floor((position / 100) * duration);
-  const remainingSeconds = duration - currentSeconds;
-
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
   };
 
+  if (!currentTrack) return null;
+
+  const trackImage = currentTrack.image[2]?.url || currentTrack.image[0]?.url;
+  const primaryArtists = currentTrack.artists.primary
+    .map((a) => a.name)
+    .join(", ");
+  const featuredArtists = currentTrack.artists.featured
+    .map((a) => a.name)
+    .join(", ");
+  const artistName = featuredArtists
+    ? `${primaryArtists} (feat. ${featuredArtists})`
+    : primaryArtists || "Unknown Artist";
+
+  const { label, copyright } = currentTrack;
+  const aboutArtist = currentTrack.artists.primary[0].name;
+  const bioDisplayText = label || copyright || "No artist biography available.";
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* Top Blurred Backdrop */}
+      <View
+        style={{
+          height: height + 700,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+        }}
+      >
+        <RNImage
+          source={{ uri: trackImage }}
+          style={StyleSheet.absoluteFill}
+          blurRadius={10}
+        />
+        <LinearGradient
+          colors={[
+            "rgba(5,5,5,0.2)",
+            "rgba(5,5,5,0.6)",
+            "rgba(5,5,5,0.4)",
+            "#050505",
+          ]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: "transparent" }]} // Fallback or dynamic bg
         bounces={true}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* --- Header --- */}
         <View style={styles.header}>
-          <Ionicons
-            name="chevron-down"
-            size={28}
-            color="white"
-            onPress={() => handleCloseSheet()}
-          />
-          <Text style={styles.headerTitle}></Text>
+          <Pressable onPress={() => handleCloseSheet()}>
+            <Ionicons name="chevron-down" size={28} color="white" />
+          </Pressable>
+          <Text
+            style={styles.headerTitle}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {currentTrack.album.name}
+          </Text>
           <Ionicons name="ellipsis-horizontal" size={24} color="white" />
         </View>
 
         {/* --- Album Artwork --- */}
         <View style={styles.artWrapper}>
-          <Image
-            source={{
-              uri: "https://images.genius.com/c92ea26f198481e5bd6baec27e97448c.1000x1000x1.jpg",
-            }}
-            style={styles.mainArt}
-          />
+          <Image source={{ uri: trackImage }} style={styles.mainArt} />
         </View>
 
         {/* --- Track Info --- */}
         <View style={styles.trackInfo}>
           <View style={styles.titleContainer}>
-            <Text style={styles.songTitle} numberOfLines={1}>
-              From Me to You - Mono / Remast
+            <Text
+              style={styles.songTitle}
+              className="font-sans-medium text-lg tracking-tight"
+              numberOfLines={1}
+            >
+              {currentTrack.name}
             </Text>
-            <Text style={styles.songArtist}>The Beatles</Text>
+            <Text
+              style={styles.songArtist}
+              numberOfLines={1}
+              className="font-sans-light text-xs tracking-tighter"
+            >
+              {artistName}
+            </Text>
           </View>
           <Ionicons name="heart-outline" size={28} color="white" />
         </View>
@@ -128,30 +191,41 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             </View>
           </GestureDetector>
           <View style={styles.timeRow}>
-            <Text style={styles.timeText}>{formatTime(currentSeconds)}</Text>
-            <Text style={styles.timeText}>-{formatTime(remainingSeconds)}</Text>
+            <Text style={styles.timeText}>
+              {formatTime(
+                isDragging.value
+                  ? (progress.value / 100) * duration
+                  : storePosition,
+              )}
+            </Text>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
           </View>
         </View>
 
         {/* --- Main Controls --- */}
         <View style={styles.mainControls}>
-          <Ionicons name="shuffle" size={24} color="#1DB954" />
-          <Ionicons name="play-skip-back" size={38} color="white" />
-          <Pressable style={styles.playButton}>
-            <Ionicons name="pause" size={40} color="black" />
+          <Ionicons name="shuffle" size={24} color="#A3A3A3" />
+          <Pressable onPress={() => previous()}>
+            <Ionicons name="play-skip-back" size={38} color="white" />
           </Pressable>
-          <Ionicons name="play-skip-forward" size={38} color="white" />
-          <View style={styles.repeatContainer}>
-            <Ionicons name="repeat" size={24} color="#1DB954" />
-            <View style={styles.repeatDot} />
-          </View>
+          <Pressable style={styles.playButton} onPress={() => togglePlay()}>
+            <Ionicons
+              name={isPlaying ? "pause" : "play"}
+              size={40}
+              color="black"
+            />
+          </Pressable>
+          <Pressable onPress={() => next()}>
+            <Ionicons name="play-skip-forward" size={38} color="white" />
+          </Pressable>
+          <Ionicons name="repeat" size={24} color="#A3A3A3" />
         </View>
 
         {/* --- Footer Controls --- */}
         <View style={styles.footerControls}>
           <View style={styles.deviceIndicator}>
-            <MaterialIcons name="bluetooth" size={16} color="#1DB954" />
-            <Text style={styles.deviceText}>BEATSPILL+</Text>
+            <MaterialIcons name="speaker" size={16} color="#1DB954" />
+            <Text style={styles.deviceText}>SPEAKER</Text>
           </View>
           <View style={styles.footerRightIcons}>
             <Ionicons
@@ -164,56 +238,28 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
           </View>
         </View>
 
-        {/* --- Lyrics Card --- */}
+        {/* Lyrics & Artist - (Kept for aesthetics, can be made dynamic later) */}
         <View style={styles.lyricsCard}>
-          <View style={styles.lyricsHeader}>
-            <Text style={styles.lyricsTitle}>Lyrics</Text>
-            <Pressable style={styles.moreButton}>
-              <Text style={styles.moreText}>MORE</Text>
-              <MaterialCommunityIcons
-                name="arrow-expand"
-                size={14}
-                color="white"
-              />
-            </Pressable>
-          </View>
-          <Text style={styles.lyricsPreview}>
-            Da-da-da, da-da-dun-dun-da {"\n"}
-            If there's anything that you want {"\n"}
-            If there's anything I can do {"\n"}
-            Just call on me and I'll send it along {"\n"}
-            With love from me to you
-          </Text>
+          <Text style={styles.lyricsTitle}>Lyrics</Text>
+          <Text style={styles.lyricsPreview}>Lyrics coming soon...</Text>
         </View>
 
-        {/* --- Artist Details Card --- */}
-        <View style={styles.artistCard}>
+        <View style={styles.artistCard} className="">
           <View style={styles.artistHeader}>
             <Image
               source={{
-                uri: "https://images.genius.com/c92ea26f198481e5bd6baec27e97448c.1000x1000x1.jpg",
+                uri:
+                  currentTrack.artists.primary[0]?.image[2]?.url || trackImage,
               }}
               style={styles.artistPhoto}
             />
-            <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
-          </View>
-
-          <View style={styles.artistDetailsBody}>
-            <View style={styles.artistNameRow}>
-              <Text style={styles.artistNameText}>The Beatles</Text>
-              <Ionicons
-                name="checkmark-circle"
-                size={18}
-                color="#1DB954"
-                style={styles.verifiedBadge}
-              />
-            </View>
-            <Text style={styles.artistDescription} numberOfLines={4}>
-              The Beatles were an English rock band formed in Liverpool in 1960.
-              With a line-up comprising John Lennon, Paul McCartney, George
-              Harrison and Ringo Starr, they are regarded as the most
-              influential band of all time.
+            <Text style={styles.artistCardLabel} className="text-gray-800">
+              ABOUT THE ARTIST
             </Text>
+          </View>
+          <View style={styles.artistDetailsBody}>
+            <Text style={styles.artistNameText}>{aboutArtist}</Text>
+            <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>
         </View>
       </ScrollView>
@@ -240,6 +286,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 14,
     fontWeight: "600",
+    // flex: 1,
+    textAlign: "center",
+    // marginHorizontal: 15,
   },
   artWrapper: {
     alignItems: "center",
@@ -247,7 +296,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   mainArt: {
-    width: width * 0.88,
+    width: width * 0.88, // Note: styles object might still use Dimensions width if not careful
     height: width * 0.88,
     borderRadius: 8,
   },
@@ -395,7 +444,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   artistCard: {
-    backgroundColor: "#1E2126",
+    // backgroundColor: "#1E2126",
     marginHorizontal: 20,
     marginTop: 20,
     borderRadius: 16,
@@ -405,7 +454,8 @@ const styles = StyleSheet.create({
   },
   artistHeader: {
     position: "relative",
-    height: 160,
+    height: 200,
+    // backgroundColor: "#1E2126",
     width: "100%",
   },
   artistPhoto: {

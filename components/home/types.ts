@@ -3,6 +3,7 @@ export type QuickPick = {
   title: string;
   artist: string;
   cover: string;
+  url?: string | undefined;
 };
 
 export type SpeedDialItem = {
