@@ -89,7 +89,17 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  if (!currentTrack) return null;
+  if (!currentTrack || typeof currentTrack === "string") {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Ionicons name="musical-notes" size={64} color="rgba(255,255,255,0.2)" />
+        <Text style={{ color: 'white', marginTop: 20, fontSize: 18 }}>Nothing to play</Text>
+        <Pressable onPress={() => handleCloseSheet()} style={{ marginTop: 40 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.5)' }}>Close</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   const trackImage = currentTrack.image[2]?.url || currentTrack.image[0]?.url;
   const primaryArtists = currentTrack.artists.primary
@@ -257,7 +267,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
               ABOUT THE ARTIST
             </Text>
           </View>
-          <View style={styles.artistDetailsBody}>
+          <View style={styles.artistDetailsBody} className="bg-zinc-300">
             <Text style={styles.artistNameText}>{aboutArtist}</Text>
             <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>
