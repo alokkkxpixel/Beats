@@ -14,7 +14,7 @@ type QuickPickRowProps = {
 export default function QuickPickRow({
   item,
 }: QuickPickRowProps): React.JSX.Element {
-  const { setCurrentTrack } = usePlayerStore();
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);

@@ -18,7 +18,7 @@ export default function TrendingSection({
   type,
 }: TrendingSectionProps): React.JSX.Element {
   const navigation = useNavigation<any>();
-  const { setCurrentTrack } = usePlayerStore();
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   if (!data || data.length === 0) return <></>;
   // console.log("new data", data.newReleases as any[]);
 

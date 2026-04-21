@@ -1,3 +1,4 @@
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
@@ -61,12 +62,16 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
       </View>
     );
   }
-
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
 
   const renderTrack = ({ item, index }: { item: Song; index: number }) => (
-    <TouchableOpacity activeOpacity={0.7} style={styles.trackItem}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={styles.trackItem}
+      onPress={() => setCurrentTrack(item)}
+    >
       <Text style={styles.trackIndex}>{index + 1}</Text>
       <View style={styles.trackInfo}>
         <Text style={styles.trackTitle} numberOfLines={1}>
