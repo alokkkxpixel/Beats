@@ -30,17 +30,25 @@ const { width } = Dimensions.get("window");
 
 const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   const { height, width: windowWidth } = useWindowDimensions();
-  const {
-    currentTrack,
-    isPlaying,
-    position: storePosition,
-    duration: storeDuration,
-    togglePlay,
-    next,
-    previous,
-    seek,
-  } = usePlayerStore();
+  // const {
+  //   currentTrack,
+  //   isPlaying,
+  //   position: storePosition,
+  //   duration: storeDuration,
+  //   togglePlay,
+  //   next,
+  //   previous,
+  //   seek,
+  // } = usePlayerStore();
 
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const storePosition = usePlayerStore((state) => state.position);
+  const storeDuration = usePlayerStore((state) => state.duration);
+  const togglePlay = usePlayerStore((state) => state.togglePlay);
+  const next = usePlayerStore((state) => state.next);
+  const previous = usePlayerStore((state) => state.previous);
+  const seek = usePlayerStore((state) => state.seek);
   const duration = storeDuration || 0;
   const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
@@ -91,11 +99,22 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
 
   if (!currentTrack || typeof currentTrack === "string") {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Ionicons name="musical-notes" size={64} color="rgba(255,255,255,0.2)" />
-        <Text style={{ color: 'white', marginTop: 20, fontSize: 18 }}>Nothing to play</Text>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Ionicons
+          name="musical-notes"
+          size={64}
+          color="rgba(255,255,255,0.2)"
+        />
+        <Text style={{ color: "white", marginTop: 20, fontSize: 18 }}>
+          Nothing to play
+        </Text>
         <Pressable onPress={() => handleCloseSheet()} style={{ marginTop: 40 }}>
-          <Text style={{ color: 'rgba(255,255,255,0.5)' }}>Close</Text>
+          <Text style={{ color: "rgba(255,255,255,0.5)" }}>Close</Text>
         </Pressable>
       </View>
     );
@@ -267,7 +286,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
               ABOUT THE ARTIST
             </Text>
           </View>
-          <View style={styles.artistDetailsBody} className="bg-zinc-300">
+          <View style={styles.artistDetailsBody} className="bg-zinc-300/10">
             <Text style={styles.artistNameText}>{aboutArtist}</Text>
             <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>

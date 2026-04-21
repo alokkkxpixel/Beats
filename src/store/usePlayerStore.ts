@@ -1,10 +1,10 @@
-import { Song } from "@/types/jiosaavn";
+import { SongDetail } from "@/types/jiosaavn";
 import { create } from "zustand";
 
 interface PlayerState {
   // --- Data ---
-  currentTrack: Song | null;
-  queue: Song[];
+  currentTrack: SongDetail | null;
+  queue: SongDetail[];
   currentIndex: number;
   isPlaying: boolean;
   isLoading: boolean;
@@ -16,8 +16,8 @@ interface PlayerState {
   buffered: number; // Buffered amount (optional)
 
   // --- Actions ---
-  setCurrentTrack: (track: Song) => void;
-  setQueue: (tracks: Song[], startIndex?: number) => void;
+  setCurrentTrack: (track: SongDetail) => void;
+  setQueue: (tracks: SongDetail[], startIndex?: number) => void;
   expandFullPlayer: () => void;
   minimizeFullPlayer: () => void;
 

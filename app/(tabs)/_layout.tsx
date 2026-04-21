@@ -1,4 +1,5 @@
 import FullPlayer from "@/components/FullPlayer";
+import AudioEngine from "@/components/AudioEngine";
 import { HapticTab } from "@/components/haptic-tab";
 import MiniPlayer from "@/components/MiniPlayer";
 import { Colors } from "@/constants/theme";
@@ -34,6 +35,7 @@ export default function TabLayout() {
 
   return (
     <View style={styles.container}>
+      <AudioEngine />
       <Tabs
         backBehavior="history"
         screenOptions={{

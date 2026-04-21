@@ -5,8 +5,11 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 
 export default function MiniPlayer() {
-  const { currentTrack, isPlaying, togglePlay, position, duration } =
-    usePlayerStore();
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const togglePlay = usePlayerStore((state) => state.togglePlay);
+  const position = usePlayerStore((state) => state.position);
+  const duration = usePlayerStore((state) => state.duration);
 
   const isLoaded = !!currentTrack && typeof currentTrack !== "string";
   

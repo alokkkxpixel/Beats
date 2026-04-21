@@ -78,7 +78,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
           {item.name}
         </Text>
         <View style={styles.trackSubRow}>
-          {item.explicitContent && (
+          {!!item.explicitContent && (
             <View style={styles.explicitBadge}>
               <Text style={styles.explicitText}>E</Text>
             </View>
@@ -195,7 +195,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
                 {album.songs.length} songs •{" "}
                 {formatTotalTime(totalDurationSeconds)}
               </Text>
-              {album.playCount && (
+              {!!album.playCount && (
                 <Text style={styles.footerSubText}>
                   {Number(album.playCount).toLocaleString()} plays
                 </Text>

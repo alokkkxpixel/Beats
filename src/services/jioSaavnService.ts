@@ -144,7 +144,7 @@ export const SaavnService = {
         `✅ top_playlists: ${top_playlists.length}, new_releases: ${new_releases.length}, trending: ${new_trending.length}, quick_picks: ${quick_picks.length}`,
       );
 
-      console.log("quick songs", quick_picks[0]);
+      // console.log("quick songs", quick_picks[0]);
       return {
         newtrending: new_trending,
         topPlaylists: top_playlists,
