@@ -42,7 +42,13 @@
         }
       ],
       "expo-font",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsRemoteMessaging": true 
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -4,6 +4,7 @@ export type QuickPick = {
   artist: string;
   cover: string;
   url?: string | undefined;
+  playCount?: string | number;
 };
 
 export type SpeedDialItem = {

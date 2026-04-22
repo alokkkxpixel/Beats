@@ -1,5 +1,6 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
+import { formatPlayCount } from "@/src/utils/transform";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -85,8 +86,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
           )}
           <Text style={styles.trackSub} numberOfLines={1}>
             {item.artists?.primary?.[0]?.name || artistName} •{" "}
-            {(item.duration / 60).toFixed(2)} •{" "}
-            {item.playCount ? (item.playCount / 1000000).toFixed(1) + "M" : "0"}
+            {(item.duration / 60).toFixed(2)} • {formatPlayCount(item.playCount)}
           </Text>
         </View>
       </View>
@@ -197,7 +197,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
               </Text>
               {!!album.playCount && (
                 <Text style={styles.footerSubText}>
-                  {Number(album.playCount).toLocaleString()} plays
+                  {formatPlayCount(album.playCount)} plays
                 </Text>
               )}
             </View>

@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { formatPlayCount } from "@/src/utils/transform";
 import { QuickPick } from "./types";
 
 type QuickPickRowProps = {
@@ -30,8 +31,12 @@ export default function QuickPickRow({
         <Text style={styles.title} numberOfLines={1}>
           {item.title}
         </Text>
-        <Text style={styles.artist} numberOfLines={1}>
-          {item.artist}
+        <Text
+          style={styles.artist}
+          className="tracking-tighter"
+          numberOfLines={1}
+        >
+          {item.artist} • {formatPlayCount(item.playCount || 0)} plays
         </Text>
       </View>
       <View style={styles.menu}>
@@ -49,8 +54,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cover: {
-    width: 48,
-    height: 48,
+    width: 53,
+    height: 53,
     borderRadius: 6,
     marginRight: 12,
     backgroundColor: "#18181B",
@@ -66,10 +71,10 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   artist: {
-    color: "#A3A3A3",
-    fontSize: 12,
+    color: "#c7c7c7ff",
+    fontSize: 12.3,
     lineHeight: 16,
-    fontFamily: "sans-regular",
+    fontFamily: "sans-medium",
   },
   menu: {
     marginLeft: 12,

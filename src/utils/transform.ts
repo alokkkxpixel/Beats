@@ -8,6 +8,47 @@ const formatDuration = (seconds: number | null): string => {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
+export const formatPlayCount = (count: number | string | null): string => {
+  if (!count) return "0";
+  const num = typeof count === "string" ? parseInt(count, 10) : count;
+  if (isNaN(num)) return "0";
+
+  if (num < 1000) return num.toString();
+  if (num < 100000) return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  if (num < 1000000)
+    return (num / 100000).toFixed(1).replace(/\.0$/, "") + " Lakh";
+  return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+};
+
+export const decodeHtmlEntities = (str: string): string => {
+  if (!str) return "";
+  return str
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&copy;/g, "©")
+    .replace(/&reg;/g, "®");
+};
+
+export const recursiveClean = (obj: any): any => {
+  if (typeof obj === "string") {
+    return decodeHtmlEntities(obj);
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(recursiveClean);
+  }
+  if (obj !== null && typeof obj === "object") {
+    const newObj: any = {};
+    for (const key in obj) {
+      newObj[key] = recursiveClean(obj[key]);
+    }
+    return newObj;
+  }
+  return obj;
+};
+
 const transformSongToTrack = (song: any): Track => {
   const artistName =
     song.artists?.primary?.[0]?.name ||
@@ -16,10 +57,10 @@ const transformSongToTrack = (song: any): Track => {
 
   return {
     id: song.id,
-    title: song.name,
-    artist: artistName,
+    title: decodeHtmlEntities(song.name || song.title),
+    artist: decodeHtmlEntities(artistName),
     duration: formatDuration(song.duration),
-    plays: song.playCount ? `${(song.playCount / 1000000).toFixed(1)}M` : "0",
+    plays: formatPlayCount(song.playCount),
   };
 };
 
@@ -43,9 +84,9 @@ export const transformAlbumToUI = (album: any): AlbumResponse => {
 
   return {
     id: album.id || "",
-    name: album.name || album.title || "",
-    title: album.title || album.name || "",
-    description: album.description || "",
+    name: decodeHtmlEntities(album.name || album.title || ""),
+    title: decodeHtmlEntities(album.title || album.name || ""),
+    description: decodeHtmlEntities(album.description || ""),
     type: album.type || "album",
     year: album.year || "Unknown",
     playCount: album.playCount || 0,
@@ -55,7 +96,7 @@ export const transformAlbumToUI = (album: any): AlbumResponse => {
     songCount: album.songCount || album.song_count || 0,
     artists: album.artists,
     image: Array.isArray(album.image) ? album.image : [],
-    songs: Array.isArray(album.songs) ? album.songs : [],
+    songs: Array.isArray(album.songs) ? recursiveClean(album.songs) : [],
   };
 };
 
@@ -79,9 +120,9 @@ export const transformPlaylistToUI = (playlist: any): AlbumResponse => {
 
   return {
     id: playlist.id || "",
-    name: playlist.name || playlist.title || "Untitled",
-    title: playlist.title || playlist.name || "Untitled",
-    description: playlist.description || "",
+    name: decodeHtmlEntities(playlist.name || playlist.title || "Untitled"),
+    title: decodeHtmlEntities(playlist.title || playlist.name || "Untitled"),
+    description: decodeHtmlEntities(playlist.description || ""),
     type: "playlist",
     year: playlist.year || "Mixed",
     playCount: playlist.playCount || 0,
@@ -95,6 +136,6 @@ export const transformPlaylistToUI = (playlist: any): AlbumResponse => {
       all: Array.isArray(playlist.artists) ? playlist.artists : [],
     },
     image: Array.isArray(playlist.image) ? playlist.image : [],
-    songs: Array.isArray(playlist.songs) ? playlist.songs : [],
+    songs: Array.isArray(playlist.songs) ? recursiveClean(playlist.songs) : [],
   };
 };

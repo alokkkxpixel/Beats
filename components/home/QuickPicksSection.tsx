@@ -80,6 +80,8 @@ export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
       title: item.title,
       artist: item.subtitle || item.artist || "Unknown Artist",
       cover: item.image || item.cover,
+      playCount: item.play_count || item.playCount,
+      url: item.url || item.perma_url,
     }));
 
     const chunks = [];

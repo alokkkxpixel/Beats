@@ -6,6 +6,7 @@ import {
   RootResponse,
   SearchSongsResponse,
 } from "../../types/jiosaavn";
+import { decodeHtmlEntities, recursiveClean } from "../utils/transform";
 const BASE_URL =
   "https://jiosaavn-c451wwyru-sumit-kolhes-projects-94a4846a.vercel.app/api";
 const API_SERVER =
@@ -14,7 +15,8 @@ const API_SERVER =
 export const jioSaavnService = {
   getGlobalSearch: async (query: string): Promise<GlobalSearchResponse> => {
     const response = await fetch(`${BASE_URL}/search?query=${query}`);
-    return response.json();
+    const data = await response.json();
+    return recursiveClean(data);
   },
 
   searchSongs: async (
@@ -25,7 +27,8 @@ export const jioSaavnService = {
     const response = await fetch(
       `${BASE_URL}/search/songs?query=${query}&page=${page}&limit=${limit}`,
     );
-    return response.json();
+    const data = await response.json();
+    return recursiveClean(data);
   },
 
   getSongByIdandLink: async (ids: string, link?: string): Promise<any> => {
@@ -38,17 +41,20 @@ export const jioSaavnService = {
     }
 
     const response = await fetch(url);
-    return response.json();
+    const data = await response.json();
+    return recursiveClean(data);
   },
 
   getAlbumById: async (id: string): Promise<GetAlbumResponse> => {
     const response = await fetch(`${BASE_URL}/albums?id=${id}`);
-    return response.json();
+    const data = await response.json();
+    return recursiveClean(data);
   },
 
   getPlaylistById: async (id: string): Promise<GetPlaylistResponse> => {
     const response = await fetch(`${BASE_URL}/playlists?id=${id}`);
-    return response.json();
+    const data = await response.json();
+    return recursiveClean(data);
   },
 };
 
@@ -102,6 +108,14 @@ export const SaavnService = {
       rawNewAlbums.forEach((item: any) => {
         const upgraded = {
           ...item,
+          title: decodeHtmlEntities(item.title),
+          subtitle: decodeHtmlEntities(item.subtitle),
+          more_info: item.more_info
+            ? {
+                ...item.more_info,
+                album: decodeHtmlEntities(item.more_info.album),
+              }
+            : undefined,
           url: item.perma_url,
           image: mapImage(item),
         };
@@ -119,8 +133,15 @@ export const SaavnService = {
         const target = item.details || item;
         const upgraded = {
           ...item,
+          title: decodeHtmlEntities(item.title),
+          subtitle: decodeHtmlEntities(item.subtitle),
           details: item.details
-            ? { ...item.details, image: mapImage(item.details) }
+            ? {
+                ...item.details,
+                title: decodeHtmlEntities(item.details.title),
+                subtitle: decodeHtmlEntities(item.details.subtitle),
+                image: mapImage(item.details),
+              }
             : undefined,
           image: !item.details ? mapImage(item) : item.image,
           url: target.perma_url || item.url,
@@ -136,6 +157,8 @@ export const SaavnService = {
 
       const top_playlists = rawTopPlaylists.map((item: any) => ({
         ...item,
+        title: decodeHtmlEntities(item.title),
+        subtitle: decodeHtmlEntities(item.subtitle),
         url: item.perma_url,
         image: mapImage(item),
       }));
@@ -144,7 +167,7 @@ export const SaavnService = {
         `✅ top_playlists: ${top_playlists.length}, new_releases: ${new_releases.length}, trending: ${new_trending.length}, quick_picks: ${quick_picks.length}`,
       );
 
-      // console.log("quick songs", quick_picks[0]);
+      console.log("quick songs", quick_picks[0]);
       return {
         newtrending: new_trending,
         topPlaylists: top_playlists,
@@ -167,7 +190,7 @@ export const SaavnService = {
         `${API_SERVER}/api/playlists?id=${playlistId}&link=${playlistUrl}`,
       );
       const json = await response.json();
-      return json.success ? json.data : null;
+      return json.success ? recursiveClean(json.data) : null;
     } catch (error) {
       console.error("Detail fetch failed:", error);
       return null;
@@ -178,7 +201,7 @@ export const SaavnService = {
     try {
       const response = await fetch(`${API_SERVER}/api/albums?link=${albumUrl}`);
       const json = await response.json();
-      return json.success ? json.data : null;
+      return json.success ? recursiveClean(json.data) : null;
     } catch (error) {
       console.error("Album detail fetch failed:", error);
       return null;
