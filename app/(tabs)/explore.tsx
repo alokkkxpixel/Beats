@@ -1,7 +1,14 @@
+import { useHomeData } from "@/src/hooks/useQueries";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { NewRelease } from "@/types/jiosaavn";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   Pressable,
   ScrollView,
@@ -87,6 +94,9 @@ export default function ExploreScreen() {
   const HEADER_HEIGHT = 54;
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
 
+  const router = useRouter();
+  const { data, isLoading } = useHomeData();
+
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
@@ -128,6 +138,67 @@ export default function ExploreScreen() {
     };
   });
 
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#000",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="white" />
+      </View>
+    );
+  }
+
+  const renderAlbumItem = ({ item }: { item: NewRelease }) => (
+    <Pressable
+      onPress={async () => {
+        if (item.type === "album") {
+          router.push({
+            pathname: "/album-detail",
+            params: { albumId: item.id, albumUrl: item.url },
+          });
+        } else if (item.type === "playlist") {
+          router.push({
+            pathname: "/playlist-detail",
+            params: { playlistId: item.id, playlistUrl: item.url },
+          });
+        } else if (item.type === "song") {
+          const response = await jioSaavnService.getSongByIdandLink(
+            item.id,
+            item.url,
+          );
+          if (response.success && response.data[0]) {
+            setCurrentTrack(response.data[0]);
+          }
+        }
+      }}
+      style={styles.albumCard}
+    >
+      <Image
+        source={{ uri: item.image }}
+        style={styles.albumImage}
+        contentFit="cover"
+      />
+      <Text style={styles.albumTitle} numberOfLines={1}>
+        {item.title}
+      </Text>
+      <Text
+        style={styles.albumSubtitle}
+        className="capitalize font-sans-light"
+        numberOfLines={2}
+      >
+        {item.subtitle ||
+          `${item?.type || ""} • ${item.more_info?.artistMap?.artists?.[0]?.name || item.more_info?.artistMap?.primary?.[0]?.name || ""}`}
+      </Text>
+    </Pressable>
+  );
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -149,7 +220,7 @@ export default function ExploreScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: TOTAL_HEADER_HEIGHT + 20,
-          paddingBottom: 100,
+          paddingBottom: 250,
         }}
       >
         {/* Category Grid */}
@@ -177,27 +248,17 @@ export default function ExploreScreen() {
           <Text style={styles.sectionTitle}>New albums and singles</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-        >
-          {ALBUMS.map((album) => (
-            <View key={album.id} style={styles.albumCard}>
-              <Image
-                source={{ uri: album.image }}
-                style={styles.albumImage}
-                contentFit="cover"
-              />
-              <Text style={styles.albumTitle} numberOfLines={1}>
-                {album.title}
-              </Text>
-              <Text style={styles.albumSubtitle} numberOfLines={2}>
-                {album.subtitle}
-              </Text>
-            </View>
-          ))}
-        </ScrollView>
+
+        <View style={{ height: 280, marginBottom: 10 }}>
+          <FlashList
+            data={data?.raw_new_releases || []}
+            horizontal
+            // estimatedItemSize={width * 0.45}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+            renderItem={renderAlbumItem}
+          />
+        </View>
 
         {/* Moods and Genres Section */}
         <View style={styles.sectionHeader}>
@@ -295,6 +356,7 @@ const styles = StyleSheet.create({
   },
   albumSubtitle: {
     color: "#999",
+
     fontSize: 12,
   },
   moodCard: {

@@ -64,6 +64,7 @@ export const SaavnService = {
       newtrending: [],
       topPlaylists: [],
       newreleases: [],
+      raw_new_releases: [],
       quick_picks: [],
       charts: [],
     };
@@ -105,6 +106,7 @@ export const SaavnService = {
 
       // 1. Process New Releases (Songs -> QuickPicks, Albums -> NewReleases)
       const new_releases: any[] = [];
+      const raw_new_releases: any[] = [];
       rawNewAlbums.forEach((item: any) => {
         const upgraded = {
           ...item,
@@ -119,6 +121,7 @@ export const SaavnService = {
           url: item.perma_url,
           image: mapImage(item),
         };
+        raw_new_releases.push(upgraded);
         if (item.type === "song") {
           quick_picks.push(upgraded);
         } else {
@@ -167,11 +170,12 @@ export const SaavnService = {
         `✅ top_playlists: ${top_playlists.length}, new_releases: ${new_releases.length}, trending: ${new_trending.length}, quick_picks: ${quick_picks.length}`,
       );
 
-      console.log("quick songs", quick_picks[0]);
+      // console.log("quick songs", quick_picks[0]);
       return {
         newtrending: new_trending,
         topPlaylists: top_playlists,
         newreleases: new_releases,
+        raw_new_releases: raw_new_releases,
         quick_picks: quick_picks,
         charts: rawCharts,
       };

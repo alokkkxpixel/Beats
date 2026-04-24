@@ -462,6 +462,7 @@ export interface RootResponse {
   newtrending: NewTrending[];
   topPlaylists: TopPlaylists[];
   newreleases: NewRelease[];
+  raw_new_releases: NewRelease[];
   quick_picks: any[];
   charts: Charts[];
 }
