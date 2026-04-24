@@ -8,7 +8,6 @@ import {
   View,
 } from "react-native";
 
-import { quickPickColumns } from "./data";
 import QuickPickRow from "./QuickPickRow";
 
 // export default function QuickPicksSection(): React.JSX.Element {
@@ -73,7 +72,7 @@ export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
   // 1. Group the flat list into columns of 4
   const columns = React.useMemo(() => {
     if (!data || data.length === 0) return [];
-    
+
     // Normalize and chunk
     const normalized = data.map((item: any) => ({
       id: item.id,
@@ -97,7 +96,14 @@ export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
     <View style={styles.section}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.heading}>Quick picks</Text>
+        <View className="gap-1">
+          <Text style={styles.heading} className="text-2xl font-sans-medium ">
+            Quick picks
+          </Text>
+          <Text className="text-sm font-sans-light text-gray-200">
+            Start a queue full of your favorites
+          </Text>
+        </View>
         <Pressable style={styles.playAllButton}>
           <Text style={styles.playAllText}>Play all</Text>
         </Pressable>
@@ -129,7 +135,6 @@ export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
     </View>
   );
 }
-
 
 // const styles = StyleSheet.create({
 //   section: {
@@ -191,8 +196,8 @@ const styles = StyleSheet.create({
 
   heading: {
     color: "#FAFAFA",
-    fontSize: 22,
-    fontWeight: "700",
+    // fontSize: 22,
+    // fontWeight: "700",
   },
 
   playAllButton: {

@@ -63,6 +63,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
       </View>
     );
   }
+
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
@@ -86,7 +87,8 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
           )}
           <Text style={styles.trackSub} numberOfLines={1}>
             {item.artists?.primary?.[0]?.name || artistName} •{" "}
-            {(item.duration / 60).toFixed(2)} • {formatPlayCount(item.playCount)}
+            {(item.duration / 60).toFixed(2)} •{" "}
+            {formatPlayCount(item.playCount)}
           </Text>
         </View>
       </View>
