@@ -1,4 +1,4 @@
-import { useHomeData } from "@/src/hooks/useQueries";
+import { useHomePreviews } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { NewRelease } from "@/types/jiosaavn";
@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Dimensions,
   Pressable,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -95,7 +94,7 @@ export default function ExploreScreen() {
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
 
   const router = useRouter();
-  const { data, isLoading } = useHomeData();
+  const { data, isLoading } = useHomePreviews();
 
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
@@ -262,23 +261,60 @@ export default function ExploreScreen() {
 
         {/* Moods and Genres Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Moods and genres</Text>
+          <View>
+            <Text style={styles.sectionTitle}>
+              {data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"}
+            </Text>
+            {data?.modules?.["promo:vx:data:76"]?.subtitle && (
+              <Text style={styles.sectionSubtitle}>
+                {data.modules["promo:vx:data:76"].subtitle}
+              </Text>
+            )}
+          </View>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-        >
-          {MOODS.map((mood) => (
-            <View key={mood.id} style={styles.moodCard}>
-              <View
-                style={[styles.moodAccent, { backgroundColor: mood.color }]}
-              />
-              <Text style={styles.moodTitle}>{mood.title}</Text>
-            </View>
-          ))}
-        </ScrollView>
+
+        <View style={{ height: 280, marginBottom: 20 }}>
+          <FlashList
+            data={
+              Array.from(
+                {
+                  length: Math.ceil(
+                    (data?.["promo:vx:data:76"]?.length || 0) / 3,
+                  ),
+                },
+                (_, i) => data?.["promo:vx:data:76"]?.slice(i * 3, i * 3 + 3),
+              ) || []
+            }
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+            renderItem={({ item: columnItems }) => (
+              <View style={{ marginRight: 12 }}>
+                {columnItems?.map((mood: any) => (
+                  <Pressable
+                    key={mood.id}
+                    style={styles.moodItemRow}
+                    onPress={() => {
+                      router.push({
+                        pathname: "/playlist-detail",
+                        params: { playlistId: mood.id, playlistUrl: mood.url },
+                      });
+                    }}
+                  >
+                    <Image
+                      source={{ uri: mood.image }}
+                      style={styles.moodRowImage}
+                    />
+                    <Text style={styles.moodRowTitle} numberOfLines={1}>
+                      {mood.title}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          />
+        </View>
       </Animated.ScrollView>
     </View>
   );
@@ -333,6 +369,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
   },
+  sectionSubtitle: {
+    color: "#999",
+    fontSize: 13,
+    marginTop: 2,
+  },
   horizontalScroll: {
     paddingLeft: 16,
     paddingRight: 8,
@@ -356,8 +397,28 @@ const styles = StyleSheet.create({
   },
   albumSubtitle: {
     color: "#999",
-
     fontSize: 12,
+  },
+  moodItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1A1A1A",
+    width: width * 0.7,
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  moodRowImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  moodRowTitle: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "600",
+    flex: 1,
   },
   moodCard: {
     width: width * 0.4,

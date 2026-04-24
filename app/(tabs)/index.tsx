@@ -1,5 +1,5 @@
 import QuickPicksSection from "@/components/home/QuickPicksSection";
-import { useHomeData } from "@/src/hooks/useQueries";
+import { useHomePreviews } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
@@ -36,7 +36,7 @@ export default function Index() {
   const lastContentOffset = useSharedValue(0);
 
   // 1. Fetch Home Data using TanStack Query
-  const { data, isLoading } = useHomeData();
+  const { data, isLoading } = useHomePreviews();
 
   // Time-based background logic
   const getBackgroundData = () => {

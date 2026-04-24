@@ -397,6 +397,7 @@ export interface TopPlaylists {
     follower_count?: string;
     last_updated?: number | string;
     uid?: string;
+    editorial_language?: string;
     artistMap?: {
       primary?: TrendingArtist[];
       featured?: TrendingArtist[];
@@ -456,6 +457,128 @@ export interface NewTrending {
   language: string;
 }
 
+interface ModulesCommanData {
+  title?: string;
+  subtitle?: string;
+  highlights?: string;
+  source?: string;
+}
+
+export interface Modules {
+  new_trending?: ModulesCommanData;
+  top_playlists?: ModulesCommanData;
+  new_releases?: ModulesCommanData;
+  raw_new_releases?: ModulesCommanData;
+  quick_picks?: ModulesCommanData;
+  charts?: ModulesCommanData;
+  "promo:vx:data:76": ModulesCommanData;
+  "promo:vx:data:68": ModulesCommanData;
+  "promo:vx:data:69": ModulesCommanData;
+  "promo:vx:data:185": ModulesCommanData;
+  "promo:vx:data:209": ModulesCommanData;
+  "promo:vx:data:113": ModulesCommanData;
+  "promo:vx:data:107": ModulesCommanData;
+  radio: ModulesCommanData;
+  artist_recos: ModulesCommanData;
+  city_mod: ModulesCommanData;
+}
+export interface Radio {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count?: string;
+  song_count?: string;
+  year?: string;
+  perma_url?: string;
+  more_info: {
+    description?: string;
+    firstname?: string;
+    featured_station_type?: string;
+    language?: string;
+    region?: string;
+    station_display_text?: string;
+    song_count?: string;
+    follower_count?: string;
+    last_updated?: number | string;
+    uid?: string;
+
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
+export interface ArtistRecos {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count?: string;
+  song_count?: string;
+  year?: string;
+  perma_url?: string;
+  more_info: {
+    description?: string;
+    firstname?: string;
+    featured_station_type?: string;
+    query?: string;
+    language?: string;
+    region?: string;
+    station_display_text?: string;
+    song_count?: string;
+    follower_count?: string;
+    last_updated?: number | string;
+    uid?: string;
+
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
+export interface CityMod {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count?: string;
+  song_count?: string;
+  year?: string;
+  perma_url?: string;
+  more_info: {
+    description?: string;
+    firstname?: string;
+    featured_station_type?: string;
+    query?: string;
+    language?: string;
+    region?: string;
+    station_display_text?: string;
+    song_count?: string;
+    follower_count?: string;
+    last_updated?: number | string;
+    uid?: string;
+    artistMap?: {
+      primary?: TrendingArtist[];
+      featured?: TrendingArtist[];
+      all?: TrendingArtist[];
+      artists?: TrendingArtist[];
+      album_id?: string;
+      album?: string;
+      rights?: any;
+    };
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+}
 // Root Object
 
 export interface RootResponse {
@@ -464,5 +587,16 @@ export interface RootResponse {
   newreleases: NewRelease[];
   raw_new_releases: NewRelease[];
   quick_picks: any[];
+  "promo:vx:data:68": TopPlaylists[];
+  "promo:vx:data:209": TopPlaylists[];
+  "promo:vx:data:76": TopPlaylists[];
+  "promo:vx:data:185": TopPlaylists[];
+  "promo:vx:data:69": TopPlaylists[];
+  "promo:vx:data:107": TopPlaylists[];
+  "promo:vx:data:113": TopPlaylists[];
+  radio: Radio[];
+  artist_recos: ArtistRecos[];
+  city_mod: CityMod[];
   charts: Charts[];
+  modules: Modules;
 }

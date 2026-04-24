@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 
-export const useHomeData = (languages: string[] = ["english", "hindi"]) => {
+export const useHomePreviews = (languages: string[] = ["english", "hindi"]) => {
   return useQuery({
     // THE FIX: Adding languages to the key
-    queryKey: ["home-data", languages.join(",")],
+    queryKey: ["home-previews", languages.join(",")],
     queryFn: () => SaavnService.getHomePreviews(languages),
 
     // For debugging, keep these low or commented out
@@ -21,14 +21,14 @@ export const usePlaylist = (
     queryKey: ["playlist", playlistId || playlistUrl],
     queryFn: () =>
       playlistUrl && (!playlistId || playlistId === "null")
-        ? SaavnService.getPlaylistDetails(playlistId, playlistUrl) 
+        ? SaavnService.getPlaylistDetails(playlistId, playlistUrl)
         : jioSaavnService.getPlaylistById(playlistId!),
 
     enabled: !!playlistId || !!playlistUrl,
     staleTime: 1000 * 60 * 15, // 15 minutes
   });
 };
- 
+
 export const useAlbum = (
   albumId: string | null,
   albumUrl: string | null = null,

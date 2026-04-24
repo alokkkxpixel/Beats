@@ -1,6 +1,6 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { formatPlayCount } from "@/src/utils/transform";
+import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -74,7 +74,10 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
       style={styles.trackItem}
       onPress={() => setCurrentTrack(item)}
     >
-      <Text style={styles.trackIndex}>{index + 1}</Text>
+      <Image
+        source={{ uri: item.image?.[0]?.url }}
+        style={styles.trackImage}
+      />
       <View style={styles.trackInfo}>
         <Text style={styles.trackTitle} numberOfLines={1}>
           {item.name}
@@ -165,8 +168,14 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
               <Text style={styles.mainTitle}>{album.name || album.title}</Text>
 
               <View style={styles.descriptionContainer}>
-                <Text style={styles.descriptionText} numberOfLines={2}>
-                  {album.description}
+                <Text
+                  style={styles.descriptionText}
+                  className=" text-center"
+                  numberOfLines={2}
+                >
+                  {album.description
+                    ? album.description.replace(/\s*\n\s*/g, "\n").trim()
+                    : ""}
                 </Text>
               </View>
 
@@ -327,11 +336,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
-  trackIndex: {
-    color: "#9ca3af",
-    fontSize: 15,
-    width: 35,
-    fontWeight: "500",
+  trackImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 4,
+    marginRight: 12,
   },
   trackInfo: {
     flex: 1,
