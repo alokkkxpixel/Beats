@@ -205,6 +205,16 @@ const CategoriesDetailsPage = ({
             {renderHorizontalGrid(data?.charts?.slice(8) || [], "More Charts")}
           </ScrollView>
         );
+      case "3": // Moods and Genres
+        const moodsData = data?.["promo:vx:data:76"] || [];
+        return (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 160 }}
+          >
+            {renderHorizontalGrid(moodsData, "Moods & Genres")}
+          </ScrollView>
+        );
       case "4": // Cricket Fever
         const cricketData = data?.["promo:vx:data:209"] || [];
         return (
