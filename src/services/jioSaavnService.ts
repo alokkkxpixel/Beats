@@ -1,5 +1,6 @@
 import { fetch } from "expo/fetch";
 import {
+  AlbumResponse,
   GetAlbumResponse,
   GetPlaylistResponse,
   GlobalSearchResponse,
@@ -110,39 +111,60 @@ export const SaavnService = {
       });
 
       const json = await response.json();
-      const rawTopPlaylists: any[] = json?.top_playlists || [];
-      const rawNewAlbums: any[] = json?.new_albums || [];
+      const rawTopPlaylists: AlbumResponse[] = json?.top_playlists || [];
+      const rawNewAlbums: AlbumResponse[] = json?.new_albums || [];
       const rawNewTrending: any[] = json?.new_trending || [];
       const rawCharts: any[] = json?.charts || [];
 
       const mapImage = (item: any) => {
-        let imageUrl = item.image || "";
-        if (imageUrl.includes("150x150"))
-          imageUrl = imageUrl.replace("150x150", "500x500");
-        else if (!imageUrl.includes("500x500"))
-          imageUrl = imageUrl.replace(".jpg", "_500x500.jpg");
-        return imageUrl;
+        let url = item.image || "";
+        if (!url) return ["", "", ""];
+
+        // Strip query string params (e.g. ?bch=493632)
+        url = url.split("?")[0];
+
+        // Check if the URL has a resolution suffix pattern like -150x150.jpg
+        const hasResolution = /-(50x50|150x150|500x500)\.jpg$/i.test(url);
+
+        if (!hasResolution) {
+          // Editorial/playlist images — no resolution variants exist, use as-is
+          return [url, url, url];
+        }
+
+        // Remove existing resolution suffix to get the clean base
+        const base = url
+          .replace(/-(50x50|150x150|500x500)\.jpg$/i, "")
+          .replace(/\.(jpg|jpeg|png)$/i, "");
+
+        return [
+          `${base}-50x50.jpg`,
+          `${base}-150x150.jpg`,
+          `${base}-500x500.jpg`,
+        ];
+      };
+
+      const mapItem = (item: any) => {
+        if (!item) return item;
+        const target = item.details || item;
+        return {
+          ...item,
+          title: decodeHtmlEntities(item.title || item.name),
+          subtitle: decodeHtmlEntities(item.subtitle),
+          image: mapImage(target),
+          url: target.perma_url || item.url,
+          type: target.type || item.type,
+          more_info: item.more_info
+            ? recursiveClean(item.more_info)
+            : undefined,
+        };
       };
 
       const quick_picks: any[] = [];
-
-      // 1. Process New Releases (Songs -> QuickPicks, Albums -> NewReleases)
       const new_releases: any[] = [];
       const raw_new_releases: any[] = [];
+
       rawNewAlbums.forEach((item: any) => {
-        const upgraded = {
-          ...item,
-          title: decodeHtmlEntities(item.title),
-          subtitle: decodeHtmlEntities(item.subtitle),
-          more_info: item.more_info
-            ? {
-                ...item.more_info,
-                album: decodeHtmlEntities(item.more_info.album),
-              }
-            : undefined,
-          url: item.perma_url,
-          image: mapImage(item),
-        };
+        const upgraded = mapItem(item);
         raw_new_releases.push(upgraded);
         if (item.type === "song") {
           quick_picks.push(upgraded);
@@ -151,65 +173,36 @@ export const SaavnService = {
         }
       });
 
-      // 2. Process Trending (Songs -> QuickPicks, Others -> Trending)
       const new_trending: any[] = [];
       rawNewTrending.forEach((item: any) => {
-        // Handle both flat and nested structures
-        const target = item.details || item;
-        const upgraded = {
-          ...item,
-          title: decodeHtmlEntities(item.title),
-          subtitle: decodeHtmlEntities(item.subtitle),
-          details: item.details
-            ? {
-                ...item.details,
-                title: decodeHtmlEntities(item.details.title),
-                subtitle: decodeHtmlEntities(item.details.subtitle),
-                image: mapImage(item.details),
-              }
-            : undefined,
-          image: !item.details ? mapImage(item) : item.image,
-          url: target.perma_url || item.url,
-        };
-
-        const type = target.type || item.type;
-        if (type === "song") {
-          quick_picks.push(upgraded.details || upgraded);
+        const upgraded = mapItem(item);
+        if (item.type === "song") {
+          quick_picks.push(upgraded);
         } else {
           new_trending.push(upgraded);
         }
       });
 
-      const top_playlists = rawTopPlaylists.map((item: any) => ({
-        ...item,
-        title: decodeHtmlEntities(item.title),
-        subtitle: decodeHtmlEntities(item.subtitle),
-        url: item.perma_url,
-        image: mapImage(item),
-      }));
+      const top_playlists = rawTopPlaylists.map(mapItem);
+      const charts = rawCharts.map(mapItem);
 
-      console.log(
-        `✅ top_playlists: ${top_playlists.length}, new_releases: ${new_releases.length}, trending: ${new_trending.length}, quick_picks: ${quick_picks.length}`,
-      );
-
-      // console.log("quick songs", quick_picks[0]);
       return {
         newtrending: new_trending,
         topPlaylists: top_playlists,
         newreleases: new_releases,
         raw_new_releases: raw_new_releases,
         quick_picks: quick_picks,
-        "promo:vx:data:76": json["promo:vx:data:76"] || [],
-        "promo:vx:data:68": json["promo:vx:data:68"] || [],
-        "promo:vx:data:69": json["promo:vx:data:69"] || [],
-        "promo:vx:data:185": json["promo:vx:data:185"] || [],
-        "promo:vx:data:209": json["promo:vx:data:209"] || [],
-        "promo:vx:data:113": json["promo:vx:data:113"] || [],
-        "promo:vx:data:107": json["promo:vx:data:107"] || [],
-        radio: json?.radio || [],
-        artist_recos: json?.artist_recos || [],
-        city_mod: json?.city_mod || [],
-        charts: rawCharts,
+        "promo:vx:data:76": (json["promo:vx:data:76"] || []).map(mapItem),
+        "promo:vx:data:68": (json["promo:vx:data:68"] || []).map(mapItem),
+        "promo:vx:data:69": (json["promo:vx:data:69"] || []).map(mapItem),
+        "promo:vx:data:185": (json["promo:vx:data:185"] || []).map(mapItem),
+        "promo:vx:data:209": (json["promo:vx:data:209"] || []).map(mapItem),
+        "promo:vx:data:113": (json["promo:vx:data:113"] || []).map(mapItem),
+        "promo:vx:data:107": (json["promo:vx:data:107"] || []).map(mapItem),
+        radio: (json?.radio || []).map(mapItem),
+        artist_recos: (json?.artist_recos || []).map(mapItem),
+        city_mod: (json?.city_mod || []).map(mapItem),
+        charts: charts,
         modules: json?.modules || {
           "promo:vx:data:76": {},
           "promo:vx:data:68": {},

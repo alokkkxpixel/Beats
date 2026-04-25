@@ -20,11 +20,12 @@ export default function TrendingSection({
   const navigation = useNavigation<any>();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   if (!data || data.length === 0) return <></>;
-  // console.log("new data", data.newReleases as any[]);
+  // console.log("new data", data.topPlaylists[0]?.image as Top[]);
 
   const renderItem = ({ item }: { item: any }) => {
+    // console.log("top play", item);
     let displayTitle = "";
-    let displayImage = "";
+    let displayImage = [];
     let displaySubtitle = "";
     let id = "";
     let route = "";
@@ -109,11 +110,23 @@ export default function TrendingSection({
       }
     };
 
+    // Smart image picker: handles array (mapped) or plain string (raw)
+    const getImageUri = (img: any): string => {
+      if (Array.isArray(img)) {
+        return img[2] || img[1] || img[0] || "";
+      }
+      if (typeof img === "string" && img) {
+        const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
+        return `${base}-500x500.jpg`;
+      }
+      return "";
+    };
+
     return (
       <Pressable style={styles.card} onPress={handlePress}>
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: displayImage }}
+            source={{ uri: getImageUri(displayImage) }}
             style={styles.image}
             contentFit="cover"
             transition={300}
@@ -121,7 +134,7 @@ export default function TrendingSection({
         </View>
         <Text
           style={styles.cardTitle}
-          className="font-sans-medium"
+          className="font-sans-medium text-white"
           numberOfLines={1}
         >
           {displayTitle}
@@ -218,7 +231,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    color: "#FFFFFF",
+    // color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 2,

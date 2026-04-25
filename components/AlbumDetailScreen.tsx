@@ -75,7 +75,7 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
       onPress={() => setCurrentTrack(item)}
     >
       <Image
-        source={{ uri: item.image?.[0]?.url }}
+        source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
         style={styles.trackImage}
       />
       <View style={styles.trackInfo}>

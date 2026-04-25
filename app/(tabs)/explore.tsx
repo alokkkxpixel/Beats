@@ -1,8 +1,9 @@
+import Categories from "@/components/explore/Categories";
 import { useHomePreviews } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { NewRelease } from "@/types/jiosaavn";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -29,6 +30,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Header from "../../components/Header";
 
 const { width } = Dimensions.get("window");
+
+// Handles both array image format [50x50, 150x150, 500x500] and plain strings
+const getImageUri = (img: any): string => {
+  if (Array.isArray(img)) return img[2] || img[1] || img[0] || "";
+  if (typeof img === "string" && img) return img;
+  return "";
+};
 
 const CATEGORIES = [
   {
@@ -155,6 +163,7 @@ export default function ExploreScreen() {
   }
 
   const renderAlbumItem = ({ item }: { item: NewRelease }) => (
+    // console.log(item),
     <Pressable
       onPress={async () => {
         if (item.type === "album") {
@@ -180,7 +189,7 @@ export default function ExploreScreen() {
       style={styles.albumCard}
     >
       <Image
-        source={{ uri: item.image }}
+        source={{ uri: getImageUri(item.image) }}
         style={styles.albumImage}
         contentFit="cover"
       />
@@ -223,24 +232,7 @@ export default function ExploreScreen() {
         }}
       >
         {/* Category Grid */}
-        <View style={styles.gridContainer}>
-          {CATEGORIES.map((cat) => (
-            <Pressable key={cat.id} style={styles.categoryCard}>
-              <View style={styles.iconContainer}>
-                {cat.iconType === "Ionicons" ? (
-                  <Ionicons name={cat.icon as any} size={24} color="white" />
-                ) : (
-                  <MaterialCommunityIcons
-                    name={cat.icon as any}
-                    size={24}
-                    color="white"
-                  />
-                )}
-              </View>
-              <Text style={styles.categoryTitle}>{cat.title}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <Categories />
 
         {/* New Albums Section */}
         <View style={styles.sectionHeader}>
@@ -303,7 +295,7 @@ export default function ExploreScreen() {
                     }}
                   >
                     <Image
-                      source={{ uri: mood.image }}
+                      source={{ uri: getImageUri(mood.image) }}
                       style={styles.moodRowImage}
                     />
                     <Text style={styles.moodRowTitle} numberOfLines={1}>

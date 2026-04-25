@@ -17,6 +17,7 @@ export default function QuickPickRow({
 }: QuickPickRowProps): React.JSX.Element {
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
+  // console.log("quick pick", item);
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);
     if (response.success && response.data[0]) {
@@ -26,7 +27,10 @@ export default function QuickPickRow({
 
   return (
     <Pressable style={styles.row} onPress={() => handlePlay(item.id, item.url)}>
-      <Image source={{ uri: item.cover }} style={styles.cover} />
+      <Image
+        source={{ uri: item.cover[0]?.replace("50x50", "150x150") || "" }}
+        style={styles.cover}
+      />
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title}
