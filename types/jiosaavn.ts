@@ -604,3 +604,59 @@ export interface RootResponse {
   charts: Charts[];
   modules: Modules;
 }
+
+
+
+export interface Lists {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string; // e.g., "playlist"
+  image: string;
+  url: string;
+  play_count?: string;
+  song_count?: string;
+  year?: string;
+  perma_url?: string;
+  more_info: {
+    music?:string;
+    album?:string;
+    album_id?:string;
+    song_count?: string;
+    album_url?:string;
+    follower_count?: string;
+    last_updated?: number | string;
+    uid?: string;
+    has_lyrics?: string;
+    lyrics_snippet?: string;
+    copyright_text?: string;
+    artistMap?: {
+      primary?: TrendingArtist[];
+      featured?: TrendingArtist[];
+      all?: TrendingArtist[];
+      artists?: TrendingArtist[];
+    };
+    release_date?: string;
+  };
+  explicit_content: string; // "0" for false, "1" for true
+  mini_obj: boolean;
+  language: string;
+  release_date?: string;
+
+}
+  
+export interface SpecialForYou {
+  id: string;
+  title:string,
+  subtitle:string,
+  header_desc?:string,
+  image?:string,
+  perma_url:string,
+  type:string,
+  list_count?:string,
+  list:Lists[],
+  more_info?:{
+    uid?:string, 
+  }
+  
+}

@@ -1,11 +1,23 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 
-export const useHomePreviews = (languages: string[] = ["english", "hindi"]) => {
+export const useHomePreviews = (languages: string[] = ["english"]) => {
   return useQuery({
     // THE FIX: Adding languages to the key
     queryKey: ["home-previews", languages.join(",")],
     queryFn: () => SaavnService.getHomePreviews(languages),
+
+    // For debugging, keep these low or commented out
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
+  });
+};
+
+export const useSpecialForYou = (languages: string[] = ["english"]) => {
+  return useQuery({
+    // THE FIX: Adding languages to the key
+    queryKey: ["special-for-you", languages.join(",")],
+    queryFn: () => SaavnService.getSpecialForYou(languages),
 
     // For debugging, keep these low or commented out
     staleTime: 1000 * 60 * 15, // 15 minutes

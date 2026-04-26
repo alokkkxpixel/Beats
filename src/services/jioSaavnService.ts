@@ -6,6 +6,7 @@ import {
   GlobalSearchResponse,
   RootResponse,
   SearchSongsResponse,
+  SpecialForYou,
 } from "../../types/jiosaavn";
 import { decodeHtmlEntities, recursiveClean } from "../utils/transform";
 const BASE_URL =
@@ -249,6 +250,33 @@ export const SaavnService = {
   //     return null;
   //   }
   // },
+
+  async getSpecialForYou(languages: string[]) {
+    try {
+      const langCookie = languages.map((l) => l.toLowerCase()).join(",");
+      const url =
+        `https://www.jiosaavn.com/api.php?__call=webapi.get` +
+        `&token=I3kvhipIy73uCJW60TJk1Q__&type=playlist&p=1&n=50&includeMetaTags=0&ctx=web6dot0&api_version=4&_format=json&_marker=0`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "omit",
+        headers: {
+          cookie: `L=${langCookie}; DL=english;`,
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Referer: "https://www.jiosaavn.com/",
+          Accept: "application/json",
+        },
+      })
+               
+      const data:SpecialForYou= await response.json(); 
+      return data;
+    } catch (error) {
+      console.error("Fetch failed:", error);
+      return null;
+    }
+  },
 
   async getPlaylistDetails(
     playlistId: string | null,

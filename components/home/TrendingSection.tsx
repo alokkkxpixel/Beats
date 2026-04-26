@@ -158,11 +158,13 @@ export default function TrendingSection({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title} className="font-sans-light">
+        <Text style={styles.title} className="font-sans-semibold text-white">
           {title}
         </Text>
         <Pressable hitSlop={10}>
-          <Text style={styles.moreBtn}>More</Text>
+          <Text style={styles.moreBtn} className="font-sans-medium">
+            More
+          </Text>
         </Pressable>
       </View>
 
@@ -192,10 +194,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    color: "#FFFFFF",
     fontSize: 22,
-    fontWeight: "800",
-    letterSpacing: -0.5,
+    // letterSpacing: -0.5,
   },
   moreBtn: {
     color: "#AAAAAA",

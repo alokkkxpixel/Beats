@@ -1,6 +1,7 @@
 import CityHotSection from "@/components/home/CityHotSection";
+import SpeedDialGrid from "@/components/home/MusicCarousel";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
-import { useHomePreviews } from "@/src/hooks/useQueries";
+import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
@@ -38,6 +39,8 @@ export default function Index() {
 
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomePreviews();
+  const { data: SpecialForYouData, isLoading: SpecialForYouLoading } =
+    useSpecialForYou();
   // Time-based background logic
   const getBackgroundData = () => {
     const hour = new Date().getHours();
@@ -140,6 +143,13 @@ export default function Index() {
       data: data?.city_mod.data,
     },
     {
+      id: "foryou",
+      title: "For You",
+      subtitle: "Music just for you",
+      type: "foryou",
+      data: SpecialForYouData?.list,
+    },
+    {
       id: "playlists",
       title: "Top Playlists",
       type: "playlists",
@@ -217,6 +227,7 @@ export default function Index() {
                 data={item.data}
               />
             );
+          if (item.type === "foryou") return <SpeedDialGrid data={item.data} />;
 
           return (
             <TrendingSection
