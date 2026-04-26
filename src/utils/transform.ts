@@ -10,14 +10,17 @@ const formatDuration = (seconds: number | null): string => {
 
 export const formatPlayCount = (count: number | string | null): string => {
   if (!count) return "0";
-  const num = typeof count === "string" ? parseInt(count, 10) : count;
+  const num = typeof count === "string" ? parseInt(count.replace(/,/g, ""), 10) : count;
   if (isNaN(num)) return "0";
 
   if (num < 1000) return num.toString();
   if (num < 100000) return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-  if (num < 1000000)
-    return (num / 100000).toFixed(1).replace(/\.0$/, "") + " Lakh";
-  return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (num < 10000000) {
+    const lakhs = (num / 100000).toFixed(1).replace(/\.0$/, "");
+    return `${lakhs} ${parseFloat(lakhs) === 1 ? "Lakh" : "Lakhs"}`;
+  }
+  const crores = (num / 10000000).toFixed(1).replace(/\.0$/, "");
+  return `${crores} ${parseFloat(crores) === 1 ? "Crore" : "Crores"}`;
 };
 
 export const decodeHtmlEntities = (str: string): string => {

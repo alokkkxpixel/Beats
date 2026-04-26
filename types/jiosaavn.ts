@@ -596,7 +596,11 @@ export interface RootResponse {
   "promo:vx:data:113": TopPlaylists[];
   radio: Radio[];
   artist_recos: ArtistRecos[];
-  city_mod: CityMod[];
+  city_mod: {
+    title: string;
+    subtitle: string;
+    data: any[];
+  };
   charts: Charts[];
   modules: Modules;
 }

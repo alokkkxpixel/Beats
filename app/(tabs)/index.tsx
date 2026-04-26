@@ -1,3 +1,4 @@
+import CityHotSection from "@/components/home/CityHotSection";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
 import { useHomePreviews } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
@@ -37,7 +38,6 @@ export default function Index() {
 
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomePreviews();
-
   // Time-based background logic
   const getBackgroundData = () => {
     const hour = new Date().getHours();
@@ -133,6 +133,13 @@ export default function Index() {
       data: data?.newtrending,
     },
     {
+      id: "citymod",
+      title: data?.city_mod.title,
+      subtitle: data?.city_mod.subtitle,
+      type: "cityHot",
+      data: data?.city_mod.data,
+    },
+    {
       id: "playlists",
       title: "Top Playlists",
       type: "playlists",
@@ -144,6 +151,7 @@ export default function Index() {
       type: "albums",
       data: data?.newreleases,
     },
+
     { id: "charts", title: "Top Charts", type: "charts", data: data?.charts },
   ];
 
@@ -200,6 +208,15 @@ export default function Index() {
         renderItem={({ item }: any) => {
           if (item.type === "quickPicks")
             return <QuickPicksSection data={item.data} />;
+
+          if (item.type === "cityHot")
+            return (
+              <CityHotSection
+                title={item.title}
+                subtitle={item.subtitle}
+                data={item.data}
+              />
+            );
 
           return (
             <TrendingSection

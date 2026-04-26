@@ -59,7 +59,7 @@ const CategoriesDetailsPage = ({
       { length: Math.ceil(dataList.length / 2) },
       (_, i) => dataList.slice(i * 2, i * 2 + 2),
     );
-
+    // console.log(JSON.stringify(chunkedData[0], null, 2));
     return (
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
@@ -111,7 +111,10 @@ const CategoriesDetailsPage = ({
                       {item.title}
                     </Text>
                     <Text style={styles.gridSubtitle} numberOfLines={1}>
-                      {item.subtitle || item.type}
+                      {item.type +
+                        " • " +
+                        (item.more_info?.artistMap?.artists?.[0]?.name ||
+                          item?.subtitle)}
                     </Text>
                   </Pressable>
                 ))}

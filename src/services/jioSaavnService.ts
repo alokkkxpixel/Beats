@@ -76,7 +76,7 @@ export const SaavnService = {
       "promo:vx:data:107": [],
       radio: [],
       artist_recos: [],
-      city_mod: [],
+      city_mod: { title: "", subtitle: "", data: [] },
       charts: [],
       modules: {
         "promo:vx:data:76": {},
@@ -111,6 +111,7 @@ export const SaavnService = {
       });
 
       const json = await response.json();
+      
       const rawTopPlaylists: AlbumResponse[] = json?.top_playlists || [];
       const rawNewAlbums: AlbumResponse[] = json?.new_albums || [];
       const rawNewTrending: any[] = json?.new_trending || [];
@@ -185,7 +186,6 @@ export const SaavnService = {
 
       const top_playlists = rawTopPlaylists.map(mapItem);
       const charts = rawCharts.map(mapItem);
-
       return {
         newtrending: new_trending,
         topPlaylists: top_playlists,
@@ -201,7 +201,11 @@ export const SaavnService = {
         "promo:vx:data:107": (json["promo:vx:data:107"] || []).map(mapItem),
         radio: (json?.radio || []).map(mapItem),
         artist_recos: (json?.artist_recos || []).map(mapItem),
-        city_mod: (json?.city_mod || []).map(mapItem),
+        city_mod: {
+          title: decodeHtmlEntities(json?.module?.city_mod?.title || json?.modules?.city_mod?.title || ""),
+          subtitle: decodeHtmlEntities(json?.module?.city_mod?.subtitle || json?.modules?.city_mod?.subtitle || ""),
+          data: (json?.city_mod || []).map(mapItem),
+        },
         charts: charts,
         modules: json?.modules || {
           "promo:vx:data:76": {},
