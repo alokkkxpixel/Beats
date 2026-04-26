@@ -55,6 +55,47 @@ export const usePlaylistInfinite = (
     staleTime: 1000 * 60 * 15,
   });
 };
+
+export const useAlbumInfinite = (
+  albumId: string | null,
+  albumUrl: string | null,
+) => {
+  return useInfiniteQuery({
+    queryKey: ["album-infinite", albumId || albumUrl],
+
+    queryFn: ({ pageParam = 0 }) =>
+      // SaavnService.getAlbumDetails(albumId, albumUrl!, pageParam, 10),
+      SaavnService.getAlbumDetails(albumId, albumUrl!),
+
+    initialPageParam: 0,
+
+    getNextPageParam: (lastPage: any, allPages) => {
+      const songs = lastPage?.songs ?? [];
+
+      if (!songs.length) return undefined;
+
+      // 🔥 stop if same as previous page
+      if (allPages.length > 1) {
+        const prev = allPages[allPages.length - 2];
+
+        const prevIds = prev?.songs?.map((s: any) => s.id).join(",");
+        const currIds = songs.map((s: any) => s.id).join(",");
+
+        if (prevIds === currIds) {
+          return undefined; // 🚫 STOP pagination
+        }
+      }
+
+      return allPages.length;
+    },
+
+    enabled: !!albumId || !!albumUrl,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 15,
+  });
+};
+
 export const useAlbum = (
   albumId: string | null,
   albumUrl: string | null = null,
@@ -63,7 +104,7 @@ export const useAlbum = (
     queryKey: ["album", albumId || albumUrl],
     queryFn: () =>
       albumUrl && (!albumId || albumId === "null")
-        ? SaavnService.getAlbumDetails(albumUrl) // URL-based fetch via Vercel
+        ? SaavnService.getAlbumDetails(albumId, albumUrl!)
         : jioSaavnService.getAlbumById(albumId!),
     enabled: !!albumId || !!albumUrl,
     staleTime: 1000 * 60 * 15, // 15 minutes

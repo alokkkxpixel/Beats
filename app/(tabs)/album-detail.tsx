@@ -1,26 +1,24 @@
 import AlbumDetailScreen from "@/components/AlbumDetailScreen";
+import { useAlbum } from "@/src/hooks/useQueries";
+import { transformAlbumToUI } from "@/src/utils/transform";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-import { useAlbum } from "@/src/hooks/useQueries";
-import { transformAlbumToUI } from "@/src/utils/transform";
 
 export default function AlbumDetailRoute() {
   const { albumId, albumUrl } = useLocalSearchParams<{
     albumId?: string;
     albumUrl?: string;
   }>();
+
   const navigation = useNavigation();
 
-  // useAlbum handles both:
-  // - albumId  → fetch by id  (jioSaavnService.getAlbumById)
-  // - albumUrl → fetch by url (SaavnService.getAlbumDetails via Vercel)
   const { data, isLoading, error } = useAlbum(
     albumId ?? null,
     albumUrl ?? null,
   );
 
-  // Fallback UI for loading
+  // ✅ Loading
   if (isLoading) {
     return (
       <View
@@ -36,7 +34,7 @@ export default function AlbumDetailRoute() {
     );
   }
 
-  // Fallback UI for error or not found
+  // ✅ Error
   if (error || !data) {
     return (
       <View
@@ -54,14 +52,20 @@ export default function AlbumDetailRoute() {
     );
   }
 
-  // getAlbumById returns { success, data: {...} }, getAlbumDetails returns the object directly
+  // ✅ IMPORTANT: no pages here
   const rawAlbum = data?.data ?? data;
+
   const album = transformAlbumToUI(rawAlbum);
+
+  if (!album) return null;
 
   return (
     <AlbumDetailScreen
       route={{ params: { album } } as any}
       navigation={navigation}
+      // ❌ REMOVE THESE (not needed anymore)
+      // onLoadMore
+      // isMoreLoading
     />
   );
 }

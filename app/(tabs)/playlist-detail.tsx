@@ -22,15 +22,15 @@ export default function PlayListDetailRoute() {
     isFetchingNextPage,
   } = usePlaylistInfinite(playlistId ?? null, playlistUrl ?? null);
 
-  // 🔥 ADD DEBUG HERE
-  if (data?.pages?.length) {
-    console.log(
-      "Page:",
-      data.pages.length,
-      "Last songs:",
-      data.pages[data.pages.length - 1]?.songs?.length,
-    );
-  }
+  // For DEbuging  ADD DEBUG HERE
+  // if (data?.pages?.length) {
+  //   console.log(
+  //     "Page:",
+  //     data.pages.length,
+  //     "Last songs:",
+  //     data.pages[data.pages.length - 1]?.songs?.length,
+  //   );
+  // }
 
   // ✅ Loading state
   if (isLoading) {

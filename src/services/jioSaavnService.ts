@@ -269,9 +269,14 @@ export const SaavnService = {
       return null;
     }
   },
-  async getAlbumDetails(albumUrl: string): Promise<any> {
+  async getAlbumDetails(
+    albumId: string | null,
+    albumUrl: string | null,
+  ): Promise<any> {
     try {
-      const response = await fetch(`${API_SERVER}/api/albums?link=${albumUrl}`);
+      const response = await fetch(
+        `${API_SERVER}/api/albums?id=${albumId}&link=${albumUrl}`,
+      );
       const json = await response.json();
       return json.success ? recursiveClean(json.data) : null;
     } catch (error) {
