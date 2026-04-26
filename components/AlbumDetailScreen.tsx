@@ -31,18 +31,24 @@ interface AlbumDetailProps {
     };
   };
   navigation: any;
+  onLoadMore?: () => void; // ✅ add
+  isMoreLoading?: boolean; // ✅ add
 }
 
 const TypedFlashList = FlashList as any;
 
-const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
+const AlbumDetailScreen = ({
+  route,
+  navigation,
+  onLoadMore,
+  isMoreLoading,
+}: AlbumDetailProps) => {
   const { album } = route.params;
 
   // Calculate total duration
-  const totalDurationSeconds = album.songs.reduce(
-    (acc, song) => acc + (song.duration || 0),
-    0,
-  );
+  const totalDurationSeconds = React.useMemo(() => {
+    return album.songs.reduce((acc, song) => acc + (song.duration || 0), 0);
+  }, [album.songs]);
   const formatTotalTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
@@ -68,37 +74,117 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
 
-  const renderTrack = ({ item, index }: { item: Song; index: number }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      style={styles.trackItem}
-      onPress={() => setCurrentTrack(item)}
-    >
-      <Image
-        source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
-        style={styles.trackImage}
-      />
-      <View style={styles.trackInfo}>
-        <Text style={styles.trackTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <View style={styles.trackSubRow}>
-          {!!item.explicitContent && (
-            <View style={styles.explicitBadge}>
-              <Text style={styles.explicitText}>E</Text>
+  const renderTrack = React.useCallback(
+    ({ item, index }: { item: Song; index: number }) => {
+      const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
+
+      const artist = item.artists?.primary?.[0]?.name || artistName;
+
+      const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
+
+      return (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={styles.trackItem}
+          onPress={() => setCurrentTrack(item)}
+        >
+          <Image source={{ uri: imageUri }} style={styles.trackImage} />
+
+          <View style={styles.trackInfo}>
+            <Text style={styles.trackTitle} numberOfLines={1}>
+              {item.name}
+            </Text>
+
+            <View style={styles.trackSubRow}>
+              {!!item.explicitContent && (
+                <View style={styles.explicitBadge}>
+                  <Text style={styles.explicitText}>E</Text>
+                </View>
+              )}
+
+              <Text style={styles.trackSub} numberOfLines={1}>
+                {artist} • {duration} • {formatPlayCount(item.playCount)}
+              </Text>
             </View>
-          )}
-          <Text style={styles.trackSub} numberOfLines={1}>
-            {item.artists?.primary?.[0]?.name || artistName} •{" "}
-            {(item.duration / 60).toFixed(2)} •{" "}
-            {formatPlayCount(item.playCount)}
+          </View>
+
+          <TouchableOpacity style={styles.trackMore}>
+            <MoreVertical color="#9ca3af" size={20} />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      );
+    },
+    [artistName, setCurrentTrack], // ✅ dependencies
+  );
+
+  const renderHeader = React.useMemo(
+    () => (
+      <View style={styles.listHeader}>
+        <Image
+          source={{ uri: highResCover }}
+          style={styles.mainCover}
+          contentFit="cover"
+          transition={500}
+        />
+
+        <Text style={styles.mainTitle}>{album.name || album.title}</Text>
+
+        <View style={styles.descriptionContainer}>
+          <Text
+            style={styles.descriptionText}
+            className=" text-center"
+            numberOfLines={2}
+          >
+            {album.description
+              ? album.description.replace(/\s*\n\s*/g, "\n").trim()
+              : ""}
           </Text>
         </View>
+
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.actionCircleBtn}>
+            <ArrowDownCircle color="white" size={24} strokeWidth={1.2} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionCircleBtn}>
+            <PlusSquare color="white" size={24} strokeWidth={1.2} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.mainPlayBtn}>
+            <Play color="black" size={25} fill="black" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCircleBtn}>
+            <Share2 color="white" size={24} strokeWidth={1.2} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionCircleBtn}>
+            <MoreVertical color="white" size={24} strokeWidth={1.2} />
+          </TouchableOpacity>
+        </View>
       </View>
-      <TouchableOpacity style={styles.trackMore}>
-        <MoreVertical color="#9ca3af" size={20} />
-      </TouchableOpacity>
-    </TouchableOpacity>
+    ),
+    [highResCover, album.name, album.title, album.description],
+  );
+
+  const renderFooter = React.useMemo(
+    () => (
+      <>
+        <View style={styles.footerContainer}>
+          <Text style={styles.footerText}>
+            {album.songs.length} songs • {formatTotalTime(totalDurationSeconds)}
+          </Text>
+          {!!album.playCount && (
+            <Text style={styles.footerSubText}>
+              {formatPlayCount(album.playCount)} plays
+            </Text>
+          )}
+        </View>
+
+        {isMoreLoading && (
+          <ActivityIndicator style={{ marginVertical: 20 }} color="white" />
+        )}
+      </>
+    ),
+    [album.songs.length, totalDurationSeconds, album.playCount, isMoreLoading],
   );
 
   return (
@@ -155,64 +241,12 @@ const AlbumDetailScreen = ({ route, navigation }: AlbumDetailProps) => {
           data={album.songs}
           renderItem={renderTrack}
           estimatedItemSize={70}
-          keyExtractor={(item: Song) => item.id}
-          ListHeaderComponent={() => (
-            <View style={styles.listHeader}>
-              <Image
-                source={{ uri: highResCover }}
-                style={styles.mainCover}
-                contentFit="cover"
-                transition={500}
-              />
-
-              <Text style={styles.mainTitle}>{album.name || album.title}</Text>
-
-              <View style={styles.descriptionContainer}>
-                <Text
-                  style={styles.descriptionText}
-                  className=" text-center"
-                  numberOfLines={2}
-                >
-                  {album.description
-                    ? album.description.replace(/\s*\n\s*/g, "\n").trim()
-                    : ""}
-                </Text>
-              </View>
-
-              <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.actionCircleBtn}>
-                  <ArrowDownCircle color="white" size={24} strokeWidth={1.2} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionCircleBtn}>
-                  <PlusSquare color="white" size={24} strokeWidth={1.2} />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.mainPlayBtn}>
-                  <Play color="black" size={25} fill="black" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.actionCircleBtn}>
-                  <Share2 color="white" size={24} strokeWidth={1.2} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionCircleBtn}>
-                  <MoreVertical color="white" size={24} strokeWidth={1.2} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-          ListFooterComponent={() => (
-            <View style={styles.footerContainer}>
-              <Text style={styles.footerText}>
-                {album.songs.length} songs •{" "}
-                {formatTotalTime(totalDurationSeconds)}
-              </Text>
-              {!!album.playCount && (
-                <Text style={styles.footerSubText}>
-                  {formatPlayCount(album.playCount)} plays
-                </Text>
-              )}
-            </View>
-          )}
+          onEndReached={onLoadMore}
+          onEndReachedThreshold={0.1}
+          removeClippedSubviews={true}
+          keyExtractor={(item: Song, index: number) => `${item.id}-${index}`}
+          ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
           contentContainerStyle={{ paddingBottom: 150 }}
         />
       </SafeAreaView>

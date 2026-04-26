@@ -111,7 +111,7 @@ export const SaavnService = {
       });
 
       const json = await response.json();
-      
+
       const rawTopPlaylists: AlbumResponse[] = json?.top_playlists || [];
       const rawNewAlbums: AlbumResponse[] = json?.new_albums || [];
       const rawNewTrending: any[] = json?.new_trending || [];
@@ -202,8 +202,16 @@ export const SaavnService = {
         radio: (json?.radio || []).map(mapItem),
         artist_recos: (json?.artist_recos || []).map(mapItem),
         city_mod: {
-          title: decodeHtmlEntities(json?.module?.city_mod?.title || json?.modules?.city_mod?.title || ""),
-          subtitle: decodeHtmlEntities(json?.module?.city_mod?.subtitle || json?.modules?.city_mod?.subtitle || ""),
+          title: decodeHtmlEntities(
+            json?.module?.city_mod?.title ||
+              json?.modules?.city_mod?.title ||
+              "",
+          ),
+          subtitle: decodeHtmlEntities(
+            json?.module?.city_mod?.subtitle ||
+              json?.modules?.city_mod?.subtitle ||
+              "",
+          ),
           data: (json?.city_mod || []).map(mapItem),
         },
         charts: charts,
@@ -226,22 +234,41 @@ export const SaavnService = {
     }
   },
 
+  // async getPlaylistDetails(
+  //   playlistId: string | null,
+  //   playlistUrl: string,
+  // ): Promise<any> {
+  //   try {
+  //     const response = await fetch(
+  //       `${API_SERVER}/api/playlists?id=${playlistId}&link=${playlistUrl}`,
+  //     );
+  //     const json = await response.json();
+  //     return json.success ? recursiveClean(json.data) : null;
+  //   } catch (error) {
+  //     console.error("Detail fetch failed:", error);
+  //     return null;
+  //   }
+  // },
+
   async getPlaylistDetails(
     playlistId: string | null,
     playlistUrl: string,
+    page: number = 0,
+    limit: number = 10,
   ): Promise<any> {
     try {
-      const response = await fetch(
-        `${API_SERVER}/api/playlists?id=${playlistId}&link=${playlistUrl}`,
+      const res = await fetch(
+        `${API_SERVER}/api/playlists?id=${playlistId}&link=${playlistUrl}&page=${page}&limit=${limit}`,
       );
-      const json = await response.json();
-      return json.success ? recursiveClean(json.data) : null;
+
+      const json = await res.json();
+
+      return json.success ? json.data : null;
     } catch (error) {
-      console.error("Detail fetch failed:", error);
+      console.error("Fetch failed:", error);
       return null;
     }
   },
-
   async getAlbumDetails(albumUrl: string): Promise<any> {
     try {
       const response = await fetch(`${API_SERVER}/api/albums?link=${albumUrl}`);

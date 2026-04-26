@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 
 export const useHomePreviews = (languages: string[] = ["english", "hindi"]) => {
@@ -29,6 +29,32 @@ export const usePlaylist = (
   });
 };
 
+export const usePlaylistInfinite = (
+  playlistId: string | null,
+  playlistUrl: string | null,
+) => {
+  return useInfiniteQuery({
+    queryKey: ["playlist-infinite", playlistId || playlistUrl],
+
+    queryFn: ({ pageParam = 0 }) =>
+      SaavnService.getPlaylistDetails(playlistId, playlistUrl!, pageParam, 10),
+
+    initialPageParam: 0,
+
+    getNextPageParam: (lastPage: any, allPages) => {
+      const songs = lastPage?.songs ?? lastPage?.list ?? [];
+      // If the API returned fewer songs than the limit, we've reached the end
+      if (!songs || songs.length < 10) return undefined;
+      // Next page index = number of pages fetched so far
+      return allPages.length;
+    },
+
+    enabled: !!playlistId || !!playlistUrl,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 15,
+  });
+};
 export const useAlbum = (
   albumId: string | null,
   albumUrl: string | null = null,
