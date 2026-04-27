@@ -1,20 +1,21 @@
-import FullPlayer from "@/components/FullPlayer";
 import AudioEngine from "@/components/AudioEngine";
+import FullPlayer from "@/components/FullPlayer";
 import { HapticTab } from "@/components/haptic-tab";
 import MiniPlayer from "@/components/MiniPlayer";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Tabs } from "expo-router";
 import { Compass, Home, Library } from "lucide-react-native";
-import React, { useCallback, useRef, useState } from "react";
-import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import React, { useCallback, useRef } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePlayerStore } from "@/src/store/usePlayerStore";
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const { isFullPlayerOpen, minimizeFullPlayer, expandFullPlayer } = usePlayerStore();
+  const { isFullPlayerOpen, minimizeFullPlayer, expandFullPlayer } =
+    usePlayerStore();
   const tabBarHeight = 55 + insets.bottom;
   const snapPoints = ["100%"];
 
@@ -95,6 +96,12 @@ export default function TabLayout() {
         />
         <Tabs.Screen
           name="category-details"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="artist/[id]"
           options={{
             href: null,
           }}

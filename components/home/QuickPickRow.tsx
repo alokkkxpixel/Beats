@@ -8,6 +8,8 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { QuickPick } from "./types";
 
+import { useRouter } from "expo-router";
+
 type QuickPickRowProps = {
   item: QuickPick;
 };
@@ -16,6 +18,7 @@ export default function QuickPickRow({
   item,
 }: QuickPickRowProps): React.JSX.Element {
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+  const router = useRouter();
 
   // console.log("quick pick", item);
   const handlePlay = async (id: string, link?: string) => {
@@ -25,23 +28,51 @@ export default function QuickPickRow({
     }
   };
 
+  const handleArtistPress = () => {
+    if (item.artistId || item.artistUrl) {
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: item.artistId, url: item.artistUrl },
+      });
+    }
+  };
+
+  const getImageUri = (cover: any): string => {
+    if (Array.isArray(cover)) {
+      const target = cover[1] || cover[0] || cover[2] || "";
+      if (typeof target === "string") return target;
+      return target?.url || "";
+    }
+    if (typeof cover === "string" && cover) {
+      if (cover.includes("50x50")) {
+        return cover.replace("50x50", "150x150");
+      }
+      return cover;
+    }
+    return "";
+  };
+
   return (
     <Pressable style={styles.row} onPress={() => handlePlay(item.id, item.url)}>
-      <Image
-        source={{ uri: item.cover[0]?.replace("50x50", "150x150") || "" }}
-        style={styles.cover}
-      />
+      <Image source={{ uri: getImageUri(item.cover) }} style={styles.cover} />
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title}
         </Text>
-        <Text
-          style={styles.artist}
-          className="tracking-tighter"
-          numberOfLines={1}
-        >
-          {item.artist} • {formatPlayCount(item.playCount || 0)} plays
-        </Text>
+        <Pressable onPress={handleArtistPress}>
+          <Text
+            style={styles.artist}
+            className="tracking-tighter"
+            numberOfLines={1}
+          >
+            {item.playCount && Number(item.playCount || "") > 0
+              ? item.artist +
+                " • " +
+                formatPlayCount(Number(item.playCount || "")) +
+                " plays"
+              : item.artist}
+          </Text>
+        </Pressable>
       </View>
       <View style={styles.menu}>
         <Ionicons name="ellipsis-vertical" size={20} color="#A3A3A3" />

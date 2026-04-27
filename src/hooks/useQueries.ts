@@ -140,3 +140,14 @@ export const useSearchSongs = (query: string, page = 0, limit = 10) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
+export const useArtist = (
+  artistId: string | null,
+  artistUrl: string | null = null,
+) => {
+  return useQuery({
+    queryKey: ["artist", artistId || artistUrl],
+    queryFn: () => jioSaavnService.getArtistDetails(artistId, artistUrl),
+    enabled: !!artistId || !!artistUrl,
+    staleTime: 1000 * 60 * 15, // 15 minutes
+  });
+};

@@ -104,14 +104,17 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
       } finally {
         setLoading(false);
       }
-    } else if (item.type === "playlist" || item.type === "album") {
+    } else if (item.type === "playlist" || item.type === "album" || item.type === "artist") {
       // Navigate to detail page if it's not a song
       router.push({
         pathname:
-          item.type === "playlist" ? "/playlist-detail" : "/album-detail",
+          item.type === "playlist" ? "/playlist-detail" : 
+          item.type === "album" ? "/album-detail" : "/artist/[id]",
         params: {
-          [item.type === "playlist" ? "playlistId" : "albumId"]: item.id,
-          [item.type === "playlist" ? "playlistUrl" : "albumUrl"]:
+          [item.type === "playlist" ? "playlistId" : 
+           item.type === "album" ? "albumId" : "id"]: item.id,
+          [item.type === "playlist" ? "playlistUrl" : 
+           item.type === "album" ? "albumUrl" : "url"]:
             item.perma_url || item.url,
         },
       });

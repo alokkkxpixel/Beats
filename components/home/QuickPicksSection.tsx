@@ -8,6 +8,8 @@ import {
   View,
 } from "react-native";
 
+import { SongDetail } from "@/types/jiosaavn";
+import { Ionicons } from "@expo/vector-icons";
 import QuickPickRow from "./QuickPickRow";
 
 // export default function QuickPicksSection(): React.JSX.Element {
@@ -58,12 +60,18 @@ import QuickPickRow from "./QuickPickRow";
 //   );
 // }
 interface QuickPicksSectionProps {
-  data?: any[];
+  data?: SongDetail[];
+  title?: string;
+  subtitle?: string;
 }
 
-export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
+export default function QuickPicksSection({
+  data,
+  title = "Quick picks",
+  subtitle = "Start a queue full of your favorites",
+}: QuickPicksSectionProps) {
   const { width: screenWidth } = useWindowDimensions();
-
+  // console.log("quick picks", data);
   const padding = 16;
   const columnGap = 12;
   const columnWidth = screenWidth * 0.9;
@@ -76,13 +84,28 @@ export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
     // Normalize and chunk
     const normalized = data.map((item: any) => ({
       id: item.id,
-      title: item.title,
-      artist: item.subtitle || item.artist || "Unknown Artist",
+      title: item.title || item.name,
+      artist:
+        item.artist ||
+        item.subtitle ||
+        item.artists?.primary?.[0]?.name ||
+        item.artists?.all?.[0]?.name ||
+        "Unknown Artist",
+      artistId:
+        item.artistId ||
+        item.more_info?.artistMap?.primary_artists?.[0]?.id ||
+        item.artists?.primary?.[0]?.id ||
+        "",
+      artistUrl:
+        item.artistUrl ||
+        item.more_info?.artistMap?.primary_artists?.[0]?.perma_url ||
+        item.artists?.primary?.[0]?.url ||
+        "",
       cover: item.image || item.cover,
       playCount: item.play_count || item.playCount,
       url: item.url || item.perma_url,
     }));
-
+    // console.log("normalized", normalized[2]?.title);
     const chunks = [];
     for (let i = 0; i < normalized.length; i += 4) {
       chunks.push(normalized.slice(i, i + 4));
@@ -96,16 +119,21 @@ export default function QuickPicksSection({ data }: QuickPicksSectionProps) {
     <View style={styles.section}>
       {/* Header */}
       <View style={styles.header}>
-        <View className="gap-1">
+        <View style={styles.headerTitleContainer}>
           <Text style={styles.heading} className="text-2xl font-sans-medium ">
-            Quick picks
+            {title}
           </Text>
-          <Text className="text-sm font-sans-light text-gray-200">
-            Start a queue full of your favorites
-          </Text>
+          {subtitle ? (
+            <Text className="text-sm font-sans-light text-gray-200">
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
-        <Pressable style={styles.playAllButton}>
-          <Text style={styles.playAllText}>Play all</Text>
+        <Pressable style={styles.headerActions}>
+          <View style={styles.playAllButton}>
+            <Text style={styles.playAllText}>Play all</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
         </Pressable>
       </View>
 
@@ -191,29 +219,39 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+
+  headerTitleContainer: {
+    flex: 1,
+    gap: 2,
+  },
+
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 
   heading: {
     color: "#FAFAFA",
-    // fontSize: 22,
-    // fontWeight: "700",
   },
 
   playAllButton: {
-    height: 32,
+    height: 30,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
 
   playAllText: {
     color: "#E4E4E7",
-    fontSize: 13,
-    fontWeight: "500",
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   column: {},

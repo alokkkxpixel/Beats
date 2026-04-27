@@ -391,7 +391,13 @@ export interface TopPlaylists {
   image: string;
   url: string;
   play_count?: string;
-  more_info: {
+  artists?: {
+    primary?: TrendingArtist[];
+    featured?: TrendingArtist[];
+    all?: TrendingArtist[];
+  };
+
+  more_info?: {
     firstname?: string;
     song_count?: string;
     follower_count?: string;
@@ -404,6 +410,7 @@ export interface TopPlaylists {
       all?: TrendingArtist[];
       artists?: TrendingArtist[];
     };
+
     release_date?: string;
   };
   explicit_content: string; // "0" for false, "1" for true
@@ -605,8 +612,6 @@ export interface RootResponse {
   modules: Modules;
 }
 
-
-
 export interface Lists {
   id: string;
   title: string;
@@ -619,11 +624,11 @@ export interface Lists {
   year?: string;
   perma_url?: string;
   more_info: {
-    music?:string;
-    album?:string;
-    album_id?:string;
+    music?: string;
+    album?: string;
+    album_id?: string;
     song_count?: string;
-    album_url?:string;
+    album_url?: string;
     follower_count?: string;
     last_updated?: number | string;
     uid?: string;
@@ -642,21 +647,149 @@ export interface Lists {
   mini_obj: boolean;
   language: string;
   release_date?: string;
-
 }
-  
+
 export interface SpecialForYou {
   id: string;
-  title:string,
-  subtitle:string,
-  header_desc?:string,
-  image?:string,
-  perma_url:string,
-  type:string,
-  list_count?:string,
-  list:Lists[],
-  more_info?:{
-    uid?:string, 
-  }
-  
+  title: string;
+  subtitle: string;
+  header_desc?: string;
+  image?: string;
+  perma_url: string;
+  type: string;
+  list_count?: string;
+  list: Lists[];
+  more_info?: {
+    uid?: string;
+  };
+}
+
+export interface ArtistType {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  image: Image[];
+  followerCount: string;
+  fanCount: string | null;
+  isVerified: string | null;
+  dominantLanguage: string | null;
+  dominantType: string | null;
+  bio: {
+    text: string;
+    title: string;
+    sequence: number;
+  }[];
+  dob: string | null;
+  fb: string | null;
+  twitter: string | null;
+  wiki: string | null;
+  availableLanguages: string[] | null;
+  isRadioPresent: string | null;
+  topSongs: SongType[];
+  topAlbums: AlbumType[];
+  singles: singleType[];
+  similarArtists: similarArtistsType[];
+}
+export interface SongType {
+  id: string;
+  name: string;
+  type: string;
+  year: string;
+  releaseDate: string | null;
+  duration: string | null;
+  label: string | null;
+  explicitContent: string | null;
+  playCount: string | null;
+  language: string | null;
+  hasLyrics: string | null;
+  lyricsId: string | null;
+  url: string;
+  copyright: string | null;
+  album: {
+    id: string | null;
+    name: string | null;
+    url: string | null;
+  };
+  artists: {
+    primary?: TrendingArtist[];
+    featured?: TrendingArtist[];
+    all?: TrendingArtist[];
+    artists?: TrendingArtist[];
+  };
+  image: Image[];
+  downloadUrl: Image[];
+}
+export interface AlbumType {
+  id: string;
+  name: string;
+  description: string | null;
+  year: string | null;
+  type: string | null;
+  playCount: string | null;
+  language: string | null;
+  explicitContent: string | null;
+  artists: {
+    primary?: TrendingArtist[];
+    featured?: TrendingArtist[];
+    all?: TrendingArtist[];
+    artists?: TrendingArtist[];
+  };
+  songCount: string | null;
+  url: string;
+  image: Image[];
+  songs: SongType[];
+}
+export interface singleType {
+  id: string;
+  name: string;
+  type: string;
+  year: null;
+  releaseDate: null;
+  duration: null;
+  label: null;
+  explicitContent: true;
+  playCount: null;
+  language: string;
+  hasLyrics: true;
+  lyricsId: null;
+  url: string;
+  copyright: null;
+  album: {
+    id: null;
+    name: null;
+    url: null;
+  };
+  artists: {
+    primary?: TrendingArtist[];
+    featured?: TrendingArtist[];
+    all?: TrendingArtist[];
+    artists?: TrendingArtist[];
+  };
+  image: Image[];
+  downloadUrl: Image[];
+}
+export interface similarArtistsType {
+  id: string;
+  name: string;
+  url: string;
+  image: Image[];
+  languages: {
+    additionalProperty: string;
+  };
+  wiki?: string;
+  fb?: string;
+  twitter?: string;
+  dob?: string;
+  isRadioPresent: boolean;
+  type?: string;
+  dominantType?: string;
+  dominantLanguage?: string;
+  aka?: string;
+  bio?: string | null;
+  similarArtists?: TrendingArtist[];
+}
+export interface Image {
+  quality: string;
+  url: string;
 }

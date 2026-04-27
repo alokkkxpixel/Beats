@@ -50,9 +50,8 @@ export default function CityHotSection({
         if (response.success && response.data[0]) {
           setCurrentTrack(response.data[0]);
         }
-      } else if (itemType === "artist") {
-        // Handle artist navigation if needed, for now just log or navigate to a default
-        console.log("Artist pressed:", id);
+      } else if (itemType === "artist" || url?.includes("/artist/")) {
+        navigation.navigate("artist/[id]", { id: id, url: url });
       } else {
         const isAlbumUrl = url?.includes("/album/");
         const route = isAlbumUrl ? "album-detail" : "playlist-detail";

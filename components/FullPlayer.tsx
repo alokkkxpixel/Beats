@@ -24,6 +24,7 @@ import Animated, {
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -49,6 +50,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   const next = usePlayerStore((state) => state.next);
   const previous = usePlayerStore((state) => state.previous);
   const seek = usePlayerStore((state) => state.seek);
+  const router = useRouter();
   const duration = storeDuration || 0;
   const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
@@ -131,6 +133,17 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
     ? `${primaryArtists} (feat. ${featuredArtists})`
     : primaryArtists || "Unknown Artist";
 
+  const handleArtistPress = () => {
+    const artist = currentTrack.artists.primary[0];
+    if (artist) {
+      handleCloseSheet();
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: artist.id, url: artist.url },
+      });
+    }
+  };
+
   const { label, copyright } = currentTrack;
   const aboutArtist = currentTrack.artists.primary[0].name;
   const bioDisplayText = label || copyright || "No artist biography available.";
@@ -170,9 +183,14 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
       >
         {/* --- Header --- */}
         <View style={styles.header}>
-          <Pressable onPress={() => handleCloseSheet()}>
+          <Pressable
+            onPress={() => handleCloseSheet()}
+            style={styles.headerIconButton}
+            hitSlop={20}
+          >
             <Ionicons name="chevron-down" size={28} color="white" />
           </Pressable>
+
           <Text
             style={styles.headerTitle}
             numberOfLines={1}
@@ -180,7 +198,10 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
           >
             {currentTrack.album.name}
           </Text>
-          <Ionicons name="ellipsis-horizontal" size={24} color="white" />
+
+          <Pressable style={styles.headerIconButton} hitSlop={20}>
+            <Ionicons name="ellipsis-horizontal" size={24} color="white" />
+          </Pressable>
         </View>
 
         {/* --- Album Artwork --- */}
@@ -198,13 +219,15 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             >
               {currentTrack.name}
             </Text>
-            <Text
-              style={styles.songArtist}
-              numberOfLines={1}
-              className="font-sans-light text-xs tracking-tighter"
-            >
-              {artistName}
-            </Text>
+            <Pressable onPress={handleArtistPress}>
+              <Text
+                style={styles.songArtist}
+                numberOfLines={1}
+                className="font-sans-light text-xs tracking-tighter"
+              >
+                {artistName}
+              </Text>
+            </Pressable>
           </View>
           <Ionicons name="heart-outline" size={28} color="white" />
         </View>
@@ -273,7 +296,11 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
           <Text style={styles.lyricsPreview}>Lyrics coming soon...</Text>
         </View>
 
-        <View style={styles.artistCard} className="">
+        <Pressable
+          style={styles.artistCard}
+          className=""
+          onPress={handleArtistPress}
+        >
           <View style={styles.artistHeader}>
             <Image
               source={{
@@ -290,7 +317,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             <Text style={styles.artistNameText}>{aboutArtist}</Text>
             <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>
-        </View>
+        </Pressable>
       </ScrollView>
     </GestureHandlerRootView>
   );
@@ -310,14 +337,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     alignItems: "center",
+    height: 40,
+    position: "relative",
+  },
+  headerIconButton: {
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
+    position: "absolute",
+    left: 60,
+    right: 60,
     color: "white",
     fontSize: 14,
     fontWeight: "600",
-    // flex: 1,
     textAlign: "center",
-    // marginHorizontal: 15,
   },
   artWrapper: {
     alignItems: "center",

@@ -1,6 +1,7 @@
 import { fetch } from "expo/fetch";
 import {
   AlbumResponse,
+  ArtistType,
   GetAlbumResponse,
   GetPlaylistResponse,
   GlobalSearchResponse,
@@ -57,6 +58,28 @@ export const jioSaavnService = {
     const response = await fetch(`${BASE_URL}/playlists?id=${id}`);
     const data = await response.json();
     return recursiveClean(data);
+  },
+
+  getArtistDetails: async (
+    id: string | null,
+    link: string | null = null,
+    page:number=1,
+    songCount:number=10,
+    albumCount:number=10,
+    sortBy:string="popularity",
+    sortOrder:string="desc",
+  ): Promise<any> => {
+    try {
+      
+      const url = `${API_SERVER}/api/artists?id=${id}&link=${link}&page=${page}&songCount=${songCount}&albumCount=${albumCount}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+      const response = await fetch(url);
+
+      const json = await response.json();
+     return json.data as ArtistType
+    } catch (error) {
+      console.error("Artist detail fetch failed:", error);
+      return null;
+    }
   },
 };
 

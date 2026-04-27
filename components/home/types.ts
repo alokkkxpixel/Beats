@@ -2,6 +2,8 @@ export type QuickPick = {
   id: string;
   title: string;
   artist: string;
+  artistId?: string;
+  artistUrl?: string;
   cover: string;
   url?: string | undefined;
   playCount?: string | number;

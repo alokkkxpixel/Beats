@@ -6,9 +6,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { TopPlaylists } from "@/types/jiosaavn";
 interface TrendingSectionProps {
-  title: string;
-  data: any[];
+  title?: string;
+  data: TopPlaylists[];
   type: string;
 }
 
@@ -40,45 +41,69 @@ export default function TrendingSection({
     const extractedArtist =
       item.more_info?.artistMap?.primary_artists?.[0]?.name ||
       item.more_info?.artistMap?.artists?.[0]?.name ||
+      item.artists?.primary?.[0]?.name ||
       item.artists?.[0]?.name ||
-      item.artists ||
-      item.subtitle || // Sometimes subtitle contains artist name
+      (typeof item.artists === "string" ? item.artists : "") ||
+      item.subtitle ||
       "";
 
     // Normalize different API structures
     if (type === "trending") {
       id = item?.id;
       url = item?.url || item?.perma_url;
-      displayTitle = item?.title;
+      displayTitle = item?.title || item?.name;
       displayImage = item?.image;
-      displaySubtitle = item?.subtitle;
+      displaySubtitle =
+        item?.subtitle ||
+        [item.type, extractedArtist].filter(Boolean).join(" • ");
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;
     } else if (type === "playlists") {
       id = item.listid || item.id;
       url = item?.url || item?.perma_url;
-      displayTitle = item.title;
+      displayTitle = item.title || item.name;
       displayImage = item.image;
-      displaySubtitle = item.subtitle;
+      displaySubtitle = item.subtitle || extractedArtist || "Playlist";
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;
     } else if (type === "albums") {
       id = item.id || item.albumid;
       url = item?.url || item?.perma_url;
-      displayTitle = item.title;
-      displayImage = item.image;
-      displaySubtitle = item.subtitle || item.text;
+      displayTitle = item.title || item.name;
+      displayImage = item?.image;
+      displaySubtitle =
+        item.subtitle ||
+        [
+          item.type
+            ? item.type.charAt(0).toUpperCase() + item.type.slice(1)
+            : "Album",
+
+          extractedArtist,
+        ]
+          .filter(Boolean)
+          .join(" • ");
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;
     } else if (type === "charts") {
       id = item.id;
       url = item?.url || item?.perma_url;
-      displayTitle = item.title;
-      displayImage = item.image;
-      displaySubtitle = item.title;
+      displayTitle = item.title || item.name;
+      displayImage = item?.image;
+      displaySubtitle = item.subtitle || "Chart";
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
+    } else if (type === "single") {
+      id = item.id;
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title || item.name;
+      displayImage = item?.image;
+      displaySubtitle =
+        item.subtitle ||
+        ["Single", extractedArtist].filter(Boolean).join(" • ");
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;
@@ -86,18 +111,26 @@ export default function TrendingSection({
 
     // Smart routing: detect album URLs vs playlist/featured URLs or explicit types
     const isAlbumUrl = url?.includes("/album/");
+    const isArtistUrl =
+      url?.includes("/artist/") || type === "artist" || itemType === "artist";
 
-    if (isAlbumUrl) {
+    if (isArtistUrl) {
+      route = "artist/[id]";
+    } else if (isAlbumUrl) {
       route = "album-detail";
     } else {
       route = "playlist-detail";
     }
 
     // Pass BOTH id and url to be safe
-    const navParams =
-      route === "album-detail"
-        ? { albumId: id, albumUrl: url }
-        : { playlistId: id, playlistUrl: url };
+    let navParams: any = {};
+    if (route === "artist/[id]") {
+      navParams = { id: id, url: url };
+    } else if (route === "album-detail") {
+      navParams = { albumId: id, albumUrl: url };
+    } else {
+      navParams = { playlistId: id, playlistUrl: url };
+    }
 
     const handlePress = async () => {
       if (itemType === "song") {
@@ -106,16 +139,24 @@ export default function TrendingSection({
           setCurrentTrack(response.data[0]);
         }
       } else {
-        navigation.navigate(route, navParams);
+        if (route === "artist/[id]") {
+          navigation.navigate("artist/[id]", navParams);
+        } else {
+          navigation.navigate(route, navParams);
+        }
       }
     };
 
-    // Smart image picker: handles array (mapped) or plain string (raw)
+    // Smart image picker: handles array (mapped), object array (raw), or plain string
     const getImageUri = (img: any): string => {
       if (Array.isArray(img)) {
-        return img[2] || img[1] || img[0] || "";
+        const target = img[2] || img[1] || img[0] || "";
+        if (typeof target === "string") return target;
+        return target?.url || target?.uri || "";
       }
       if (typeof img === "string" && img) {
+        // If it's already a high-res or doesn't need transform
+        if (img.includes("500x500") || img.includes("150x150")) return img;
         const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
         return `${base}-500x500.jpg`;
       }
@@ -144,12 +185,7 @@ export default function TrendingSection({
           className="font-sans-light"
           numberOfLines={2}
         >
-          {displaySubtitle ||
-            (itemType && artists ? `${itemType} • ${artists}` : "") ||
-            (year && artists ? `${year} • ${artists}` : "") ||
-            itemType ||
-            year ||
-            ""}
+          {displaySubtitle}
         </Text>
       </Pressable>
     );
