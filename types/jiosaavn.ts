@@ -41,9 +41,13 @@ export interface SongDetail {
   language: string;
   hasLyrics: boolean;
   lyricsId: string | null;
+  primaryArtists?: string;
+  singers?: string;
+  description?: string;
+  subtitle?: string;
   url: string;
   copyright: string | null;
-  album: SongAlbumInfo;
+  album?: SongAlbumInfo | string;
   artists: SongArtistsMap;
   image: ImageQuality[];
   downloadUrl: ImageQuality[];

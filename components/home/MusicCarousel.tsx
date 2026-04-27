@@ -104,19 +104,23 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
       } finally {
         setLoading(false);
       }
-    } else if (item.type === "playlist" || item.type === "album" || item.type === "artist") {
-      // Navigate to detail page if it's not a song
+    } else if (item.type === "playlist") {
       router.push({
-        pathname:
-          item.type === "playlist" ? "/playlist-detail" : 
-          item.type === "album" ? "/album-detail" : "/artist/[id]",
+        pathname: "/playlist-detail",
         params: {
-          [item.type === "playlist" ? "playlistId" : 
-           item.type === "album" ? "albumId" : "id"]: item.id,
-          [item.type === "playlist" ? "playlistUrl" : 
-           item.type === "album" ? "albumUrl" : "url"]:
-            item.perma_url || item.url,
+          playlistId: item.id,
+          playlistUrl: item.perma_url || item.url,
         },
+      });
+    } else if (item.type === "album") {
+      router.push({
+        pathname: "/album-detail",
+        params: { albumId: item.id, albumUrl: item.perma_url || item.url },
+      });
+    } else if (item.type === "artist") {
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: item.id, url: item.perma_url || item.url },
       });
     }
   };

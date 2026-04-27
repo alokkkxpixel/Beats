@@ -1,13 +1,19 @@
+import { useGlobalSearch } from "@/src/hooks/useQueries";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { ArrowUpRight, AudioLines, History, Mic } from "lucide-react-native";
-import React, { useState } from "react";
+import { ArrowUpRight, History, Mic, PlayCircle } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
-  FlatList,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -19,38 +25,85 @@ interface SearchHistoryItem {
   term: string;
 }
 
-const RECENT_SEARCHES: SearchHistoryItem[] = [
-  { id: "1", term: "ruby" },
-  { id: "2", term: "tum hi ho" },
-  { id: "3", term: "om vashudhareyy namah" },
-  { id: "4", term: "ajay atul devi" },
-  { id: "5", term: "chunri chunri" },
-  { id: "6", term: "addha seesha" },
-  { id: "7", term: "ariana grande" },
-  { id: "8", term: "keeji khesari ke lal dj" },
-  { id: "9", term: "darule jeenie" },
-  { id: "10", term: "chardiwar" },
-  { id: "11", term: "future" },
-  { id: "12", term: "vithal vithal vithala hari om vithala dj" },
-  { id: "13", term: "banayenge mandir dj song" },
-  { id: "14", term: "bhagwa rang dj" },
-];
-
 export default function SearchScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [history, setHistory] = useState<SearchHistoryItem[]>([
+    { id: "1", term: "The Weeknd" },
+    { id: "2", term: "Tum Hi Ho" },
+    { id: "3", term: "Starboy" },
+  ]);
 
-  const renderHistoryItem = ({ item }: { item: SearchHistoryItem }) => (
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const { data: searchResults, isLoading } = useGlobalSearch(debouncedQuery);
+
+  const addToHistory = (term: string) => {
+    if (!term.trim()) return;
+    const newHistory = [
+      { id: Date.now().toString(), term: term.trim() },
+      ...history.filter((h) => h.term.toLowerCase() !== term.toLowerCase()),
+    ].slice(0, 5);
+    setHistory(newHistory);
+  };
+
+  const handleResultPress = async (item: any) => {
+    addToHistory(item.title || item.name);
+
+    if (item.type === "song") {
+      try {
+        // Search results are minimal; fetch full song details for the download URL
+        const response = await jioSaavnService.getSongByIdandLink(
+          item.id,
+          item.url,
+        );
+        if (response.success && response.data?.[0]) {
+          setCurrentTrack(response.data[0]);
+        } else {
+          setCurrentTrack(item); // Fallback
+        }
+      } catch (error) {
+        console.error("Failed to fetch full song details:", error);
+        setCurrentTrack(item); // Fallback
+      }
+    } else if (item.type === "album") {
+      router.push({
+        pathname: "/album-detail",
+        params: { albumId: item.id, albumUrl: item.url },
+      });
+    } else if (item.type === "playlist") {
+      router.push({
+        pathname: "/playlist-detail",
+        params: { playlistId: item.id, playlistUrl: item.url },
+      });
+    } else if (item.type === "artist") {
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: item.id, url: item.url },
+      });
+    }
+  };
+
+  const renderHistoryItem = (item: SearchHistoryItem) => (
     <Pressable
-      className="flex-row items-center justify-between px-5 py-4 active:bg-white/5"
+      key={item.id}
+      className="flex-row items-center justify-between px-5 py-3 active:bg-white/5"
       onPress={() => setSearchQuery(item.term)}
     >
       <View className="flex-row items-center flex-1">
-        <History size={20} color="#888" strokeWidth={1.5} />
+        <History size={18} color="#888" strokeWidth={1.5} />
         <Text
-          className="text-[#e5e5e5] text-[15px] ml-6 flex-1 font-medium"
+          className="text-[#e5e5e5] text-[15px] ml-6 flex-1 font-sans-medium"
           numberOfLines={1}
         >
           {item.term}
@@ -60,8 +113,49 @@ export default function SearchScreen() {
     </Pressable>
   );
 
+  const renderSectionHeader = (title: string) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText} className="font-sans-bold">
+        {title}
+      </Text>
+    </View>
+  );
+
+  const renderResultItem = (item: any, isArtist: boolean = false) => (
+    <Pressable
+      key={item.id}
+      style={styles.resultItem}
+      onPress={() => handleResultPress(item)}
+    >
+      <Image
+        source={{ uri: item.image?.[1]?.url || item.image }}
+        style={[styles.resultImage, isArtist && styles.artistImage]}
+      />
+      <View style={styles.resultInfo}>
+        <Text
+          style={styles.resultTitle}
+          numberOfLines={1}
+          className="font-sans-medium"
+        >
+          {item.title || item.name}
+        </Text>
+        <Text
+          style={styles.resultSubtitle}
+          numberOfLines={1}
+          className="font-sans-light"
+        >
+          {item.type.charAt(0).toUpperCase() + item.type.slice(1)} •{" "}
+          {item.subtitle || item.description || ""}
+        </Text>
+      </View>
+      {item.type === "song" && (
+        <PlayCircle size={22} color="#888" strokeWidth={1.5} />
+      )}
+    </Pressable>
+  );
+
   return (
-    <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-[#050505]" style={{ paddingTop: insets.top }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -77,40 +171,149 @@ export default function SearchScreen() {
 
           <View className="flex-1 flex-row items-center bg-[#1a1a1a] rounded-full px-4 h-11 mx-1">
             <TextInput
-              className="flex-1 text-white text-[16px] h-full"
-              placeholder="Search songs, artists, p..."
+              className="flex-1 text-white text-[16px] h-full font-sans-medium"
+              placeholder="Songs, artists, or albums"
               placeholderTextColor="#888"
               value={searchQuery}
               onChangeText={setSearchQuery}
               selectionColor="#fff"
               autoFocus
+              returnKeyType="search"
+              onSubmitEditing={() => addToHistory(searchQuery)}
             />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={20} color="#888" />
+              </Pressable>
+            )}
           </View>
 
           <View className="flex-row items-center">
             <Pressable className="p-2.5 bg-[#1a1a1a] rounded-full mx-1 active:opacity-60">
               <Mic size={20} color="white" strokeWidth={2} />
             </Pressable>
-
-            <Pressable className="p-2 active:opacity-60">
-              <AudioLines size={22} color="white" strokeWidth={2} />
-            </Pressable>
           </View>
         </View>
 
-        {/* History List */}
-        <FlatList
-          data={RECENT_SEARCHES}
-          keyExtractor={(item) => item.id}
-          renderItem={renderHistoryItem}
-          contentContainerStyle={{
-            paddingBottom: 150, // Space for miniplayer and tabs
-            paddingTop: 8,
-          }}
-          showsVerticalScrollIndicator={false}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 150 }}
           keyboardShouldPersistTaps="handled"
-        />
+        >
+          {/* History Section */}
+          {!searchQuery && (
+            <View>
+              {history.map(renderHistoryItem)}
+              <View style={styles.hr} />
+            </View>
+          )}
+
+          {isLoading && (
+            <View style={{ marginTop: 50 }}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )}
+
+          {searchResults?.data && searchQuery.length > 0 && (
+            <View>
+              {/* Top Results */}
+              {searchResults.data.topQuery?.results?.length > 0 && (
+                <>
+                  {renderSectionHeader("Top result")}
+                  {searchResults.data.topQuery.results.map((item: any) =>
+                    renderResultItem(item, item.type === "artist"),
+                  )}
+                </>
+              )}
+
+              {/* Songs */}
+              {searchResults.data.songs?.results?.length > 0 && (
+                <>
+                  {renderSectionHeader("Songs")}
+                  {searchResults.data.songs.results.map((item: any) =>
+                    renderResultItem(item),
+                  )}
+                </>
+              )}
+
+              {/* Albums */}
+              {searchResults.data.albums?.results?.length > 0 && (
+                <>
+                  {renderSectionHeader("Albums")}
+                  {searchResults.data.albums.results.map((item: any) =>
+                    renderResultItem(item),
+                  )}
+                </>
+              )}
+
+              {/* Artists */}
+              {searchResults.data.artists?.results?.length > 0 && (
+                <>
+                  {renderSectionHeader("Artists")}
+                  {searchResults.data.artists.results.map((item: any) =>
+                    renderResultItem(item, true),
+                  )}
+                </>
+              )}
+
+              {/* Playlists */}
+              {searchResults.data.playlists?.results?.length > 0 && (
+                <>
+                  {renderSectionHeader("Playlists")}
+                  {searchResults.data.playlists.results.map((item: any) =>
+                    renderResultItem(item),
+                  )}
+                </>
+              )}
+            </View>
+          )}
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  hr: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    marginVertical: 10,
+    marginHorizontal: 20,
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  sectionHeaderText: {
+    color: "white",
+    fontSize: 18,
+  },
+  resultItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  resultImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 4,
+  },
+  artistImage: {
+    borderRadius: 24,
+  },
+  resultInfo: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  resultTitle: {
+    color: "white",
+    fontSize: 16,
+  },
+  resultSubtitle: {
+    color: "#888",
+    fontSize: 13,
+    marginTop: 2,
+  },
+});

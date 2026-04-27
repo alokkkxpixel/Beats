@@ -123,18 +123,22 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   }
 
   const trackImage = currentTrack.image[2]?.url || currentTrack.image[0]?.url;
-  const primaryArtists = currentTrack.artists.primary
-    .map((a) => a.name)
-    .join(", ");
-  const featuredArtists = currentTrack.artists.featured
-    .map((a) => a.name)
-    .join(", ");
+  const primaryArtists = Array.isArray(currentTrack.artists?.primary)
+    ? currentTrack.artists.primary.map((a) => a.name).join(", ")
+    : currentTrack.primaryArtists || "";
+
+  const featuredArtists = Array.isArray(currentTrack.artists?.featured)
+    ? currentTrack.artists.featured.map((a) => a.name).join(", ")
+    : "";
+
   const artistName = featuredArtists
     ? `${primaryArtists} (feat. ${featuredArtists})`
-    : primaryArtists || "Unknown Artist";
+    : primaryArtists || currentTrack.subtitle || "Unknown Artist";
 
   const handleArtistPress = () => {
-    const artist = currentTrack.artists.primary[0];
+    
+    const artist = currentTrack.artists?.primary?.[0];
+    console.log(artist?.name, artist?.id, artist?.url);
     if (artist) {
       handleCloseSheet();
       router.push({
@@ -145,7 +149,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   };
 
   const getArtistImage = () => {
-    const rawImage = currentTrack.artists.primary[0]?.image;
+    const rawImage = currentTrack.artists?.primary?.[0]?.image;
     let url = "";
 
     if (Array.isArray(rawImage)) {
@@ -165,7 +169,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   };
 
   const { label, copyright } = currentTrack;
-  const aboutArtist = currentTrack.artists.primary[0].name;
+  const aboutArtist = currentTrack.artists?.primary?.[0]?.name || "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
 
   return (
@@ -216,7 +220,9 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {currentTrack.album.name}
+            {typeof currentTrack?.album === "string"
+              ? currentTrack.album
+              : currentTrack?.album?.name || currentTrack?.name}
           </Text>
 
           <Pressable style={styles.headerIconButton} hitSlop={20}>

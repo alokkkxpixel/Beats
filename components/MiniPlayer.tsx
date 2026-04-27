@@ -12,16 +12,20 @@ export default function MiniPlayer() {
   const duration = usePlayerStore((state) => state.duration);
 
   const isLoaded = !!currentTrack && typeof currentTrack !== "string";
-  
-  const trackImage = isLoaded 
-    ? (currentTrack.image[1]?.url || currentTrack.image[0]?.url) 
+
+  const trackImage = isLoaded
+    ? currentTrack.image[1]?.url || currentTrack.image[0]?.url
     : "https://via.placeholder.com/150?text=..."; // Or a local placeholder
 
-  const artistName = isLoaded 
-    ? (currentTrack.artists.primary[0]?.name || "Unknown Artist") 
+  const artistName = isLoaded
+    ? currentTrack.artists?.primary?.[0]?.name ||
+      currentTrack.primaryArtists ||
+      currentTrack.subtitle ||
+      "Unknown Artist"
     : "";
-    
-  const progressPercent = (isLoaded && duration > 0) ? (position / duration) * 100 : 0;
+
+  const progressPercent =
+    isLoaded && duration > 0 ? (position / duration) * 100 : 0;
 
   return (
     <View style={styles.miniContainer}>
@@ -29,7 +33,16 @@ export default function MiniPlayer() {
         {isLoaded ? (
           <Image source={{ uri: trackImage }} style={styles.miniArt} />
         ) : (
-          <View style={[styles.miniArt, { backgroundColor: "#333", alignItems: 'center', justifyContent: 'center' }]}>
+          <View
+            style={[
+              styles.miniArt,
+              {
+                backgroundColor: "#333",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            ]}
+          >
             <Ionicons name="musical-note" size={24} color="#666" />
           </View>
         )}
@@ -43,8 +56,8 @@ export default function MiniPlayer() {
         </View>
 
         <View style={styles.miniControls}>
-          <Pressable 
-            style={styles.iconSpacing} 
+          <Pressable
+            style={styles.iconSpacing}
             onPress={() => isLoaded && togglePlay()}
             disabled={!isLoaded}
           >
@@ -59,7 +72,13 @@ export default function MiniPlayer() {
       {/* Progress bar at the very top of the mini player */}
       <View style={styles.miniProgressBarBackground}>
         <View
-          style={[styles.miniProgressBarFill, { width: `${progressPercent}%`, backgroundColor: isLoaded ? "#FF6F61" : "transparent" }]}
+          style={[
+            styles.miniProgressBarFill,
+            {
+              width: `${progressPercent}%`,
+              backgroundColor: isLoaded ? "#FF6F61" : "transparent",
+            },
+          ]}
         />
       </View>
     </View>

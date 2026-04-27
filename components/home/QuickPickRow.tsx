@@ -32,7 +32,7 @@ export default function QuickPickRow({
     if (item.artistId || item.artistUrl) {
       router.push({
         pathname: "/artist/[id]",
-        params: { id: item.artistId, url: item.artistUrl },
+        params: { id: Number(item.artistId), url: item.artistUrl },
       });
     }
   };
