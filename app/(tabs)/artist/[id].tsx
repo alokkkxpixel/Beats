@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import QuickPicksSection from "@/components/home/QuickPicksSection";
 import TrendingSection from "@/components/home/TrendingSection";
+import RecommendedArtist from "@/components/RecommendedArtist";
 import { useArtist } from "@/src/hooks/useQueries";
 import { formatPlayCount } from "@/src/utils/transform";
 
@@ -84,6 +85,22 @@ export default function ArtistScreen() {
     );
   }
 
+  if (!artist) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: "#fff", marginBottom: 20, fontSize: 16 }}>
+          Artist details not available
+        </Text>
+        <Pressable
+          onPress={() => router.back()}
+          style={[styles.topBarIcon, { backgroundColor: "#333" }]}
+        >
+          <ArrowLeft size={24} color="#fff" />
+        </Pressable>
+      </View>
+    );
+  }
+
   const sections = [
     {
       id: "header_spacer",
@@ -107,15 +124,27 @@ export default function ArtistScreen() {
       title: "Singles",
       data: artist?.singles || [],
     },
+    {
+      id: "recommended_artists",
+      type: "recommended_artists",
+      title: "You might also like",
+      data: artist?.similarArtists || [],
+    },
   ];
 
   const renderHeader = () => {
     const getImageUri = (img: any): string => {
+      let url = "";
       if (Array.isArray(img)) {
-        return img[2]?.url || img[1]?.url || img[0]?.url || "";
+        url = img[2]?.url || img[1]?.url || img[0]?.url || "";
+      } else if (typeof img === "string") {
+        url = img;
       }
-      if (typeof img === "string") return img;
-      return "";
+
+      if (url === "https://static.saavncdn.com/_i/share-image-2.png") {
+        return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+      }
+      return url;
     };
 
     const artistImage = getImageUri(artist?.image);
@@ -226,6 +255,9 @@ export default function ArtistScreen() {
                 type="single"
               />
             );
+          }
+          if (item.type === "recommended_artists") {
+            return <RecommendedArtist title={item.title} data={item.data} />;
           }
           return null;
         }}

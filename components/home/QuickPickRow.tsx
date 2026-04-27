@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { formatPlayCount } from "@/src/utils/transform";
+import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
 import { QuickPick } from "./types";
 
 import { useRouter } from "expo-router";
@@ -57,12 +57,12 @@ export default function QuickPickRow({
       <Image source={{ uri: getImageUri(item.cover) }} style={styles.cover} />
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={1}>
-          {item.title}
+          {decodeHtmlEntities(item.title)}
         </Text>
         <Pressable onPress={handleArtistPress}>
           <Text
             style={styles.artist}
-            className="tracking-tighter"
+            className="tracking-tighter "
             numberOfLines={1}
           >
             {item.playCount && Number(item.playCount || "") > 0

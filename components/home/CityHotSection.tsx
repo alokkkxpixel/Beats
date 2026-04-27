@@ -23,7 +23,6 @@ export default function CityHotSection({
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
   if (!data || data.length === 0) return <></>;
-
   const renderItem = ({ item }: { item: any }) => {
     const isArtist = item.type === "artist";
     const displayTitle = item.title || item.name;
@@ -51,7 +50,7 @@ export default function CityHotSection({
           setCurrentTrack(response.data[0]);
         }
       } else if (itemType === "artist" || url?.includes("/artist/")) {
-        navigation.navigate("artist/[id]", { id: id, url: url });
+        navigation.navigate("artist/[id]", { id: Number(id), url: url });
       } else {
         const isAlbumUrl = url?.includes("/album/");
         const route = isAlbumUrl ? "album-detail" : "playlist-detail";

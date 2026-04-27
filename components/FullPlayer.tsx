@@ -144,6 +144,26 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
     }
   };
 
+  const getArtistImage = () => {
+    const rawImage = currentTrack.artists.primary[0]?.image;
+    let url = "";
+
+    if (Array.isArray(rawImage)) {
+      url = rawImage[2]?.url || rawImage[1]?.url || rawImage[0]?.url || "";
+    } else if (typeof rawImage === "string") {
+      url = rawImage;
+    }
+
+    if (
+      !url ||
+      url.includes("share-image-2.png") ||
+      url.includes("default-artist")
+    ) {
+      return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+    }
+    return url;
+  };
+
   const { label, copyright } = currentTrack;
   const aboutArtist = currentTrack.artists.primary[0].name;
   const bioDisplayText = label || copyright || "No artist biography available.";
@@ -304,8 +324,7 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
           <View style={styles.artistHeader}>
             <Image
               source={{
-                uri:
-                  currentTrack.artists.primary[0]?.image[2]?.url || trackImage,
+                uri: getArtistImage(),
               }}
               style={styles.artistPhoto}
             />

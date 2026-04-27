@@ -63,19 +63,26 @@ export const jioSaavnService = {
   getArtistDetails: async (
     id: string | null,
     link: string | null = null,
-    page:number=1,
-    songCount:number=10,
-    albumCount:number=10,
-    sortBy:string="popularity",
-    sortOrder:string="desc",
+    page: number = 1,
+    songCount: number = 10,
+    albumCount: number = 10,
+    sortBy: string = "popularity",
+    sortOrder: string = "desc",
   ): Promise<any> => {
     try {
-      
-      const url = `${API_SERVER}/api/artists?id=${id}&link=${link}&page=${page}&songCount=${songCount}&albumCount=${albumCount}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
-      const response = await fetch(url);
+      let url = `${API_SERVER}/api/artists?id=${id}&page=${page}&songCount=${songCount}&albumCount=${albumCount}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
 
+      if (link) {
+        url += `&link=${link}`;
+      }
+
+      const response = await fetch(url);
       const json = await response.json();
-     return json.data as ArtistType
+
+      if (json.success && json.data) {
+        return json.data as ArtistType;
+      }
+      return null;
     } catch (error) {
       console.error("Artist detail fetch failed:", error);
       return null;
