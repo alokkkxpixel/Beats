@@ -59,7 +59,19 @@ export default function TrendingSection({
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;
-    } else if (type === "playlists") {
+    } else if (type === "playlists" || type === "playlist") {
+      id = item.listid || item.id;
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title || item.name;
+      displayImage = item.image;
+      displaySubtitle = item.subtitle || extractedArtist || "Playlist";
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
+    } else if (
+      type === "dedicated_artist_playlist" ||
+      type === "featured_artist_playlist"
+    ) {
       id = item.listid || item.id;
       url = item?.url || item?.perma_url;
       displayTitle = item.title || item.name;
@@ -112,7 +124,9 @@ export default function TrendingSection({
     // Smart routing: detect album URLs vs playlist/featured URLs or explicit types
     const isAlbumUrl = url?.includes("/album/");
     const isArtistUrl =
-      url?.includes("/artist/") || type === "artist" || itemType === "artist";
+      url?.includes("/artist/") ||
+      (type as any) === "artist" ||
+      itemType === "artist";
 
     if (isArtistUrl) {
       route = "artist/[id]";
@@ -152,16 +166,48 @@ export default function TrendingSection({
       if (Array.isArray(img)) {
         const target = img[2] || img[1] || img[0] || "";
         if (typeof target === "string") return target;
+        // console.log("title", target?.url || target?.uri);
+        if (target?.url.includes("150x150")) {
+          target.url = target.url.replace("150x150", "500x500");
+        }
         return target?.url || target?.uri || "";
       }
       if (typeof img === "string" && img) {
         // If it's already a high-res or doesn't need transform
-        if (img.includes("500x500") || img.includes("150x150")) return img;
+        if (img.includes("50x50")) {
+          img = img.replace("50x50", "500x500");
+          // return img;
+        } else if (img.includes("150x150")) {
+          img = img.replace("150x150", "500x500");
+          return img;
+        }
         const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
         return `${base}-500x500.jpg`;
       }
       return "";
     };
+    // const getImageUri = (img: any): string => {
+    //   let url = "";
+    //   if (Array.isArray(img)) {
+    //     url = img[2]?.url || img[1]?.url || img[0]?.url || "";
+    //   } else if (typeof img === "string") {
+    //     url = img;
+    //   }
+
+    //   if (url.includes("150x150")) {
+    //     url = url.replace("150x150", "500x500");
+    //   } else if (url.includes("50x50")) {
+    //     url = url.replace("50x50", "500x500");
+    //   }
+
+    //   if (
+    //     url === "https://static.saavncdn.com/_i/share-image-2.png" ||
+    //     !url
+    //   ) {
+    //     return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+    //   }
+    //   return url;
+    // };
 
     return (
       <Pressable style={styles.card} onPress={handlePress}>

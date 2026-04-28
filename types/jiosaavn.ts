@@ -125,6 +125,20 @@ export interface GlobalSearchData {
   };
 }
 
+export interface SearchSuggestion {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: string;
+  image: string;
+  url: string;
+}
+
+export interface SearchSuggestionResponse {
+  success: boolean;
+  data: SearchSuggestion[];
+}
+
 // ----------------------------------------------------
 // 3. FULL ENDPOINT RESPONSE TYPES
 // ----------------------------------------------------
@@ -200,6 +214,7 @@ export interface TrendingArtist {
   type?: string;
   image?: ImageQuality[] | string;
   url?: string;
+  perma_url?:string | null;
 }
 
 // Nested Music details for the New Albums section
@@ -394,13 +409,14 @@ export interface TopPlaylists {
   type: string; // e.g., "playlist"
   image: string;
   url: string;
+  perma_url?:string;
+  description?:string;
   play_count?: string;
   artists?: {
     primary?: TrendingArtist[];
     featured?: TrendingArtist[];
     all?: TrendingArtist[];
   };
-
   more_info?: {
     firstname?: string;
     song_count?: string;
@@ -408,6 +424,21 @@ export interface TopPlaylists {
     last_updated?: number | string;
     uid?: string;
     editorial_language?: string;
+    artist_name?: string[];
+    entity_type?: string;
+    entity_sub_type?: string;
+    video_available?: boolean | string;
+    id_dolby_content?: boolean | string | null | undefined;
+    sub_type?: string | null;
+    images?:null | string;
+    lastname?:string;
+    language?:string;
+    description?:string;
+    show_id?:string;
+    show_title?:string
+    season_no?:string;
+    season_title?:string
+    episode_number?:string;
     artistMap?: {
       primary?: TrendingArtist[];
       featured?: TrendingArtist[];
@@ -416,10 +447,13 @@ export interface TopPlaylists {
     };
 
     release_date?: string;
+    release_time?: string;
+
   };
   explicit_content: string; // "0" for false, "1" for true
   mini_obj: boolean;
   language: string;
+  numsongs?:null | string;
 }
 
 export interface Charts {
@@ -669,14 +703,18 @@ export interface SpecialForYou {
 }
 
 export interface ArtistType {
-  id: string;
+  id?: string;
+  artistId?: string;
   name: string;
-  url: string;
+  subtitle?: string;
+  url?: string;
   type: string;
   image: Image[];
-  followerCount: string;
-  fanCount: string | null;
-  isVerified: string | null;
+  followerCount?: string;
+  follower_count?: string;
+  fanCount?: string | null;
+  fan_count?: string | null;
+  isVerified: string | boolean | null;
   dominantLanguage: string | null;
   dominantType: string | null;
   bio: {
@@ -688,18 +726,67 @@ export interface ArtistType {
   fb: string | null;
   twitter: string | null;
   wiki: string | null;
+  urls?:{
+    albums: string;
+    bio: string;
+    comments: string;
+    songs: string;
+    overview: string;
+  }
   availableLanguages: string[] | null;
-  isRadioPresent: string | null;
+  isRadioPresent?: boolean| string | null;
   topSongs: SongType[];
   topAlbums: AlbumType[];
+  dedicated_artist_playlist?:TopPlaylists[];
+  featured_artist_playlist?:TopPlaylists[];
   singles: singleType[];
+  latest_release?: TopPlaylists[];
   similarArtists: similarArtistsType[];
+  topEpisodes?:TopPlaylists[]
+ modules?: {
+  topSongs?:{
+    title:string;
+    subtitle:string;
+   
+    
+  }
+  latest_release?:{
+    title:string;
+    subtitle:string;
+    
+  }
+  topAlbums?:{
+    title:string;
+    subtitle:string;
+    
+  }
+   dedicated_artist_playlist?:{
+    title:string;
+    subtitle:string;
+    
+  }
+   featured_artist_playlist?:{
+    title:string;
+    subtitle:string;
+    
+  }
+  singles?:{
+    title:string;
+    subtitle:string;
+    
+  }
+  
+ }
 }
 export interface SongType {
   id: string;
   name: string;
+  title?: string;
+  subtitle?: string;
+  header_desc?: string;
+  perma_url?:string | null;
   type: string;
-  year: string;
+  year: string | null;
   releaseDate: string | null;
   duration: string | null;
   label: string | null;
@@ -710,6 +797,24 @@ export interface SongType {
   lyricsId: string | null;
   url: string;
   copyright: string | null;
+  more_info?:{
+    music?:string | null;
+    song_count?:string | number | null;
+    album?:string | null;
+    album_id?:string | null;
+    label?:string | null;
+    album_url?:string | null;
+    has_lyrics?:string | boolean | null;
+    lyrics_snippet?:string | null;
+    copyright_text?:string | null;
+    artistMap?:{
+      primary?: TrendingArtist[];
+      featured?: TrendingArtist[];
+      all?: TrendingArtist[];
+      artists?: TrendingArtist[];
+    }
+
+  }
   album: {
     id: string | null;
     name: string | null;
@@ -722,17 +827,32 @@ export interface SongType {
     artists?: TrendingArtist[];
   };
   image: Image[];
-  downloadUrl: Image[];
+  downloadUrl?: Image[];
 }
 export interface AlbumType {
   id: string;
   name: string;
+  title?: string;
+  subtitle?: string;
+  header_desc?: string;
   description: string | null;
   year: string | null;
   type: string | null;
   playCount: string | null;
   language: string | null;
   explicitContent: string | null;
+  more_info?:{
+     query?:string|null;
+     text?:string|null;
+     music?:string;
+     song_count?:string | number;
+     artistMap?:{
+         primary_artists?: TrendingArtist[];
+    featured_artists?: TrendingArtist[];
+    all?: TrendingArtist[];
+    artists?: TrendingArtist[];
+     }
+  }
   artists: {
     primary?: TrendingArtist[];
     featured?: TrendingArtist[];
@@ -746,14 +866,40 @@ export interface AlbumType {
 }
 export interface singleType {
   id: string;
-  name: string;
+  name?: string;
+  title?: string;
+  subtitle?: string;
+  header_desc?:string | null
   type: string;
-  year: null;
-  releaseDate: null;
-  duration: null;
-  label: null;
-  explicitContent: true;
-  playCount: null;
+  perma_url?:string | null;
+  year: null | string;
+  releaseDate: null | string;
+  duration: null | string;
+  label: null | string;
+  explicitContent: string | boolean;
+  playCount?: null | string;
+  play_count?:string | null;
+  explicit_content?:string | boolean;
+  list_count?:string | null;
+  list_type?:string | null;
+  more_info?:{
+   query?:string | null;
+   text?:string | null;
+   music?:string | null;
+   song_count?:string | null;
+   language?:string | null;
+   region?:string | null;
+   station_display_text?:string | null;
+   follower_count?:string | null;
+   last_updated?:string | null;
+    uid?:string | null
+      artistMap: {
+    primary_artists?: TrendingArtist[];
+    featured_artists?: TrendingArtist[];
+    artists?: TrendingArtist[];
+   };
+   release_date?:string | null;
+  }
   language: string;
   hasLyrics: true;
   lyricsId: null;
@@ -770,14 +916,16 @@ export interface singleType {
     all?: TrendingArtist[];
     artists?: TrendingArtist[];
   };
-  image: Image[];
+  image: Image[] | string;
   downloadUrl: Image[];
 }
 export interface similarArtistsType {
   id: string;
   name: string;
   url: string;
+  perma_url?:string | null;
   image: Image[];
+  image_url?: Image[];
   languages: {
     additionalProperty: string;
   };

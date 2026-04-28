@@ -142,6 +142,55 @@ export const useSearchSongs = (query: string, page = 0, limit = 10) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
+
+export const useDetailedSearch = (query: string, n = 20, p = 1) => {
+  return useQuery({
+    queryKey: ["detailed-search", query, n, p],
+    queryFn: () => jioSaavnService.getDetailedSearchResults(query, n, p),
+    enabled: !!query,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useSearchSuggestions = (query: string) => {
+  return useQuery({
+    queryKey: ["search-suggestions", query],
+    queryFn: () => jioSaavnService.getSearchSuggestions(query),
+    enabled: !!query,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useSearchInfinite = (
+  query: string,
+  type: "songs" | "albums" | "artists" | "playlists",
+) => {
+  return useInfiniteQuery({
+    queryKey: ["search-infinite", query, type],
+    queryFn: ({ pageParam = 0 }) => {
+      switch (type) {
+        case "songs":
+          return jioSaavnService.searchSongs(query, pageParam, 20);
+        case "albums":
+          return jioSaavnService.searchAlbums(query, pageParam, 20);
+        case "artists":
+          return jioSaavnService.searchArtists(query, pageParam, 20);
+        case "playlists":
+          return jioSaavnService.searchPlaylists(query, pageParam, 20);
+        default:
+          return jioSaavnService.searchSongs(query, pageParam, 20);
+      }
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: any) => {
+      const results = lastPage?.data?.results || [];
+      if (results.length < 20) return undefined;
+      return (lastPage?.data?.start || 0) + 20;
+    },
+    enabled: !!query && !!type,
+    staleTime: 1000 * 60 * 5,
+  });
+};
 export const useArtist = (
   artistId: string | null,
   artistUrl: string | null = null,
@@ -149,7 +198,8 @@ export const useArtist = (
   return useQuery({
     queryKey: ["artist", artistId || artistUrl],
     queryFn: () => jioSaavnService.getArtistDetails(artistId, artistUrl),
-    enabled: !!artistId || !!artistUrl,
-    staleTime: 1000 * 60 * 15, // 15 minutes
+    // enabled: !!artistId || !!artistUrl,
+    // staleTime: 1000 * 60 * 15
+    // 15 minutes
   });
 };

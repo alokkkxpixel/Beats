@@ -19,22 +19,35 @@ export default function RecommendedArtist({
 
   if (!data || data.length === 0) return <></>;
   const renderItem = ({ item }: { item: any }) => {
+    // console.log("item", JSON.stringify(item.image_url, null, 2));
     // Normalization logic for artist objects
     const displayTitle = item.name || item.title || "";
     // Description can be followers or role or just a generic label
     const displaySubtitle =
       item.subtitle || item.role || item.description || "Artist";
 
+    // Smart image picker: handles array (mapped), object array (raw), or plain string
     const getImageUri = (img: any): string => {
       if (Array.isArray(img)) {
         const target = img[2] || img[1] || img[0] || "";
         if (typeof target === "string") return target;
+        // console.log("title", target?.url || target?.uri);
+        if (target?.url.includes("150x150")) {
+          target.url = target.url.replace("150x150", "500x500");
+        }
         return target?.url || target?.uri || "";
       }
       if (typeof img === "string" && img) {
-        if (img.includes("500x500") || img.includes("150x150")) return img;
+        // If it's already a high-res or doesn't need transform
+        if (img.includes("50x50")) {
+          img = img.replace("50x50", "500x500");
+          // return img;
+        } else if (img.includes("150x150")) {
+          img = img.replace("150x150", "500x500");
+          return img;
+        }
         const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
-        return `${base}-150x150.jpg`;
+        return `${base}-500x500.jpg`;
       }
       return "";
     };
@@ -50,7 +63,7 @@ export default function RecommendedArtist({
       <Pressable style={styles.card} onPress={handlePress}>
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: getImageUri(item.image) }}
+            source={{ uri: getImageUri(item.image_url) }}
             style={styles.image}
             contentFit="cover"
             transition={300}

@@ -15,6 +15,112 @@ const BASE_URL =
 const API_SERVER =
   "https://jiosaavn-c451wwyru-sumit-kolhes-projects-94a4846a.vercel.app";
 
+ const Search = `https://www.jiosaavn.com/api.php?`;
+   
+// https://www.jiosaavn.com/api.php?__call=search.getResults&q=butter&n=20&p=1&_format=json&_marker=0&api_version=4&ctx=web6dot0
+ const song = "search.getResults"
+const artist = "search.getArtistResults"
+const album = "search.getAlbumResults"
+const playlist = "search.getPlaylistResults"
+  // n=20 no of results to fetch
+  // p=1 page number  
+  // q=query
+  // etc 
+  //  type = podcast
+  // &_format=json&_marker=0&api_version=4&ctx=web6dot0
+const mapArtistResponse = (data: any): ArtistType => {
+  const mapArtists = (artistMap: any) => ({
+    primary:
+      artistMap?.primary_artists?.map((a: any) => ({
+        ...a,
+        name: a.name,
+        url: a.perma_url,
+        image: [{ quality: "150x150", url: a.image }],
+      })) || [],
+    featured:
+      artistMap?.featured_artists?.map((a: any) => ({
+        ...a,
+        name: a.name,
+        url: a.perma_url,
+        image: [{ quality: "150x150", url: a.image }],
+      })) || [],
+    all:
+      artistMap?.artists?.map((a: any) => ({
+        ...a,
+        name: a.name,
+        url: a.perma_url,
+        image: [{ quality: "150x150", url: a.image }],
+      })) || [],
+  });
+
+  return {
+    ...data,
+    id: data.artistId,
+    followerCount: data.follower_count,
+    fanCount: data.fan_count,
+    topSongs:
+      data.topSongs?.map((item: any) => ({
+        ...item,
+        name: item.title,
+        url: item.perma_url,
+        explicitContent: item.explicit_content === "1",
+        duration: item.more_info?.duration ? parseInt(item.more_info.duration) : 0,
+        image: [{ quality: "150x150", url: item.image }],
+        album: {
+          id: item.more_info?.album_id,
+          name: item.more_info?.album,
+          url: item.more_info?.album_url,
+        },
+        artists: mapArtists(item.artistMap),
+      })) || [],
+    topAlbums:
+      data.topAlbums?.map((item: any) => ({
+        ...item,
+        name: item.title,
+        url: item.perma_url,
+        image: [{ quality: "150x150", url: item.image }],
+        playCount: item.play_count,
+        explicitContent: item.explicit_content,
+        releaseDate: item.release_date,
+        songCount: item.more_info?.song_count,
+        artists: mapArtists(item.more_info),
+      })) || [],
+    singles:
+      data?.singles?.map((item: any) => ({
+        ...item,
+        name: item?.title,
+        url: item?.perma_url,
+        image: [{ quality: "150x150", url: item.image }],
+        playCount: item.play_count,
+        explicitContent: item.explicit_content,
+        releaseDate: item.release_date,
+        songCount: item.more_info?.song_count,
+        artists: mapArtists(item.more_info),
+      })) || [],
+    dedicated_artist_playlist:
+      data?.dedicated_artist_playlist?.map((item: any) => ({
+        ...item,
+        name: item.title,
+        url: item.perma_url,
+        image: [{ quality: "150x150", url: item.image }],
+      })) || [],
+    featured_artist_playlist:
+      data?.featured_artist_playlist?.map((item: any) => ({
+        ...item,
+        name: item.title,
+        url: item.perma_url,
+        image: [{ quality: "150x150", url: item.image }],
+      })) || [],
+    latest_release:
+      data?.latest_release?.map((item: any) => ({
+        ...item,
+        name: item.title,
+        url: item.perma_url,
+        image: [{ quality: "150x150", url: item.image }],
+      })) || [],
+  };
+};
+
 export const jioSaavnService = {
   getGlobalSearch: async (query: string): Promise<GlobalSearchResponse> => {
     const response = await fetch(`${BASE_URL}/search?query=${query}`);
@@ -22,6 +128,34 @@ export const jioSaavnService = {
     return recursiveClean(data);
   },
 
+  getDetailedSearchResults: async (
+    query: string,
+    n = 20,
+    p = 1,
+  ): Promise<any> => {
+    const params = `&q=${query}&n=${n}&p=${p}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
+
+    try {
+      const [songsRes, albumsRes, artistsRes, playlistsRes] = await Promise.all([
+        fetch(`${Search}__call=${song}${params}`).then((r) => r.json()),
+        fetch(`${Search}__call=${album}${params}`).then((r) => r.json()),
+        fetch(`${Search}__call=${artist}${params}`).then((r) => r.json()),
+        fetch(`${Search}__call=${playlist}${params}`).then((r) => r.json()),
+      ]);
+
+      return recursiveClean({
+        songs: songsRes?.results || [],
+        albums: albumsRes?.results || [],
+        artists: artistsRes?.results || [],
+        playlists: playlistsRes?.results || [],
+      });
+    } catch (error) {
+      console.error("Detailed search fetch failed:", error);
+      return { songs: [], albums: [], artists: [], playlists: [] };
+    }
+  },
+
+  
   searchSongs: async (
     query: string,
     page = 0,
@@ -30,6 +164,48 @@ export const jioSaavnService = {
     const response = await fetch(
       `${BASE_URL}/search/songs?query=${query}&page=${page}&limit=${limit}`,
     );
+    const data = await response.json();
+    return recursiveClean(data);
+  },
+
+  searchAlbums: async (
+    query: string,
+    page = 0,
+    limit = 10,
+  ): Promise<any> => {
+    const response = await fetch(
+      `${BASE_URL}/search/albums?query=${query}&page=${page}&limit=${limit}`,
+    );
+    const data = await response.json();
+    return recursiveClean(data);
+  },
+
+  searchArtists: async (
+    query: string,
+    page = 0,
+    limit = 10,
+  ): Promise<any> => {
+    const response = await fetch(
+      `${BASE_URL}/search/artists?query=${query}&page=${page}&limit=${limit}`,
+    );
+    const data = await response.json();
+    return recursiveClean(data);
+  },
+
+  searchPlaylists: async (
+    query: string,
+    page = 0,
+    limit = 10,
+  ): Promise<any> => {
+    const response = await fetch(
+      `${BASE_URL}/search/playlists?query=${query}&page=${page}&limit=${limit}`,
+    );
+    const data = await response.json();
+    return recursiveClean(data);
+  },
+
+  getSearchSuggestions: async (query: string): Promise<any> => {
+    const response = await fetch(`${BASE_URL}/search?query=${query}`);
     const data = await response.json();
     return recursiveClean(data);
   },
@@ -63,26 +239,35 @@ export const jioSaavnService = {
   getArtistDetails: async (
     id: string | null,
     link: string | null = null,
-    page: number = 1,
+    type: string = "artist",
+    page: number = 0,
     songCount: number = 10,
     albumCount: number = 10,
-    sortBy: string = "popularity",
+    sortBy: string = "",
     sortOrder: string = "desc",
-  ): Promise<any> => {
+  ): Promise<ArtistType | null> => {
     try {
-      let url = `${API_SERVER}/api/artists?id=${id}&page=${page}&songCount=${songCount}&albumCount=${albumCount}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
-
-      if (link) {
-        url += `&link=${link}`;
+      if (id && link) {
+        const token = link.split("/").pop();
+        const url = `https://www.jiosaavn.com/api.php?__call=webapi.get&token=${token}&type=${type}&p=${page}&n_song=${songCount}&n_album=${albumCount}&sub_type=&category=${sortBy}&sort_order=${sortOrder}&includeMetaTags=0&ctx=web6dot0&api_version=4&_format=json&_marker=0`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return mapArtistResponse(data);
       }
 
-      const response = await fetch(url);
+      // Fallback path
+      const response = await fetch(
+        `${API_SERVER}/api/artists?id=${id}&page=${page}&songCount=${10}&albumCount=${10}`,
+      );
       const json = await response.json();
+      const token = json.data?.url?.split("/").pop();
 
-      if (json.success && json.data) {
-        return json.data as ArtistType;
-      }
-      return null;
+      if (!token) return null;
+
+      const url = `https://www.jiosaavn.com/api.php?__call=webapi.get&token=${token}&type=${type}&p=${page}&n_song=${songCount}&n_album=${albumCount}&sub_type=&category=${sortBy}&sort_order=${sortOrder}&includeMetaTags=0&ctx=web6dot0&api_version=4&_format=json&_marker=0`;
+      const artistResponse = await fetch(url);
+      const artistData = await artistResponse.json();
+      return mapArtistResponse(artistData);
     } catch (error) {
       console.error("Artist detail fetch failed:", error);
       return null;

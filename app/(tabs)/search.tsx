@@ -1,6 +1,7 @@
-import { useGlobalSearch } from "@/src/hooks/useQueries";
+import { useGlobalSearch, useSearchSuggestions } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { useSearchStore } from "@/src/store/useSearchStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -29,7 +30,8 @@ export default function SearchScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchQuery = useSearchStore((state) => state.searchQuery);
+  const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [history, setHistory] = useState<SearchHistoryItem[]>([
     { id: "1", term: "The Weeknd" },
@@ -46,7 +48,10 @@ export default function SearchScreen() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  const { data: searchResults, isLoading } = useGlobalSearch(debouncedQuery);
+  const { data: searchResults, isLoading: isGlobalLoading } =
+    useGlobalSearch(debouncedQuery);
+  const { data: suggestions, isLoading: isSuggestLoading } =
+    useSearchSuggestions(debouncedQuery);
 
   const addToHistory = (term: string) => {
     if (!term.trim()) return;
@@ -57,12 +62,20 @@ export default function SearchScreen() {
     setHistory(newHistory);
   };
 
+  const handleSearchSubmit = (query: string) => {
+    if (!query.trim()) return;
+    addToHistory(query);
+    router.push({
+      pathname: "/search-results",
+      params: { q: query },
+    });
+  };
+
   const handleResultPress = async (item: any) => {
     addToHistory(item.title || item.name);
 
     if (item.type === "song") {
       try {
-        // Search results are minimal; fetch full song details for the download URL
         const response = await jioSaavnService.getSongByIdandLink(
           item.id,
           item.url,
@@ -70,11 +83,11 @@ export default function SearchScreen() {
         if (response.success && response.data?.[0]) {
           setCurrentTrack(response.data[0]);
         } else {
-          setCurrentTrack(item); // Fallback
+          setCurrentTrack(item);
         }
       } catch (error) {
         console.error("Failed to fetch full song details:", error);
-        setCurrentTrack(item); // Fallback
+        setCurrentTrack(item);
       }
     } else if (item.type === "album") {
       router.push({
@@ -168,7 +181,6 @@ export default function SearchScreen() {
           >
             <Ionicons name="arrow-back" size={26} color="white" />
           </Pressable>
-
           <View className="flex-1 flex-row items-center bg-[#1a1a1a] rounded-full px-4 h-11 mx-1">
             <TextInput
               className="flex-1 text-white text-[16px] h-full font-sans-medium"
@@ -179,7 +191,7 @@ export default function SearchScreen() {
               selectionColor="#fff"
               autoFocus
               returnKeyType="search"
-              onSubmitEditing={() => addToHistory(searchQuery)}
+              onSubmitEditing={() => handleSearchSubmit(searchQuery)}
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={() => setSearchQuery("")}>
@@ -187,7 +199,6 @@ export default function SearchScreen() {
               </Pressable>
             )}
           </View>
-
           <View className="flex-row items-center">
             <Pressable className="p-2.5 bg-[#1a1a1a] rounded-full mx-1 active:opacity-60">
               <Mic size={20} color="white" strokeWidth={2} />
@@ -208,63 +219,79 @@ export default function SearchScreen() {
             </View>
           )}
 
-          {isLoading && (
-            <View style={{ marginTop: 50 }}>
-              <ActivityIndicator size="large" color="#fff" />
-            </View>
-          )}
+          {(isGlobalLoading || isSuggestLoading) &&
+            debouncedQuery.length > 0 && (
+              <View style={{ marginTop: 20 }}>
+                <ActivityIndicator size="small" color="#fff" />
+              </View>
+            )}
 
-          {searchResults?.data && searchQuery.length > 0 && (
+          {/* Suggestions and Global Results */}
+          {searchQuery.length > 0 && (
             <View>
-              {/* Top Results */}
-              {searchResults.data.topQuery?.results?.length > 0 && (
-                <>
-                  {renderSectionHeader("Top result")}
-                  {searchResults.data.topQuery.results.map((item: any) =>
-                    renderResultItem(item, item.type === "artist"),
-                  )}
-                </>
-              )}
+              {/* Autocomplete Suggestions (Text only) */}
+              {searchResults?.data?.topQuery?.results
+                ?.slice(0, 5)
+                .map((item: any) => (
+                  <Pressable
+                    key={`suggest-${item.id}`}
+                    className="flex-row items-center justify-between px-5 py-3 active:bg-white/5"
+                    onPress={() => handleSearchSubmit(item.title || item.name)}
+                  >
+                    <View className="flex-row items-center flex-1">
+                      <Ionicons name="search-outline" size={18} color="#888" />
+                      <Text
+                        className="text-[#e5e5e5] text-[15px] ml-6 flex-1 font-sans-medium"
+                        numberOfLines={1}
+                      >
+                        {item.title || item.name}
+                      </Text>
+                    </View>
+                    <ArrowUpRight size={18} color="#888" strokeWidth={1.5} />
+                  </Pressable>
+                ))}
 
-              {/* Songs */}
-              {searchResults.data.songs?.results?.length > 0 && (
-                <>
-                  {renderSectionHeader("Songs")}
-                  {searchResults.data.songs.results.map((item: any) =>
-                    renderResultItem(item),
-                  )}
-                </>
-              )}
+              <View style={styles.hr} />
 
-              {/* Albums */}
-              {searchResults.data.albums?.results?.length > 0 && (
-                <>
-                  {renderSectionHeader("Albums")}
-                  {searchResults.data.albums.results.map((item: any) =>
-                    renderResultItem(item),
-                  )}
-                </>
-              )}
+              {/* Global Results below the line (No Top Results) */}
+              {searchResults?.data?.topQuery?.results &&
+                searchResults.data.topQuery.results.length > 0 && (
+                  <>
+                    {renderSectionHeader("Top Result")}
+                    {searchResults.data.topQuery.results
+                      .slice(0, 1)
+                      .map((item: any) => renderResultItem(item))}
+                  </>
+                )}
+              {searchResults?.data?.songs?.results &&
+                searchResults.data.songs.results.length > 0 && (
+                  <>
+                    {renderSectionHeader("Songs")}
+                    {searchResults.data.songs.results
+                      .slice(0, 3)
+                      .map((item: any) => renderResultItem(item))}
+                  </>
+                )}
 
-              {/* Artists */}
-              {searchResults.data.artists?.results?.length > 0 && (
-                <>
-                  {renderSectionHeader("Artists")}
-                  {searchResults.data.artists.results.map((item: any) =>
-                    renderResultItem(item, true),
-                  )}
-                </>
-              )}
+              {searchResults?.data?.albums?.results &&
+                searchResults.data.albums.results.length > 0 && (
+                  <>
+                    {renderSectionHeader("Albums")}
+                    {searchResults.data.albums.results
+                      .slice(0, 3)
+                      .map((item: any) => renderResultItem(item))}
+                  </>
+                )}
 
-              {/* Playlists */}
-              {searchResults.data.playlists?.results?.length > 0 && (
-                <>
-                  {renderSectionHeader("Playlists")}
-                  {searchResults.data.playlists.results.map((item: any) =>
-                    renderResultItem(item),
-                  )}
-                </>
-              )}
+              {searchResults?.data?.artists?.results &&
+                searchResults.data.artists.results.length > 0 && (
+                  <>
+                    {renderSectionHeader("Artists")}
+                    {searchResults.data.artists.results
+                      .slice(0, 3)
+                      .map((item: any) => renderResultItem(item, true))}
+                  </>
+                )}
             </View>
           )}
         </ScrollView>

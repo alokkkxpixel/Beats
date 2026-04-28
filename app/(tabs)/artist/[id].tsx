@@ -109,20 +109,38 @@ export default function ArtistScreen() {
     {
       id: "top_songs",
       type: "top_songs",
-      title: "Top songs",
+      title: artist?.modules?.topSongs?.title,
       data: artist?.topSongs || [],
     },
     {
       id: "albums",
       type: "albums",
-      title: "Albums",
+      title: artist?.modules?.topAlbums?.title,
       data: artist?.topAlbums || [],
     },
     {
       id: "singles",
       type: "singles",
-      title: "Singles",
+      title: artist?.modules?.singles?.title,
       data: artist?.singles || [],
+    },
+    {
+      id: "dedicated_artist_playlist",
+      type: "dedicated_artist_playlist",
+      title: artist?.modules?.dedicated_artist_playlist?.title,
+      data: artist?.dedicated_artist_playlist,
+    },
+    {
+      id: "featured_artist_playlist",
+      type: "featured_artist_playlist",
+      title: artist?.modules?.featured_artist_playlist?.title,
+      data: artist?.featured_artist_playlist,
+    },
+    {
+      id: "latest_release",
+      type: "latest_release",
+      title: artist?.modules?.latest_release?.title,
+      data: artist?.latest_release,
     },
     {
       id: "recommended_artists",
@@ -141,7 +159,13 @@ export default function ArtistScreen() {
         url = img;
       }
 
-      if (url === "https://static.saavncdn.com/_i/share-image-2.png") {
+      if (url.includes("150x150")) {
+        url = url.replace("150x150", "500x500");
+      } else if (url.includes("50x50")) {
+        url = url.replace("50x50", "500x500");
+      }
+
+      if (url === "https://static.saavncdn.com/_i/share-image-2.png" || !url) {
         return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
       }
       return url;
@@ -231,7 +255,7 @@ export default function ArtistScreen() {
             return (
               <View style={styles.sectionWrapper}>
                 <QuickPicksSection
-                  data={item.data}
+                  data={item.data as any}
                   title="Top songs"
                   subtitle=""
                 />
@@ -242,7 +266,7 @@ export default function ArtistScreen() {
             return (
               <TrendingSection
                 title={item.title}
-                data={item.data}
+                data={item.data as any}
                 type="albums"
               />
             );
@@ -251,13 +275,33 @@ export default function ArtistScreen() {
             return (
               <TrendingSection
                 title={item.title}
-                data={item.data}
+                data={item.data as any}
                 type="single"
               />
             );
           }
+          if (item.type === "dedicated_artist_playlist") {
+            return (
+              <TrendingSection
+                title={item.title}
+                data={item.data as any}
+                type="playlist"
+              />
+            );
+          }
+          if (item.type === "featured_artist_playlist") {
+            return (
+              <TrendingSection
+                title={item.title}
+                data={item.data as any}
+                type="playlist"
+              />
+            );
+          }
           if (item.type === "recommended_artists") {
-            return <RecommendedArtist title={item.title} data={item.data} />;
+            return (
+              <RecommendedArtist title={item.title} data={item.data as any} />
+            );
           }
           return null;
         }}
