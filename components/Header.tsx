@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import { DrawerNavigationProp } from "@react-navigation/drawer";
+import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -16,6 +18,7 @@ const HEADER_HEIGHT = 40;
 
 export default function App({ title }: { title: string }) {
   const router = useRouter();
+  const navigation = useNavigation<DrawerNavigationProp<any>>();
   const translateY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
   const isScrolling = useSharedValue(false);
@@ -72,7 +75,7 @@ export default function App({ title }: { title: string }) {
             <Pressable onPress={() => router.push("/search")}>
               <Ionicons name="search" size={20} color="white" />
             </Pressable>
-            <Pressable onPress={() => console.log("profile")}>
+            <Pressable onPress={() => navigation.openDrawer()}>
               <View className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/20">
                 <Image
                   source={{

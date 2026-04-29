@@ -1,3 +1,4 @@
+import SidebarDrawer from "@/components/SidebarDrawer";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,6 +11,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { SplashScreen, Stack } from "expo-router";
+import { Drawer } from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import "react-native-gesture-handler";
@@ -76,14 +78,27 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
         >
-          <Stack
+          <Drawer
+            drawerContent={(props) => <SidebarDrawer {...props} />}
             screenOptions={{
-              contentStyle: { backgroundColor: "#050505" },
+              drawerPosition: "right",
               headerShown: false,
+              drawerType: "slide",
+              drawerStyle: {
+                width: "80%",
+                backgroundColor: "#121212",
+              },
             }}
           >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
+            <Stack
+              screenOptions={{
+                contentStyle: { backgroundColor: "#050505" },
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </Drawer>
 
           <StatusBar style="light" translucent={true} />
         </ThemeProvider>
