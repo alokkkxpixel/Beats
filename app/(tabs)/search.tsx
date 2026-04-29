@@ -3,13 +3,14 @@ import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ArrowUpRight, History, Mic, PlayCircle } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -30,6 +31,7 @@ export default function SearchScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const inputRef = useRef<TextInput>(null);
   const searchQuery = useSearchStore((state) => state.searchQuery);
   const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -48,6 +50,16 @@ export default function SearchScreen() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      // Focus input when screen comes into focus
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }, []),
+  );
+
   const { data: searchResults, isLoading: isGlobalLoading } =
     useGlobalSearch(debouncedQuery);
   const { data: suggestions, isLoading: isSuggestLoading } =
@@ -64,6 +76,7 @@ export default function SearchScreen() {
 
   const handleSearchSubmit = (query: string) => {
     if (!query.trim()) return;
+    Keyboard.dismiss();
     addToHistory(query);
     router.push({
       pathname: "/search-results",
@@ -72,6 +85,7 @@ export default function SearchScreen() {
   };
 
   const handleResultPress = async (item: any) => {
+    Keyboard.dismiss();
     addToHistory(item.title || item.name);
 
     if (item.type === "song") {
@@ -111,7 +125,10 @@ export default function SearchScreen() {
     <Pressable
       key={item.id}
       className="flex-row items-center justify-between px-5 py-3 active:bg-white/5"
-      onPress={() => setSearchQuery(item.term)}
+      onPress={() => {
+        setSearchQuery(item.term);
+        Keyboard.dismiss();
+      }}
     >
       <View className="flex-row items-center flex-1">
         <History size={18} color="#888" strokeWidth={1.5} />
@@ -176,25 +193,32 @@ export default function SearchScreen() {
         {/* Search Header */}
         <View className="flex-row items-center px-2 py-2 mb-2">
           <Pressable
-            onPress={() => navigation.goBack()}
+            onPress={() => (navigation.goBack(), setSearchQuery(""))}
             className="p-2 active:opacity-60"
           >
             <Ionicons name="arrow-back" size={26} color="white" />
           </Pressable>
           <View className="flex-1 flex-row items-center bg-[#1a1a1a] rounded-full px-4 h-11 mx-1">
             <TextInput
+              ref={inputRef}
               className="flex-1 text-white text-[16px] h-full font-sans-medium"
               placeholder="Songs, artists, or albums"
               placeholderTextColor="#888"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              selectionColor="#fff"
+              selectionColor="gray"
               autoFocus
+              cursorColor="white"
               returnKeyType="search"
               onSubmitEditing={() => handleSearchSubmit(searchQuery)}
             />
             {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery("")}>
+              <Pressable
+                onPress={() => {
+                  setSearchQuery("");
+                  Keyboard.dismiss();
+                }}
+              >
                 <Ionicons name="close-circle" size={20} color="#888" />
               </Pressable>
             )}

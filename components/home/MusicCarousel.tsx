@@ -165,7 +165,12 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
                       currentTrack?.id === item.id && styles.activeCard,
                     ]}
                   >
-                    <Image source={{ uri: item.image }} style={styles.image} />
+                    <Image
+                      source={{
+                        uri: item.image.replace("150x150", "500x500"),
+                      }}
+                      style={styles.image}
+                    />
                     <LinearGradient
                       colors={["transparent", "rgba(0, 0, 0, 0.6)"]}
                       style={StyleSheet.absoluteFill}

@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { useEffect } from "react";
 
 export default function AudioEngine() {
   const currentTrack = usePlayerStore((state) => state.currentTrack);

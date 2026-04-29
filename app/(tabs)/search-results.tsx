@@ -1,8 +1,4 @@
-import {
-  useDetailedSearch,
-  useGlobalSearch,
-  useSearchInfinite,
-} from "@/src/hooks/useQueries";
+import { useDetailedSearch, useSearchInfinite } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
@@ -14,7 +10,6 @@ import { Mic, PlayCircle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -112,13 +107,35 @@ export default function SearchResultsScreen() {
   const renderResultItem = (item: any, type?: string) => {
     const itemType = type || item.type || "";
     const isArtist = itemType === "artist";
+
+    // Extract subtitle with multiple fallbacks for different API structures
+    const subtitle =
+      item.subtitle ||
+      item.description ||
+      item.primaryArtists ||
+      item.primary_artists ||
+      item.singers ||
+      item.music ||
+      item.artist ||
+      item.role ||
+      (item.artists && typeof item.artists === "string" ? item.artists : "") ||
+      "";
+
     return (
       <Pressable
         style={styles.resultItem}
         onPress={() => handleResultPress(item)}
       >
         <Image
-          source={{ uri: item.image?.[1]?.url || item.image }}
+          source={{
+            uri:
+              item.image?.[1]?.url ||
+              item.image?.[0]?.url ||
+              item.image_url?.[1]?.url ||
+              item.image_url?.[0]?.url ||
+              (typeof item.image === "string" ? item.image : "") ||
+              (typeof item.image_url === "string" ? item.image_url : ""),
+          }}
           style={[styles.resultImage, isArtist && styles.artistImage]}
         />
         <View style={styles.resultInfo}>
@@ -135,7 +152,7 @@ export default function SearchResultsScreen() {
             className="font-sans-light"
           >
             {itemType.charAt(0).toUpperCase() + itemType.slice(1)} •{" "}
-            {item.subtitle || item.description || item.primaryArtists || ""}
+            {item.title || item.name}
           </Text>
         </View>
         {itemType === "song" && (

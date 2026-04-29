@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import {
@@ -135,17 +136,19 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
     ? `${primaryArtists} (feat. ${featuredArtists})`
     : primaryArtists || currentTrack.subtitle || "Unknown Artist";
 
-  const handleArtistPress = () => {
-    
-    const artist = currentTrack.artists?.primary?.[0];
-    console.log(artist?.name, artist?.id, artist?.url);
-    if (artist) {
+  const navigateToArtist = (artist: any) => {
+    if (artist?.id) {
       handleCloseSheet();
       router.push({
         pathname: "/artist/[id]",
-        params: { id: artist.id, url: artist.url },
+        params: { id: artist.id, url: artist.url || artist.perma_url },
       });
     }
+  };
+
+  const handleArtistPress = () => {
+    const artist = currentTrack.artists?.primary?.[0];
+    navigateToArtist(artist);
   };
 
   const getArtistImage = () => {
@@ -171,13 +174,26 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   const { label, copyright } = currentTrack;
   const aboutArtist = currentTrack.artists?.primary?.[0]?.name || "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
-
+  const credits = [
+    {
+      name: "Doja Cat",
+      roles: "Main Artist, Background Vocal and Vocal",
+    },
+    {
+      name: "Ari Starace",
+      roles: "Bass, Guitar, Keyboards, Percussion, and Programmer",
+    },
+    {
+      name: "Jack Antonoff",
+      roles: "Background Vocal, Electric Guitar, Percussion, Programmer",
+    },
+  ];
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* Top Blurred Backdrop */}
       <View
         style={{
-          height: height + 700,
+          height: height + 1000,
           position: "absolute",
           top: 0,
           left: 0,
@@ -192,8 +208,8 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
         <LinearGradient
           colors={[
             "rgba(5,5,5,0.2)",
-            "rgba(5,5,5,0.6)",
-            "rgba(5,5,5,0.4)",
+            "rgba(5,5,5,0.8)",
+            "rgba(5,5,5,0.9)",
             "#050505",
           ]}
           style={StyleSheet.absoluteFill}
@@ -229,12 +245,10 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             <Ionicons name="ellipsis-horizontal" size={24} color="white" />
           </Pressable>
         </View>
-
         {/* --- Album Artwork --- */}
         <View style={styles.artWrapper}>
           <Image source={{ uri: trackImage }} style={styles.mainArt} />
         </View>
-
         {/* --- Track Info --- */}
         <View style={styles.trackInfo}>
           <View style={styles.titleContainer}>
@@ -257,7 +271,6 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
           </View>
           <Ionicons name="heart-outline" size={28} color="white" />
         </View>
-
         {/* --- Progress Bar --- */}
         <View style={styles.progressArea}>
           <GestureDetector gesture={gesture}>
@@ -279,7 +292,6 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
           </View>
         </View>
-
         {/* --- Main Controls --- */}
         <View style={styles.mainControls}>
           <Ionicons name="shuffle" size={24} color="#A3A3A3" />
@@ -298,7 +310,6 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
           </Pressable>
           <Ionicons name="repeat" size={24} color="#A3A3A3" />
         </View>
-
         {/* --- Footer Controls --- */}
         <View style={styles.footerControls}>
           <View style={styles.deviceIndicator}>
@@ -315,13 +326,11 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             <MaterialIcons name="playlist-play" size={28} color="white" />
           </View>
         </View>
-
         {/* Lyrics & Artist - (Kept for aesthetics, can be made dynamic later) */}
         <View style={styles.lyricsCard}>
           <Text style={styles.lyricsTitle}>Lyrics</Text>
           <Text style={styles.lyricsPreview}>Lyrics coming soon...</Text>
         </View>
-
         <Pressable
           style={styles.artistCard}
           className=""
@@ -343,6 +352,79 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
             <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>
         </Pressable>
+        {/* --- Credits Section --- */}
+        <View
+          style={styles.creditsCard}
+          // className="bg-[#0f172a] p-4 rounded-2xl w-full max-w-md mr-auto"
+        >
+          {/* Header */}
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="text-white text-base font-semibold">Credits</Text>
+          </View>
+
+          {/* Credits List */}
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {currentTrack.artists?.primary?.map((item, index) => (
+              <Pressable
+                key={index}
+                onPress={() => {
+                  item.id ? navigateToArtist(item) : () => {};
+                }}
+              >
+                <View
+                  key={index}
+                  className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0"
+                >
+                  <View className="flex-1 pr-3">
+                    <Text className="text-white text-sm font-semibold">
+                      {item.name}
+                    </Text>
+                    <Text className="text-gray-400 text-xs mt-1 capitalize">
+                      {item.role.split("_").join(" ")}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      item.id ? navigateToArtist(item) : () => {};
+                    }}
+                    className="border border-gray-500 px-3 py-1 rounded-full"
+                  >
+                    <Text className="text-white text-xs">View</Text>
+                  </TouchableOpacity>
+                </View>
+              </Pressable>
+            ))}
+            {currentTrack.artists?.featured?.map((item, index) => (
+              <Pressable
+                key={index}
+                onPress={() => {
+                  item?.id ? navigateToArtist(item) : () => {};
+                }}
+              >
+                <View className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0">
+                  <View className="flex-1 pr-3">
+                    <Text className="text-white text-sm font-semibold">
+                      {item.name}
+                    </Text>
+                    <Text className="text-gray-400 text-xs mt-1 capitalize">
+                      {item.role.split("_").join(" ")}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      item.id ? navigateToArtist(item) : () => {};
+                    }}
+                    className="border border-gray-500 px-3 py-1 rounded-full"
+                  >
+                    <Text className="text-white text-xs">View</Text>
+                  </TouchableOpacity>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
       </ScrollView>
     </GestureHandlerRootView>
   );
@@ -581,6 +663,45 @@ const styles = StyleSheet.create({
     color: "#CCCCCC",
     fontSize: 14,
     lineHeight: 20,
+  },
+  creditsCard: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+  },
+  creditsTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  creditGroup: {
+    marginBottom: 20,
+  },
+  creditLabel: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  artistLinkContainer: {
+    flexDirection: "row",
+    // borderBottomWidth: 2,
+    // borderBottomColor: "red",
+    alignItems: "center",
+    // justifyContent: "space-between",
+    gap: 10,
+    paddingVertical: 10,
+    // backgroundColor: "red",
+  },
+  artistLinkText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

@@ -130,7 +130,7 @@ export const useGlobalSearch = (query: string) => {
     queryKey: ["global-search", query],
     queryFn: () => jioSaavnService.getGlobalSearch(query),
     enabled: !!query,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    // staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 

@@ -76,7 +76,7 @@ export default function MiniPlayer() {
             styles.miniProgressBarFill,
             {
               width: `${progressPercent}%`,
-              backgroundColor: isLoaded ? "#FF6F61" : "transparent",
+              backgroundColor: isLoaded ? "#d7d7d0ff" : "transparent",
             },
           ]}
         />

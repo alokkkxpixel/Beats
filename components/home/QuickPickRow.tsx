@@ -59,7 +59,10 @@ export default function QuickPickRow({
         <Text style={styles.title} numberOfLines={1}>
           {decodeHtmlEntities(item.title)}
         </Text>
-        <Pressable onPress={handleArtistPress}>
+        <Pressable
+          onPress={handleArtistPress}
+          style={{ alignSelf: "flex-start" }}
+        >
           <Text
             style={styles.artist}
             className="tracking-tighter "
