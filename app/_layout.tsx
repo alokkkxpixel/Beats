@@ -85,7 +85,7 @@ export default function RootLayout() {
               headerShown: false,
               drawerType: "slide",
               drawerStyle: {
-                width: "80%",
+                width: "95%",
                 backgroundColor: "#121212",
               },
             }}

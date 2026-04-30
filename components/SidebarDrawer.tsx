@@ -3,20 +3,20 @@ import {
   DrawerContentScrollView,
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
-import {
-  History,
-  Info,
-  Settings,
-  Download,
-  User,
-  ChevronRight,
-} from "lucide-react-native";
+import { Download, History, Info, Settings, User } from "lucide-react-native";
 import React from "react";
-import { Pressable, StyleSheet, Text, View, Image } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
+  const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   const menuItems = [
@@ -86,14 +86,12 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
         <View style={styles.separator} />
 
         {/* Menu Items */}
-        <View style={styles.menuSection}>
+        <View style={[styles.menuSection, { minHeight: "70%" }]}>
           {menuItems.map((item, index) => (
             <Pressable
               key={index}
-              style={({ pressed }) => [
-                styles.menuItem,
-                pressed && styles.menuItemPressed,
-              ]}
+              style={({ pressed }) => [pressed && styles.menuItemPressed]}
+              className="flex flex-row my-2 item-center"
               onPress={item.onPress}
             >
               <item.icon size={22} color="#fff" style={styles.menuIcon} />
@@ -162,9 +160,12 @@ const styles = StyleSheet.create({
   },
   menuSection: {
     paddingVertical: 10,
+    paddingHorizontal: 10,
+    // backgroundColor: "red",
+    // minHeight: USABLEHEIGHT + 75,
   },
   menuItem: {
-    flexDirection: "row",
+    // flexDirection: "row",
     alignItems: "center",
     paddingVertical: 15,
     paddingHorizontal: 20,
