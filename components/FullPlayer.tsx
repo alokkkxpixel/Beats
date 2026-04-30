@@ -30,7 +30,7 @@ import { useWindowDimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
+const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseSheet: () => void , handleCloseMoreSheet:()=> void}) => {
   const { height, width: windowWidth } = useWindowDimensions();
   // const {
   //   currentTrack,
@@ -55,8 +55,10 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   const duration = storeDuration || 0;
   const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
-
+  const expandMoreOption = usePlayerStore((s)=> s.expandMoreOption)
+  const setSelectedSongOption = usePlayerStore(s => s.setSelectedSongOption);
   // Sync progress value with store position when not dragging
+  
   React.useEffect(() => {
     if (!isDragging.value && duration > 0) {
       progress.value = (storePosition / duration) * 100;
@@ -174,22 +176,9 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
   const { label, copyright } = currentTrack;
   const aboutArtist = currentTrack.artists?.primary?.[0]?.name || "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
-  const credits = [
-    {
-      name: "Doja Cat",
-      roles: "Main Artist, Background Vocal and Vocal",
-    },
-    {
-      name: "Ari Starace",
-      roles: "Bass, Guitar, Keyboards, Percussion, and Programmer",
-    },
-    {
-      name: "Jack Antonoff",
-      roles: "Background Vocal, Electric Guitar, Percussion, Programmer",
-    },
-  ];
+ 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} >
       {/* Top Blurred Backdrop */}
       <View
         style={{
@@ -220,9 +209,10 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
         bounces={true}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        
       >
         {/* --- Header --- */}
-        <View style={styles.header}>
+        <View style={styles.header} >
           <Pressable
             onPress={() => handleCloseSheet()}
             style={styles.headerIconButton}
@@ -241,7 +231,10 @@ const FullPlayer = ({ handleCloseSheet }: { handleCloseSheet: () => void }) => {
               : currentTrack?.album?.name || currentTrack?.name}
           </Text>
 
-          <Pressable style={styles.headerIconButton} hitSlop={20}>
+          <Pressable style={styles.headerIconButton} onPress={()=>{
+            setSelectedSongOption(null); // ✅ clear old list selection
+    expandMoreOption();   
+          }} hitSlop={20}>
             <Ionicons name="ellipsis-horizontal" size={24} color="white" />
           </Pressable>
         </View>

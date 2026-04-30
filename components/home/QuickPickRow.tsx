@@ -13,14 +13,18 @@ import { useRouter } from "expo-router";
 type QuickPickRowProps = {
   item: QuickPick;
 };
-
 export default function QuickPickRow({
   item,
 }: QuickPickRowProps): React.JSX.Element {
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const router = useRouter();
+  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  const CurrentTrack = usePlayerStore((s) => s.currentTrack);
+  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
 
   // console.log("quick pick", item);
+  // console.log("current", CurrentTrack);
+
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);
     if (response.success && response.data[0]) {
@@ -28,6 +32,11 @@ export default function QuickPickRow({
     }
   };
 
+  const handleOption = async (item: any) => {
+    expandMoreOption();
+    setSelectedSongOption(item);
+    console.log("handle option",JSON.stringify(item,null ,2))
+  };
   const handleArtistPress = () => {
     if (item.artistId || item.artistUrl) {
       router.push({
@@ -51,9 +60,12 @@ export default function QuickPickRow({
     }
     return "";
   };
-
   return (
-    <Pressable style={styles.row} onPress={() => handlePlay(item.id, item.url)}>
+    <Pressable
+      style={[styles.row, CurrentTrack?.id === item.id && styles.activerow]}
+      //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
+      onPress={() => handlePlay(item.id, item.url)}
+    >
       <Image source={{ uri: getImageUri(item.cover) }} style={styles.cover} />
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={1}>
@@ -77,8 +89,10 @@ export default function QuickPickRow({
           </Text>
         </Pressable>
       </View>
-      <View style={styles.menu}>
-        <Ionicons name="ellipsis-vertical" size={20} color="#A3A3A3" />
+      <View style={[styles.menu]}>
+        <Pressable onPress={() => handleOption(item)}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#A3A3A3" />
+        </Pressable>
       </View>
     </Pressable>
   );
@@ -90,6 +104,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 64,
     marginBottom: 12,
+    paddingHorizontal: 5,
+    paddingVertical: 6,
+  },
+  activerow: {
+    borderRadius: 7,
+    backgroundColor: "rgba(83, 83, 90, 0.76)", // 0.6 = 60% opacity
   },
   cover: {
     width: 53,

@@ -3,7 +3,14 @@ import {
   DrawerContentScrollView,
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
-import { Download, History, Info, Settings, User } from "lucide-react-native";
+import {
+  Download,
+  History,
+  Info,
+  Settings,
+  User,
+  X,
+} from "lucide-react-native";
 import React from "react";
 import {
   Pressable,
@@ -60,6 +67,16 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
         {...props}
         contentContainerStyle={{ paddingTop: insets.top + 20 }}
       >
+        <View className="mb-10 px-2">
+          <View className="flex flex-row items-center gap-5">
+            <X
+              size={27}
+              color={"#fff"}
+              onPress={() => props.navigation.closeDrawer()}
+            />
+            <Text className="text-white text-2xl font-medium">Account</Text>
+          </View>
+        </View>
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
@@ -86,12 +103,12 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
         <View style={styles.separator} />
 
         {/* Menu Items */}
-        <View style={[styles.menuSection, { minHeight: "70%" }]}>
+        <View style={[styles.menuSection, { minHeight: "60%" }]}>
           {menuItems.map((item, index) => (
             <Pressable
               key={index}
               style={({ pressed }) => [pressed && styles.menuItemPressed]}
-              className="flex flex-row my-2 item-center"
+              className="flex flex-row mb-5 item-center"
               onPress={item.onPress}
             >
               <item.icon size={22} color="#fff" style={styles.menuIcon} />
@@ -119,8 +136,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212",
   },
   profileSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 20,
+    // backgroundColor: "red",
   },
   avatarContainer: {
     flexDirection: "row",

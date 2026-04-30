@@ -9,7 +9,8 @@ interface PlayerState {
   isPlaying: boolean;
   isLoading: boolean;
   isFullPlayerOpen: boolean;
-
+  selectedSongOption: SongDetail | null | string;
+  isMoreOptionOpen: boolean;
   // --- Progress / Seekbar ---
   position: number; // Current playback time in seconds
   duration: number; // Total duration in seconds
@@ -17,9 +18,13 @@ interface PlayerState {
 
   // --- Actions ---
   setCurrentTrack: (track: SongDetail) => void;
+
   setQueue: (tracks: SongDetail[], startIndex?: number) => void;
   expandFullPlayer: () => void;
+  setSelectedSongOption: (track: SongDetail | null) => void;
   minimizeFullPlayer: () => void;
+  expandMoreOption: () => void | null;
+  minizeMoreOption: () => void;
 
   // --- Playback Controls ---
   play: () => Promise<void>;
@@ -48,7 +53,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   position: 0,
   duration: 0,
   buffered: 0,
+  isMoreOptionOpen: false,
+  selectedSongOption: "",
 
+  // set individual track info
+  setSelectedSongOption: (track) => set({ selectedSongOption: track }),
   // Set individual track and start playing
   setCurrentTrack: (track) => {
     set({
@@ -75,6 +84,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   expandFullPlayer: () => set({ isFullPlayerOpen: true }),
   minimizeFullPlayer: () => set({ isFullPlayerOpen: false }),
+
+  expandMoreOption: () => set({ isMoreOptionOpen: true }),
+  minizeMoreOption: () => set({ isMoreOptionOpen: false }),
 
   // Playback Controls (Placeholders - will be connected to audio engine)
   play: async () => {
