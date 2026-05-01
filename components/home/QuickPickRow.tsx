@@ -33,8 +33,9 @@ export default function QuickPickRow({
   };
 
   const handleOption = async (item: any) => {
-    expandMoreOption();
+    console.log("press option");
     setSelectedSongOption(item);
+    expandMoreOption();
   };
   const handleArtistPress = () => {
     if (item.artistId || item.artistUrl) {
@@ -88,11 +89,18 @@ export default function QuickPickRow({
           </Text>
         </Pressable>
       </View>
-      <View style={[styles.menu]}>
-        <Pressable onPress={() => handleOption(item)}>
+
+      <Pressable
+        style={{
+          justifyContent: "center",
+          padding: 8,
+        }}
+        onPress={() => handleOption(item)}
+      >
+        <View style={[styles.menu]}>
           <Ionicons name="ellipsis-vertical" size={20} color="#A3A3A3" />
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     </Pressable>
   );
 }
@@ -134,6 +142,6 @@ const styles = StyleSheet.create({
     fontFamily: "sans-medium",
   },
   menu: {
-    marginLeft: 12,
+    // marginLeft: 12,
   },
 });

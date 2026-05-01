@@ -8,7 +8,6 @@
     "scheme": "beats",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050505",
-    // "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -19,8 +18,14 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      // "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.anonymous.Beats"
     },
     "web": {
       "output": "static",
@@ -46,7 +51,7 @@
         "expo-audio",
         {
           "supportsBackgroundPlayback": true,
-          "supportsRemoteMessaging": true 
+          "supportsRemoteMessaging": true
         }
       ]
     ],

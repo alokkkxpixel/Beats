@@ -23,7 +23,7 @@ interface PlayerState {
   expandFullPlayer: () => void;
   setSelectedSongOption: (track: SongDetail | null) => void;
   minimizeFullPlayer: () => void;
-  expandMoreOption: () => void | null;
+  expandMoreOption: () => void ;
   minizeMoreOption: () => void;
 
   // --- Playback Controls ---
