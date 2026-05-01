@@ -12,5 +12,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-, "components/MusicBottomSheet.jsx"  ]
+, "components/MusicBottomSheet.jsx", "app/music-lang-change.jsx"  ]
 }

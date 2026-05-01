@@ -30,7 +30,13 @@ import { useWindowDimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseSheet: () => void , handleCloseMoreSheet:()=> void}) => {
+const FullPlayer = ({
+  handleCloseSheet,
+  handleCloseMoreSheet,
+}: {
+  handleCloseSheet: () => void;
+  handleCloseMoreSheet: () => void;
+}) => {
   const { height, width: windowWidth } = useWindowDimensions();
   // const {
   //   currentTrack,
@@ -55,10 +61,10 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
   const duration = storeDuration || 0;
   const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
-  const expandMoreOption = usePlayerStore((s)=> s.expandMoreOption)
-  const setSelectedSongOption = usePlayerStore(s => s.setSelectedSongOption);
+  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   // Sync progress value with store position when not dragging
-  
+
   React.useEffect(() => {
     if (!isDragging.value && duration > 0) {
       progress.value = (storePosition / duration) * 100;
@@ -176,13 +182,13 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
   const { label, copyright } = currentTrack;
   const aboutArtist = currentTrack.artists?.primary?.[0]?.name || "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
- 
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }} >
+    <GestureHandlerRootView style={{ flex: 1 }}>
       {/* Top Blurred Backdrop */}
       <View
         style={{
-          height: height + 1000,
+          height: height + 1500,
           position: "absolute",
           top: 0,
           left: 0,
@@ -209,10 +215,9 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
         bounces={true}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        
       >
         {/* --- Header --- */}
-        <View style={styles.header} >
+        <View style={styles.header}>
           <Pressable
             onPress={() => handleCloseSheet()}
             style={styles.headerIconButton}
@@ -231,10 +236,14 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
               : currentTrack?.album?.name || currentTrack?.name}
           </Text>
 
-          <Pressable style={styles.headerIconButton} onPress={()=>{
-            setSelectedSongOption(null); // ✅ clear old list selection
-    expandMoreOption();   
-          }} hitSlop={20}>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => {
+              setSelectedSongOption(null); // ✅ clear old list selection
+              expandMoreOption();
+            }}
+            hitSlop={20}
+          >
             <Ionicons name="ellipsis-horizontal" size={24} color="white" />
           </Pressable>
         </View>
@@ -346,7 +355,8 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
           </View>
         </Pressable>
         {/* --- Credits Section --- */}
-        <View
+        <ScrollView
+          className="max-h-[500px]"
           style={styles.creditsCard}
           // className="bg-[#0f172a] p-4 rounded-2xl w-full max-w-md mr-auto"
         >
@@ -356,7 +366,10 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
           </View>
 
           {/* Credits List */}
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={true}
+            // className="min-h-[5"
+          >
             {currentTrack.artists?.primary?.map((item, index) => (
               <Pressable
                 key={index}
@@ -417,7 +430,7 @@ const FullPlayer = ({ handleCloseSheet ,handleCloseMoreSheet}: { handleCloseShee
               </Pressable>
             ))}
           </ScrollView>
-        </View>
+        </ScrollView>
       </ScrollView>
     </GestureHandlerRootView>
   );

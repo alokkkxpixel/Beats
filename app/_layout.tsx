@@ -1,4 +1,4 @@
-import SidebarDrawer from "@/components/SidebarDrawer";
+import SidebarDrawer from "@/app/SidebarDrawer";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";

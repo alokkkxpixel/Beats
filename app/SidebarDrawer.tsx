@@ -20,7 +20,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
   const { height, width } = useWindowDimensions();
@@ -44,13 +43,13 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
       },
     },
     {
-      label: "Settings",
-      icon: Settings,
-      onPress: () => {
-        props.navigation.closeDrawer();
-        // router.push("/settings");
-      },
-    },
+  label: "Settings",
+  icon: Settings,
+  onPress: () => {
+    props.navigation.closeDrawer();
+    router.push("/music-lang-change");
+  },
+},
     {
       label: "About",
       icon: Info,

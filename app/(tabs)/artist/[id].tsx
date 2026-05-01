@@ -223,7 +223,10 @@ export default function ArtistScreen() {
           <Pressable style={styles.topBarIcon}>
             <Share size={22} color="#fff" />
           </Pressable>
-          <Pressable style={styles.topBarIcon}>
+          <Pressable
+            style={styles.topBarIcon}
+            onPress={() => router.push("/search")}
+          >
             <Search size={22} color="#fff" />
           </Pressable>
         </View>

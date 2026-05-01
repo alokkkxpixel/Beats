@@ -4,14 +4,14 @@ import { Image, Pressable, Text, View } from "react-native";
 import { usePlayerStore } from "../src/store/usePlayerStore";
 
 export default function MusicBottomSheet() {
-  const {
-    currentTrack,
-    selectedSongOption,
-    minizeMoreOption,
-    minimizeFullPlayer,
-  } = usePlayerStore();
-
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
+  const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
+  const minizeMoreOption = usePlayerStore((s) => s.minizeMoreOption);
+  const minimizeFullPlayer = usePlayerStore((s) => s.minimizeFullPlayer);
+  
   const router = useRouter();
+
+  // console.log("current ", JSON.stringify(selectedSongOption, null, 2));
 
   const activeSong = selectedSongOption || currentTrack;
 
@@ -50,12 +50,30 @@ export default function MusicBottomSheet() {
       params: { id: artistId, url: artistUrl },
     });
   };
+  const handleAlbumPress = () => {
+    const albumId = activeSong?.artistId || activeSong?.album?.id;
+    const albumUrl = activeSong?.artistUrl || activeSong?.album.url;
 
+    if (!albumId) return;
+
+    minizeMoreOption();
+    minimizeFullPlayer();
+
+    router.push({
+      pathname: "/album-detail",
+      params: { albumId, albumUrl },
+    });
+  };
   // ✅ Menu config (unchanged)
   const menuItems = [
     { icon: "radio-outline", label: "Start radio" },
     { icon: "list-outline", label: "Add to queue" },
     { icon: "download-outline", label: "Download" },
+    {
+      icon: "disc-outline",
+      label: "Go to album",
+      fnx: handleAlbumPress,
+    },
     {
       icon: "person-outline",
       label: "Go to artist",
