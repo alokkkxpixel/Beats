@@ -20,10 +20,12 @@ export default function MusicBottomSheet() {
     minizeMoreOption,
     currentTrack,
     selectedSongOption,
+    minimizeFullPlayer
   } = usePlayerStore();
 
   const router = useRouter();
 
+  // console.log("current track", JSON.stringify(currentTrack,null , 2))
   // ✅ MAIN FIX: decide which song to show
   const activeSong = selectedSongOption || currentTrack;
 
@@ -65,13 +67,15 @@ export default function MusicBottomSheet() {
 
   // ✅ Navigate to artist
   const handleArtistPress = () => {
-    const artistId = activeSong?.artistId;
-    const artistUrl = activeSong?.artistUrl;
+    const artistId =
+      activeSong?.artistId || activeSong?.artists?.primary[0]?.id;
+    const artistUrl =
+      activeSong?.artistUrl || activeSong?.artists?.primary[0]?.url;
 
     if (!artistId) return;
 
     minizeMoreOption();
-
+     minimizeFullPlayer();
     router.push({
       pathname: "/artist/[id]",
       params: { id: artistId, url: artistUrl },
@@ -109,7 +113,9 @@ export default function MusicBottomSheet() {
         <View className="flex-row items-center gap-3 mb-4">
           <View className="w-12 h-12 bg-zinc-700 rounded-md overflow-hidden">
             <Image
-              source={{ uri: getImageUri(activeSong?.cover) }}
+              source={{
+                uri: getImageUri(activeSong?.cover || activeSong?.image),
+              }}
               style={{ width: "100%", height: "100%" }}
               resizeMode="cover"
             />
@@ -121,7 +127,7 @@ export default function MusicBottomSheet() {
             </Text>
 
             <Text className="text-zinc-400 text-xs">
-              {activeSong?.artist || activeSong?.primaryArtists || ""}
+              {activeSong?.artist || activeSong?.artists?.primary[0].name || ""}
             </Text>
           </View>
         </View>

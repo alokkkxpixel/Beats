@@ -35,7 +35,6 @@ export default function QuickPickRow({
   const handleOption = async (item: any) => {
     expandMoreOption();
     setSelectedSongOption(item);
-    console.log("handle option",JSON.stringify(item,null ,2))
   };
   const handleArtistPress = () => {
     if (item.artistId || item.artistUrl) {
