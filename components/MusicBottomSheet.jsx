@@ -8,10 +8,10 @@ export default function MusicBottomSheet() {
   const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
   const minizeMoreOption = usePlayerStore((s) => s.minizeMoreOption);
   const minimizeFullPlayer = usePlayerStore((s) => s.minimizeFullPlayer);
-  
+
   const router = useRouter();
 
-  // console.log("current ", JSON.stringify(selectedSongOption, null, 2));
+  // console.log("current ", JSON.stringify(currentTrack, null, 2));
 
   const activeSong = selectedSongOption || currentTrack;
 
@@ -52,7 +52,7 @@ export default function MusicBottomSheet() {
   };
   const handleAlbumPress = () => {
     const albumId = activeSong?.artistId || activeSong?.album?.id;
-    const albumUrl = activeSong?.artistUrl || activeSong?.album.url;
+    const albumUrl = activeSong?.url || activeSong?.album.url;
 
     if (!albumId) return;
 

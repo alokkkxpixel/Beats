@@ -21,9 +21,9 @@ export default function QuickPickRow({
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const CurrentTrack = usePlayerStore((s) => s.currentTrack);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-
+  const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
   // console.log("quick pick", item);
-  // console.log("current", CurrentTrack);
+  // console.log("selected", JSON.stringify(selectedSongOption, null, 2));
 
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);
