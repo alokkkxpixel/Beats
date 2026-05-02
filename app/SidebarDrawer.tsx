@@ -43,13 +43,13 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
       },
     },
     {
-  label: "Settings",
-  icon: Settings,
-  onPress: () => {
-    props.navigation.closeDrawer();
-    router.push("/music-lang-change");
-  },
-},
+      label: "Settings",
+      icon: Settings,
+      onPress: () => {
+        // props.navigation.closeDrawer();
+        router.push("/setting");
+      },
+    },
     {
       label: "About",
       icon: Info,

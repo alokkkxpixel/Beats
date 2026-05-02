@@ -91,12 +91,15 @@ export default function RootLayout() {
             }}
           >
             <Stack
-              screenOptions={{
+              screenOptions={{ 
                 contentStyle: { backgroundColor: "#050505" },
                 headerShown: false,
               }}
             >
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              {/* ✅ ADD THESE */}
+              <Stack.Screen name="settings" />
+              <Stack.Screen name="music-lang-change" />
             </Stack>
           </Drawer>
 
