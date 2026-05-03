@@ -104,6 +104,9 @@ export default function QuickPicksSection({
       cover: item.image || item.cover,
       playCount: item.play_count || item.playCount,
       url: item.url || item.perma_url,
+      album: item.album || item.more_info?.album,
+      albumId: item.albumId || item.more_info?.album_id,
+      albumUrl: item.albumUrl || item.more_info?.album_url,
     }));
     // console.log("normalized", normalized[2]?.title);
     const chunks = [];

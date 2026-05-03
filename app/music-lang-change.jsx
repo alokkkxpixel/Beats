@@ -67,7 +67,7 @@ export default function LanguageSelectionScreen() {
       <Pressable
         disabled={selected.length === 0}
         onPress={() => {
-          console.log("Selected:", selected);
+          // console.log("Selected:", selected);
         }}
         className={`absolute bottom-10 left-4 right-4 py-4 rounded-xl ${
           selected.length === 0 ? "bg-zinc-700" : "bg-green-500"

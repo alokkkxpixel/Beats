@@ -11,7 +11,6 @@ export default function AlbumDetailRoute() {
     albumUrl?: string;
   }>();
 
-  console.log(albumId, albumUrl);
   const navigation = useNavigation();
 
   const { data, isLoading, error } = useAlbum(

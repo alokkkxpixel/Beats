@@ -11,6 +11,7 @@ interface PlayerState {
   isFullPlayerOpen: boolean;
   selectedSongOption: SongDetail | null | string;
   isMoreOptionOpen: boolean;
+  isDrawerOpen: boolean;
   // --- Progress / Seekbar ---
   position: number; // Current playback time in seconds
   duration: number; // Total duration in seconds
@@ -25,6 +26,7 @@ interface PlayerState {
   minimizeFullPlayer: () => void;
   expandMoreOption: () => void ;
   minizeMoreOption: () => void;
+  setDrawerOpen: (isOpen: boolean) => void;
 
   // --- Playback Controls ---
   play: () => Promise<void>;
@@ -54,10 +56,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   duration: 0,
   buffered: 0,
   isMoreOptionOpen: false,
+  isDrawerOpen: false,
   selectedSongOption: "",
 
   // set individual track info
   setSelectedSongOption: (track) => set({ selectedSongOption: track }),
+  setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
   // Set individual track and start playing
   setCurrentTrack: (track) => {
     set({

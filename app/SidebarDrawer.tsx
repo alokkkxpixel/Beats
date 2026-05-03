@@ -2,6 +2,7 @@ import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
 } from "@react-navigation/drawer";
+import { useDrawerStatus } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import {
   Download,
@@ -11,7 +12,7 @@ import {
   User,
   X,
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -20,10 +21,18 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
+
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const setDrawerOpen = usePlayerStore((s) => s.setDrawerOpen);
+  const status = useDrawerStatus();
+
+  useEffect(() => {
+    setDrawerOpen(status === "open");
+  }, [status, setDrawerOpen]);
 
   const menuItems = [
     {
@@ -133,6 +142,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#121212",
+    zIndex: 1000,
   },
   profileSection: {
     paddingHorizontal: 10,

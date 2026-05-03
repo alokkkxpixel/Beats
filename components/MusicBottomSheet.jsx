@@ -11,7 +11,6 @@ export default function MusicBottomSheet() {
 
   const router = useRouter();
 
-  // console.log("current ", JSON.stringify(currentTrack, null, 2));
 
   const activeSong = selectedSongOption || currentTrack;
 
@@ -51,8 +50,8 @@ export default function MusicBottomSheet() {
     });
   };
   const handleAlbumPress = () => {
-    const albumId = activeSong?.artistId || activeSong?.album?.id;
-    const albumUrl = activeSong?.url || activeSong?.album.url;
+    const albumId = activeSong?.album?.id || activeSong?.albumId;
+    const albumUrl = activeSong?.album?.url || activeSong?.albumUrl;
 
     if (!albumId) return;
 

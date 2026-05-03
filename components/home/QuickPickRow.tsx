@@ -22,8 +22,6 @@ export default function QuickPickRow({
   const CurrentTrack = usePlayerStore((s) => s.currentTrack);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
-  // console.log("quick pick", item);
-  // console.log("selected", JSON.stringify(selectedSongOption, null, 2));
 
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);
@@ -33,8 +31,12 @@ export default function QuickPickRow({
   };
 
   const handleOption = async (item: any) => {
-    console.log("press option");
-    setSelectedSongOption(item);
+    const response = await jioSaavnService.getSongByIdandLink(item.id, item.url);
+    if (response.success && response.data[0]) {
+      setSelectedSongOption(response.data[0]);
+    } else {
+      setSelectedSongOption(item);
+    }
     expandMoreOption();
   };
   const handleArtistPress = () => {
