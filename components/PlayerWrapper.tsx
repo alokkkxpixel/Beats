@@ -1,12 +1,6 @@
-import FullPlayer from "@/components/FullPlayer";
-import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
-import MusicBottomSheet from "@/components/MusicBottomSheet";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
+import BottomSheet from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
 import React, { useCallback, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -72,7 +66,8 @@ export default function PlayerWrapper({
 
   return (
     <View style={styles.container}>
-      <GlobalAudioPlayer />
+      {/* Temporarily disabled for debugging */}
+      {/* <GlobalAudioPlayer /> */}
       {children}
 
       {/* Layer 2: Mini Player */}
@@ -85,71 +80,6 @@ export default function PlayerWrapper({
           <MiniPlayer />
         </Pressable>
       )}
-
-      {/* Layer 3: Main Player/Sheet */}
-      <View
-        style={[StyleSheet.absoluteFill, { zIndex: 100 }]}
-        pointerEvents="box-none"
-      >
-        <BottomSheet
-          ref={sheetRef}
-          index={-1}
-          snapPoints={snapPoints}
-          enablePanDownToClose={true}
-          backgroundStyle={{
-            backgroundColor: "#1e1e1e",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-          onClose={() => minimizeFullPlayer()}
-          handleComponent={null}
-        >
-          <BottomSheetScrollView style={{ flex: 1 }}>
-            <FullPlayer
-              handleCloseSheet={handleCloseSheet}
-              handleCloseMoreSheet={handleCloseMoreSheet}
-            />
-          </BottomSheetScrollView>
-        </BottomSheet>
-      </View>
-
-      <View
-        style={[StyleSheet.absoluteFill, { zIndex: 200 }]}
-        pointerEvents="box-none"
-      >
-        <BottomSheet
-          ref={moreSheetRed}
-          index={-1}
-          snapPoints={MoreSheetSnapPoint}
-          enablePanDownToClose={true}
-          onClose={minizeMoreOption}
-          backdropComponent={(props) => (
-            <BottomSheetBackdrop
-              {...props}
-              pressBehavior="close"
-              appearsOnIndex={0}
-              disappearsOnIndex={-1}
-            />
-          )}
-          backgroundStyle={{
-            backgroundColor: "#18181b",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-          handleIndicatorStyle={{ backgroundColor: "#fff" }}
-          handleComponent={null}
-        >
-          <BottomSheetScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-              width: "100%",
-              paddingVertical: 10,
-            }}
-          >
-            <MusicBottomSheet />
-          </BottomSheetScrollView>
-        </BottomSheet>
-      </View>
     </View>
   );
 }

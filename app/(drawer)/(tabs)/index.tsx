@@ -111,7 +111,7 @@ export default function Index() {
       <View
         style={{
           flex: 1,
-          backgroundColor: "#000",
+          backgroundColor: "#000000ff",
           justifyContent: "center",
           alignItems: "center",
         }}

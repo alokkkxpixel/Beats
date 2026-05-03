@@ -1,8 +1,6 @@
-import SidebarDrawer from "@/app/SidebarDrawer";
 import PlayerWrapper from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DarkTheme,
   DefaultTheme,
@@ -10,13 +8,14 @@ import {
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SplashScreen, Stack } from "expo-router";
-import { Drawer } from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../global.css";
+
+console.log("App Starting... RootLayout rendered");
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,13 +47,19 @@ export default function RootLayout() {
     "sans-light": require("../assets/fonts/Inter-Light.ttf"),
   });
 
+  console.log("Fonts loaded status:", fontsLoaded);
+
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      console.log("Hiding Splash Screen...");
+      SplashScreen.hideAsync().catch((err) =>
+        console.log("Splash Screen Error:", err),
+      );
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null;
+  // Temporarily bypass font check to avoid black screen
+  // if (!fontsLoaded) return null;
 
   const customDarkTheme = {
     ...DarkTheme,
@@ -66,19 +71,14 @@ export default function RootLayout() {
   };
 
   return (
-
-    <QueryClientProvider
-
-      client={queryClient}
-     
-    >
+    <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
         <ThemeProvider
           value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
         >
           <PlayerWrapper>
             <Stack
-              screenOptions={{ 
+              screenOptions={{
                 contentStyle: { backgroundColor: "#050505" },
                 headerShown: false,
               }}
