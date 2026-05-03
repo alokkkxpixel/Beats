@@ -1,6 +1,8 @@
+import Header from "@/components/Header";
 import CityHotSection from "@/components/home/CityHotSection";
 import SpeedDialGrid from "@/components/home/MusicCarousel";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
+import TrendingSection from "@/components/home/TrendingSection";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,8 +24,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Header from "../../components/Header";
-import TrendingSection from "../../components/home/TrendingSection";
 
 // ... your other imports
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
@@ -46,17 +46,17 @@ export default function Index() {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 16) {
       return {
-        image: require("../../assets/images/morning_default_image.png"),
+        image: require("../../../assets/images/morning_default_image.png"),
         greeting: "Good Morning",
       };
     } else if (hour >= 16 && hour < 20) {
       return {
-        image: require("../../assets/images/evening_bg.jpg"),
+        image: require("../../../assets/images/evening_bg.jpg"),
         greeting: "Good Evening",
       };
     } else {
       return {
-        image: require("../../assets/images/night_bg.jpg"),
+        image: require("../../../assets/images/night_bg.jpg"),
         greeting: "Good Night",
       };
     }

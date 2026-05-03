@@ -1,15 +1,14 @@
 import SidebarDrawer from "@/app/SidebarDrawer";
+import PlayerWrapper from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import { QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SplashScreen, Stack } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
@@ -27,13 +26,13 @@ const queryClient = new QueryClient({
   },
 });
 
-const asyncStoragePersister = createAsyncStoragePersister({
-  storage: AsyncStorage,
-  key: "BEATS_OFFLINE_CACHE",
-});
+// const asyncStoragePersister = createAsyncStoragePersister({
+//   storage: AsyncStorage,
+//   key: "BEATS_OFFLINE_CACHE",
+// });
 
 export const unstable_settings = {
-  anchor: "(tabs)",
+  anchor: "(drawer)",
 };
 
 export default function RootLayout() {
@@ -67,45 +66,32 @@ export default function RootLayout() {
   };
 
   return (
-    <PersistQueryClientProvider
+
+    <QueryClientProvider
+
       client={queryClient}
-      persistOptions={{
-        persister: asyncStoragePersister,
-        maxAge: 1000 * 60 * 60 * 24, // Allow cache to be up to 24 hours old
-      }}
+     
     >
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
         <ThemeProvider
           value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
         >
-          <Drawer
-            drawerContent={(props) => <SidebarDrawer {...props} />}
-            screenOptions={{
-              drawerPosition: "right",
-              headerShown: false,
-              drawerType: "slide",
-              drawerStyle: {
-                width: "95%",
-                backgroundColor: "#121212",
-              },
-            }}
-          >
+          <PlayerWrapper>
             <Stack
               screenOptions={{ 
                 contentStyle: { backgroundColor: "#050505" },
                 headerShown: false,
               }}
             >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              {/* ✅ ADD THESE */}
-              <Stack.Screen name="settings" />
+              <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
               <Stack.Screen name="music-lang-change" />
+              <Stack.Screen name="setting" />
             </Stack>
-          </Drawer>
+          </PlayerWrapper>
 
           <StatusBar style="light" translucent={true} />
         </ThemeProvider>
       </GestureHandlerRootView>
-    </PersistQueryClientProvider>
+    </QueryClientProvider>
   );
 }

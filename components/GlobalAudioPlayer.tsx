@@ -2,7 +2,7 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useEffect } from "react";
 
-export default function AudioEngine() {
+export default function GlobalAudioPlayer() {
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const updateProgress = usePlayerStore((state) => state.updateProgress);

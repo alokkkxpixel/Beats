@@ -1,3 +1,4 @@
+import Header from "@/components/Header";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,7 +20,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Header from "../../components/Header";
 
 // ... your other imports
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;

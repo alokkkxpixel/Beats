@@ -61,6 +61,8 @@ const FullPlayer = ({
   const duration = storeDuration || 0;
   const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
+  const [isDraggingState, setIsDraggingState] = React.useState(false);
+  const [scrubProgress, setScrubProgress] = React.useState(0);
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   // Sync progress value with store position when not dragging
@@ -79,6 +81,7 @@ const FullPlayer = ({
   const gesture = Gesture.Pan()
     .onStart(() => {
       isDragging.value = true;
+      runOnJS(setIsDraggingState)(true);
     })
     .onUpdate((event) => {
       const trackWidth = windowWidth - 50;
@@ -87,9 +90,11 @@ const FullPlayer = ({
         Math.max(0, (event.x / trackWidth) * 100),
       );
       progress.value = newProgress;
+      runOnJS(setScrubProgress)(newProgress);
     })
     .onEnd(() => {
       isDragging.value = false;
+      runOnJS(setIsDraggingState)(false);
       runOnJS(onEnd)();
     });
 
@@ -286,8 +291,8 @@ const FullPlayer = ({
           <View style={styles.timeRow}>
             <Text style={styles.timeText}>
               {formatTime(
-                isDragging.value
-                  ? (progress.value / 100) * duration
+                isDraggingState
+                  ? (scrubProgress / 100) * duration
                   : storePosition,
               )}
             </Text>

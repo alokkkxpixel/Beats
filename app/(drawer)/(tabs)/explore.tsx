@@ -27,7 +27,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Header from "../../components/Header";
+import Header from "@/components/Header";
 
 const { width } = Dimensions.get("window");
 
