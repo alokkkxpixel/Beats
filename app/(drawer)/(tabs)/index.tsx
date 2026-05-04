@@ -206,11 +206,14 @@ export default function Index() {
 
       <AnimatedFlashList
         data={sections}
-        estimatedItemSize={320}
+        estimatedItemSize={280}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item: any) => item.id}
+        getItemType={(item: any) => item.type}
+        drawDistance={400}
+        removeClippedSubviews={true}
         contentContainerStyle={{
           paddingTop: TOTAL_HEADER_HEIGHT,
           paddingBottom: 250,
@@ -237,7 +240,6 @@ export default function Index() {
             />
           );
         }}
-        //  contentContainerStyle={{ paddingBottom: 150 }}
       />
     </View>
   );
