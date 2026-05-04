@@ -9,7 +9,8 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050505",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.Beats"
     },
     "android": {
       "adaptiveIcon": {

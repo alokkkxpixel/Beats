@@ -31,7 +31,10 @@ export default function QuickPickRow({
   };
 
   const handleOption = async (item: any) => {
-    const response = await jioSaavnService.getSongByIdandLink(item.id, item.url);
+    const response = await jioSaavnService.getSongByIdandLink(
+      item.id,
+      item.url,
+    );
     if (response.success && response.data[0]) {
       setSelectedSongOption(response.data[0]);
     } else {
@@ -55,9 +58,6 @@ export default function QuickPickRow({
       return target?.url || "";
     }
     if (typeof cover === "string" && cover) {
-      if (cover.includes("50x50")) {
-        return cover.replace("50x50", "150x150");
-      }
       return cover;
     }
     return "";
@@ -96,6 +96,7 @@ export default function QuickPickRow({
         style={{
           justifyContent: "center",
           padding: 8,
+          // backgroundColor: "red",
         }}
         onPress={() => handleOption(item)}
       >

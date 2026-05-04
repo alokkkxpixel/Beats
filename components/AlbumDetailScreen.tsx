@@ -244,6 +244,7 @@ const AlbumDetailScreen = ({
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.1}
           removeClippedSubviews={true}
+          showsVerticalScrollIndicator={false}
           keyExtractor={(item: Song, index: number) => `${item.id}-${index}`}
           ListHeaderComponent={renderHeader}
           ListFooterComponent={renderFooter}

@@ -254,14 +254,13 @@ const FullPlayer = ({
         </View>
         {/* --- Album Artwork --- */}
         <View style={styles.artWrapper}>
-          <Image source={{ uri: trackImage }} style={styles.mainArt} />
+          <RNImage source={{ uri: trackImage }} style={styles.mainArt} />
         </View>
         {/* --- Track Info --- */}
         <View style={styles.trackInfo}>
           <View style={styles.titleContainer}>
             <Text
               style={styles.songTitle}
-              className="font-sans-medium text-lg tracking-tight"
               numberOfLines={1}
             >
               {currentTrack.name}
@@ -270,7 +269,6 @@ const FullPlayer = ({
               <Text
                 style={styles.songArtist}
                 numberOfLines={1}
-                className="font-sans-light text-xs tracking-tighter"
               >
                 {artistName}
               </Text>
@@ -340,42 +338,39 @@ const FullPlayer = ({
         </View>
         <Pressable
           style={styles.artistCard}
-          className=""
           onPress={handleArtistPress}
         >
           <View style={styles.artistHeader}>
-            <Image
+            <RNImage
               source={{
                 uri: getArtistImage(),
               }}
               style={styles.artistPhoto}
             />
-            <Text style={styles.artistCardLabel} className="text-gray-800">
+            <Text style={styles.artistCardLabel}>
               ABOUT THE ARTIST
             </Text>
           </View>
-          <View style={styles.artistDetailsBody} className="bg-zinc-300/10">
+          <View style={styles.artistDetailsBody}>
             <Text style={styles.artistNameText}>{aboutArtist}</Text>
             <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>
         </Pressable>
         {/* --- Credits Section --- */}
         <ScrollView
-          className="max-h-[500px]"
           style={styles.creditsCard}
-          // className="bg-[#0f172a] p-4 rounded-2xl w-full max-w-md mr-auto"
+          showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-white text-base font-semibold">Credits</Text>
+          <View>
+            <Text>Credits</Text>
           </View>
 
           {/* Credits List */}
           <ScrollView
-            showsVerticalScrollIndicator={true}
-            // className="min-h-[5"
+            showsVerticalScrollIndicator={false}
           >
-            {currentTrack.artists?.primary?.map((item, index) => (
+            {currentTrack.artists?.primary?.map((item: any, index: number) => (
               <Pressable
                 key={index}
                 onPress={() => {

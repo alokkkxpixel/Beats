@@ -249,6 +249,7 @@ export default function ArtistScreen() {
         scrollEventThrottle={16}
         ListHeaderComponent={renderHeader()}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 200 }}
         renderItem={({ item }) => {
           if (item.type === "spacer") {

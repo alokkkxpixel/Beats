@@ -73,7 +73,6 @@ export default function App({ title }: { title: string }) {
 
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>
-              <Text>search</Text>
               <Ionicons name="search" size={20} color="white" />
             </Pressable>
             <Pressable onPress={() => navigation.openDrawer()}>
