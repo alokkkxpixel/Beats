@@ -124,6 +124,7 @@ export default function SearchResultsScreen() {
     return (
       <Pressable
         style={styles.resultItem}
+        key={item.id}
         onPress={() => handleResultPress(item)}
       >
         <Image
