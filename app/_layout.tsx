@@ -1,4 +1,10 @@
 import PlayerWrapper from "@/components/PlayerWrapper";
+import { useSetupPlayer } from "@/hooks/useSetupPlayer";
+import TrackPlayer from 'react-native-track-player';
+import { PlaybackService } from '@/src/services/playbackService';
+
+// Register the playback service
+TrackPlayer.registerPlaybackService(() => PlaybackService);
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
 import {
@@ -36,6 +42,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const isPlayerReady = useSetupPlayer();
 
   const [fontsLoaded] = useFonts({
     "sans-regular": require("../assets/fonts/Inter-Regular.ttf"),
@@ -76,7 +83,7 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
         >
-          <PlayerWrapper>
+          <PlayerWrapper isPlayerReady={isPlayerReady}>
             <Stack
               screenOptions={{
                 contentStyle: { backgroundColor: "#050505" },

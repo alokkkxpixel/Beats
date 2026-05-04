@@ -17,6 +17,9 @@ interface PlayerState {
   duration: number; // Total duration in seconds
   buffered: number; // Buffered amount (optional)
 
+  isDragging: boolean;
+  setIsDragging: (isDragging: boolean) => void;
+
   // --- Actions ---
   setCurrentTrack: (track: SongDetail) => void;
 
@@ -58,7 +61,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isMoreOptionOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
+  isDragging: false,
 
+  setIsDragging: (isDragging) => set({ isDragging }),
   // set individual track info
   setSelectedSongOption: (track) => set({ selectedSongOption: track }),
   setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),

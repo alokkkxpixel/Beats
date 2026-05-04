@@ -11,8 +11,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PlayerWrapper({
   children,
+  isPlayerReady = false,
 }: {
   children: React.ReactNode;
+  isPlayerReady?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const {
@@ -45,15 +47,15 @@ export default function PlayerWrapper({
   // Sync BottomSheet with Zustand state
   useEffect(() => {
     if (isFullPlayerOpen) {
-      // Small delay ensures layout is ready, preventing the "stuck" peek behavior
+      // Increased delay ensures layout is ready, preventing the "stuck" peek behavior
       const timer = setTimeout(() => {
-        sheetRef.current?.snapToIndex(0);
-      }, 50);
+        sheetRef.current?.expand();
+      }, 200);
       return () => clearTimeout(timer);
     } else {
       sheetRef.current?.close();
     }
-  }, [isFullPlayerOpen]);
+  }, [isFullPlayerOpen, currentTrack?.id]); // Added currentTrack?.id to ensure it opens on new track select
 
   useEffect(() => {
     if (isMoreOptionOpen) {
@@ -76,7 +78,7 @@ export default function PlayerWrapper({
 
   return (
     <View style={styles.container}>
-      <GlobalAudioPlayer />
+      {isPlayerReady && <GlobalAudioPlayer />}
       {children}
 
       {/* Layer 2: Mini Player */}

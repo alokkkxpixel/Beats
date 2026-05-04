@@ -37,6 +37,56 @@ interface AlbumDetailProps {
 
 const TypedFlashList = FlashList as any;
 
+const TrackItem = React.memo(
+  ({
+    item,
+    index,
+    artistName,
+    setCurrentTrack,
+  }: {
+    item: Song;
+    index: number;
+    artistName: string;
+    setCurrentTrack: (track: Song) => void;
+  }) => {
+    const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
+    const artist = item.artists?.primary?.[0]?.name || artistName;
+    const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.trackItem}
+        onPress={() => setCurrentTrack(item)}
+      >
+        <Image source={{ uri: imageUri }} style={styles.trackImage} />
+
+        <View style={styles.trackInfo}>
+          <Text style={styles.trackTitle} numberOfLines={1}>
+            {item.name}
+          </Text>
+
+          <View style={styles.trackSubRow}>
+            {!!item.explicitContent && (
+              <View style={styles.explicitBadge}>
+                <Text style={styles.explicitText}>E</Text>
+              </View>
+            )}
+
+            <Text style={styles.trackSub} numberOfLines={1}>
+              {artist} • {duration} • {formatPlayCount(item.playCount)}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.trackMore}>
+          <MoreVertical color="#9ca3af" size={20} />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  },
+);
+
 const AlbumDetailScreen = ({
   route,
   navigation,
@@ -55,8 +105,6 @@ const AlbumDetailScreen = ({
     return `${mins} min ${secs} sec`;
   };
 
-  // console.log("album:", JSON.stringify(album, null, 2));
-
   if (!album) {
     return (
       <View
@@ -73,49 +121,6 @@ const AlbumDetailScreen = ({
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
-
-  const renderTrack = React.useCallback(
-    ({ item, index }: { item: Song; index: number }) => {
-      const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
-
-      const artist = item.artists?.primary?.[0]?.name || artistName;
-
-      const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
-
-      return (
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.trackItem}
-          onPress={() => setCurrentTrack(item)}
-        >
-          <Image source={{ uri: imageUri }} style={styles.trackImage} />
-
-          <View style={styles.trackInfo}>
-            <Text style={styles.trackTitle} numberOfLines={1}>
-              {item.name}
-            </Text>
-
-            <View style={styles.trackSubRow}>
-              {!!item.explicitContent && (
-                <View style={styles.explicitBadge}>
-                  <Text style={styles.explicitText}>E</Text>
-                </View>
-              )}
-
-              <Text style={styles.trackSub} numberOfLines={1}>
-                {artist} • {duration} • {formatPlayCount(item.playCount)}
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity style={styles.trackMore}>
-            <MoreVertical color="#9ca3af" size={20} />
-          </TouchableOpacity>
-        </TouchableOpacity>
-      );
-    },
-    [artistName, setCurrentTrack], // ✅ dependencies
-  );
 
   const renderHeader = React.useMemo(
     () => (
@@ -239,13 +244,21 @@ const AlbumDetailScreen = ({
 
         <TypedFlashList
           data={album.songs}
-          renderItem={renderTrack}
-          estimatedItemSize={70}
+          renderItem={({ item, index }: any) => (
+            <TrackItem
+              item={item}
+              index={index}
+              artistName={artistName}
+              setCurrentTrack={setCurrentTrack}
+            />
+          )}
+          estimatedItemSize={76}
+          drawDistance={300}
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.1}
           removeClippedSubviews={true}
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item: Song, index: number) => `${item.id}-${index}`}
+          keyExtractor={(item: Song) => item.id}
           ListHeaderComponent={renderHeader}
           ListFooterComponent={renderFooter}
           contentContainerStyle={{ paddingBottom: 150 }}

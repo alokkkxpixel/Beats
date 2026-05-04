@@ -1,8 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Dimensions,
-  Image,
   Pressable,
   Image as RNImage,
   ScrollView,
@@ -57,46 +56,67 @@ const FullPlayer = ({
   const next = usePlayerStore((state) => state.next);
   const previous = usePlayerStore((state) => state.previous);
   const seek = usePlayerStore((state) => state.seek);
+  const setIsDragging = usePlayerStore((state) => state.setIsDragging);
   const router = useRouter();
   const duration = storeDuration || 0;
+  const position = storePosition || 0;
   const progress = useSharedValue(0);
   const isDragging = useSharedValue(false);
+  const lastSeekTime = useRef(0);
   const [isDraggingState, setIsDraggingState] = React.useState(false);
   const [scrubProgress, setScrubProgress] = React.useState(0);
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-  // Sync progress value with store position when not dragging
 
-  React.useEffect(() => {
-    if (!isDragging.value && duration > 0) {
-      progress.value = (storePosition / duration) * 100;
+  // Track manual seeks to prevent "snap back"
+  // We only set the cooldown if the change happened while dragging
+  // or if the change is a "large" jump (manual seek)
+  useEffect(() => {
+    if (isDraggingState) {
+      lastSeekTime.current = Date.now();
     }
-  }, [storePosition, duration]);
+  }, [storePosition, isDraggingState]);
+
+  // Sync progress back to store
+  useEffect(() => {
+    const isRecentlySeeked = Date.now() - lastSeekTime.current < 2000;
+
+    if (duration > 0 && !isDraggingState && !isRecentlySeeked) {
+      progress.value = (position / duration) * 100;
+    }
+  }, [position, duration, isDraggingState]);
 
   const onEnd = () => {
     const newPosition = (progress.value / 100) * duration;
     seek(newPosition);
+    lastSeekTime.current = Date.now();
   };
 
-  const gesture = Gesture.Pan()
-    .onStart(() => {
-      isDragging.value = true;
-      runOnJS(setIsDraggingState)(true);
-    })
-    .onUpdate((event) => {
-      const trackWidth = windowWidth - 50;
-      const newProgress = Math.min(
-        100,
-        Math.max(0, (event.x / trackWidth) * 100),
-      );
-      progress.value = newProgress;
-      runOnJS(setScrubProgress)(newProgress);
-    })
-    .onEnd(() => {
-      isDragging.value = false;
-      runOnJS(setIsDraggingState)(false);
-      runOnJS(onEnd)();
-    });
+  const gesture = React.useMemo(
+    () =>
+      Gesture.Pan()
+        .onStart(() => {
+          isDragging.value = true;
+          runOnJS(setIsDraggingState)(true);
+          runOnJS(setIsDragging)(true);
+        })
+        .onUpdate((event) => {
+          const trackWidth = windowWidth - 50;
+          const newProgress = Math.min(
+            100,
+            Math.max(0, (event.x / trackWidth) * 100),
+          );
+          progress.value = newProgress;
+          runOnJS(setScrubProgress)(newProgress);
+        })
+        .onEnd(() => {
+          isDragging.value = false;
+          runOnJS(setIsDraggingState)(false);
+          runOnJS(setIsDragging)(false);
+          runOnJS(onEnd)();
+        }),
+    [windowWidth, duration],
+  );
 
   const animatedFillStyle = useAnimatedStyle(() => ({
     width: `${progress.value}%`,
@@ -259,17 +279,11 @@ const FullPlayer = ({
         {/* --- Track Info --- */}
         <View style={styles.trackInfo}>
           <View style={styles.titleContainer}>
-            <Text
-              style={styles.songTitle}
-              numberOfLines={1}
-            >
+            <Text style={styles.songTitle} numberOfLines={1}>
               {currentTrack.name}
             </Text>
             <Pressable onPress={handleArtistPress}>
-              <Text
-                style={styles.songArtist}
-                numberOfLines={1}
-              >
+              <Text style={styles.songArtist} numberOfLines={1}>
                 {artistName}
               </Text>
             </Pressable>
@@ -336,10 +350,7 @@ const FullPlayer = ({
           <Text style={styles.lyricsTitle}>Lyrics</Text>
           <Text style={styles.lyricsPreview}>Lyrics coming soon...</Text>
         </View>
-        <Pressable
-          style={styles.artistCard}
-          onPress={handleArtistPress}
-        >
+        <Pressable style={styles.artistCard} onPress={handleArtistPress}>
           <View style={styles.artistHeader}>
             <RNImage
               source={{
@@ -347,9 +358,7 @@ const FullPlayer = ({
               }}
               style={styles.artistPhoto}
             />
-            <Text style={styles.artistCardLabel}>
-              ABOUT THE ARTIST
-            </Text>
+            <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
           </View>
           <View style={styles.artistDetailsBody}>
             <Text style={styles.artistNameText}>{aboutArtist}</Text>
@@ -363,13 +372,11 @@ const FullPlayer = ({
         >
           {/* Header */}
           <View>
-            <Text>Credits</Text>
+            <Text className="text-white font-sans-medium ">Credits</Text>
           </View>
 
           {/* Credits List */}
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView showsVerticalScrollIndicator={false}>
             {currentTrack.artists?.primary?.map((item: any, index: number) => (
               <Pressable
                 key={index}
