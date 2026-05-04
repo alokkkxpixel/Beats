@@ -1,11 +1,14 @@
-import MiniPlayer from "@/components/MiniPlayer";
-import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import FullPlayer from "@/components/FullPlayer";
+import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
+import MiniPlayer from "@/components/MiniPlayer";
 import MusicBottomSheet from "@/components/MusicBottomSheet";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -47,22 +50,22 @@ export default function PlayerWrapper({
   // Sync BottomSheet with Zustand state
   useEffect(() => {
     if (isFullPlayerOpen) {
-      // Increased delay ensures layout is ready, preventing the "stuck" peek behavior
-      const timer = setTimeout(() => {
+      // requestAnimationFrame is smoother than setTimeout
+      const frame = requestAnimationFrame(() => {
         sheetRef.current?.expand();
-      }, 200);
-      return () => clearTimeout(timer);
+      });
+      return () => cancelAnimationFrame(frame);
     } else {
       sheetRef.current?.close();
     }
-  }, [isFullPlayerOpen, currentTrack?.id]); // Added currentTrack?.id to ensure it opens on new track select
+  }, [isFullPlayerOpen]);
 
   useEffect(() => {
     if (isMoreOptionOpen) {
-      const timer = setTimeout(() => {
+      const frame = requestAnimationFrame(() => {
         moreSheetRed.current?.snapToIndex(0);
-      }, 50);
-      return () => clearTimeout(timer);
+      });
+      return () => cancelAnimationFrame(frame);
     } else {
       moreSheetRed.current?.close();
     }
@@ -93,95 +96,95 @@ export default function PlayerWrapper({
       )}
 
       {/* Layer 3: Main Player/Sheet */}
-      {!!currentTrack && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { zIndex: isFullPlayerOpen ? 1000 : -1 }, // Move to back when closed
-          ]}
-          pointerEvents={isFullPlayerOpen ? "auto" : "none"} // Completely ignore touches when closed
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { zIndex: isFullPlayerOpen ? 1000 : -1 }, // Move to back when closed
+        ]}
+        pointerEvents={isFullPlayerOpen ? "auto" : "none"} // Completely ignore touches when closed
+      >
+        <BottomSheet
+          ref={sheetRef}
+          index={-1}
+          snapPoints={snapPoints}
+          enablePanDownToClose={true}
+          enableDynamicSizing={false}
+          animateOnMount={false}
+          backdropComponent={(props) => (
+            <BottomSheetBackdrop
+              {...props}
+              pressBehavior="close"
+              appearsOnIndex={0}
+              disappearsOnIndex={-1}
+            />
+          )}
+          backgroundStyle={{
+            backgroundColor: "#1e1e1e",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}
+          onClose={() => minimizeFullPlayer()}
+          handleComponent={null}
         >
-          <BottomSheet
-            ref={sheetRef}
-            index={-1}
-            snapPoints={snapPoints}
-            enablePanDownToClose={true}
-            enableDynamicSizing={false}
-            animateOnMount={false}
-            backdropComponent={(props) => (
-              <BottomSheetBackdrop
-                {...props}
-                pressBehavior="close"
-                appearsOnIndex={0}
-                disappearsOnIndex={-1}
-              />
-            )}
-            backgroundStyle={{
-              backgroundColor: "#1e1e1e",
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            }}
-            onClose={() => minimizeFullPlayer()}
-            handleComponent={null}
+          <BottomSheetScrollView
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
           >
-            <BottomSheetScrollView
-              style={{ flex: 1 }}
-              showsVerticalScrollIndicator={false}
-            >
+            {currentTrack ? (
               <FullPlayer
                 handleCloseSheet={handleCloseSheet}
                 handleCloseMoreSheet={handleCloseMoreSheet}
               />
-            </BottomSheetScrollView>
-          </BottomSheet>
-        </View>
-      )}
-
-      {!!currentTrack && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { zIndex: isMoreOptionOpen ? 2000 : -1 }, // Move to back when closed
-          ]}
-          pointerEvents={isMoreOptionOpen ? "auto" : "none"} // Completely ignore touches when closed
-        >
-          <BottomSheet
-            ref={moreSheetRed}
-            index={-1}
-            snapPoints={MoreSheetSnapPoint}
-            enablePanDownToClose={true}
-            enableDynamicSizing={false}
-            animateOnMount={false}
-            onClose={minizeMoreOption}
-            backdropComponent={(props) => (
-              <BottomSheetBackdrop
-                {...props}
-                pressBehavior="close"
-                appearsOnIndex={0}
-                disappearsOnIndex={-1}
-              />
+            ) : (
+              <View style={{ flex: 1 }} />
             )}
-            backgroundStyle={{
-              backgroundColor: "#18181b",
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
+          </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
+
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { zIndex: isMoreOptionOpen ? 2000 : -1 }, // Move to back when closed
+        ]}
+        pointerEvents={isMoreOptionOpen ? "auto" : "none"} // Completely ignore touches when closed
+      >
+        <BottomSheet
+          ref={moreSheetRed}
+          index={-1}
+          snapPoints={MoreSheetSnapPoint}
+          enablePanDownToClose={true}
+          enableDynamicSizing={false}
+          animateOnMount={false}
+          onClose={minizeMoreOption}
+          backdropComponent={(props) => (
+            <BottomSheetBackdrop
+              {...props}
+              pressBehavior="close"
+              appearsOnIndex={0}
+              disappearsOnIndex={-1}
+            />
+          )}
+          backgroundStyle={{
+            backgroundColor: "#18181b",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}
+          handleIndicatorStyle={{ backgroundColor: "#fff" }}
+          handleComponent={null}
+        >
+          <BottomSheetScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              flexGrow: 1,
+              width: "100%",
+              paddingVertical: 10,
             }}
-            handleIndicatorStyle={{ backgroundColor: "#fff" }}
-            handleComponent={null}
           >
-            <BottomSheetScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{
-                flexGrow: 1,
-                width: "100%",
-                paddingVertical: 10,
-              }}
-            >
-              <MusicBottomSheet />
-            </BottomSheetScrollView>
-          </BottomSheet>
-        </View>
-      )}
+            <MusicBottomSheet />
+          </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
     </View>
   );
 }
