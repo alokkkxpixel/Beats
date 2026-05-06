@@ -273,7 +273,14 @@ export const jioSaavnService = {
       return null;
     }
   },
+
+  getSuggestedSongs: async (id: string, limit: number = 5): Promise<any> => {
+    const response = await fetch(`${BASE_URL}/songs/${id}/suggestions?limit=${limit}`);
+    const data = await response.json();
+    return recursiveClean(data);
+  },
 };
+
 
 export const SaavnService = {
   async getHomePreviews(languages: string[]): Promise<RootResponse> {

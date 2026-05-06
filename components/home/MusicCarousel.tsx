@@ -1,5 +1,6 @@
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { decodeHtmlEntities } from "@/src/utils/transform";
 import { Lists } from "@/types/jiosaavn";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -180,7 +181,7 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
                       className="text-sm font-sans-semibold text-white"
                       numberOfLines={1}
                     >
-                      {item.title}
+                      {decodeHtmlEntities(item.title)}
                     </Text>
                   </View>
                 </TouchableOpacity>

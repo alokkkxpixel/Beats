@@ -42,12 +42,12 @@ const TrackItem = React.memo(
     item,
     index,
     artistName,
-    setCurrentTrack,
+    onPress,
   }: {
     item: Song;
     index: number;
     artistName: string;
-    setCurrentTrack: (track: Song) => void;
+    onPress: () => void;
   }) => {
     const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
     const artist = item.artists?.primary?.[0]?.name || artistName;
@@ -57,7 +57,7 @@ const TrackItem = React.memo(
       <TouchableOpacity
         activeOpacity={0.7}
         style={styles.trackItem}
-        onPress={() => setCurrentTrack(item)}
+        onPress={onPress}
       >
         <Image source={{ uri: imageUri }} style={styles.trackImage} />
 
@@ -99,10 +99,12 @@ const AlbumDetailScreen = ({
   const totalDurationSeconds = React.useMemo(() => {
     return album.songs.reduce((acc, song) => acc + (song.duration || 0), 0);
   }, [album.songs]);
-  const formatTotalTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins} min ${secs} sec`;
+
+  const formatTotalTime = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    if (hrs > 0) return `${hrs}h ${mins}m`;
+    return `${mins}m`;
   };
 
   if (!album) {
@@ -118,7 +120,6 @@ const AlbumDetailScreen = ({
     );
   }
 
-  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const setQueue = usePlayerStore((state) => state.setQueue);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
@@ -159,7 +160,7 @@ const AlbumDetailScreen = ({
             style={styles.mainPlayBtn}
             onPress={() => setQueue(album.songs)}
           >
-            <Play color="black" size={25} fill="black" />
+            <Play color="black" size={28} fill="black" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionCircleBtn}>
@@ -171,7 +172,7 @@ const AlbumDetailScreen = ({
         </View>
       </View>
     ),
-    [highResCover, album.name, album.title, album.description],
+    [highResCover, album.name, album.title, album.description, album.songs, setQueue],
   );
 
   const renderFooter = React.useMemo(
@@ -253,7 +254,7 @@ const AlbumDetailScreen = ({
               item={item}
               index={index}
               artistName={artistName}
-              setCurrentTrack={setCurrentTrack}
+              onPress={() => setQueue(album.songs, index)}
             />
           )}
           estimatedItemSize={76}
@@ -302,100 +303,89 @@ const styles = StyleSheet.create({
   },
   headerArtist: {
     color: "white",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "bold",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   headerSubtitle: {
     color: "#9ca3af",
-    fontSize: 11,
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   listHeader: {
+    paddingHorizontal: 24,
     alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 30,
+    paddingTop: 20,
   },
   mainCover: {
-    width: 200,
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 12,
+    width: 240,
+    height: 240,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
-    shadowRadius: 20,
+    shadowRadius: 15,
   },
   mainTitle: {
     color: "white",
-    fontSize: 32,
-    fontWeight: "500",
+    fontSize: 28,
+    fontWeight: "bold",
+    marginTop: 24,
     textAlign: "center",
-    paddingHorizontal: 24,
-    lineHeight: 38,
-    letterSpacing: -0.5,
   },
   descriptionContainer: {
-    alignItems: "center",
-    marginTop: 10,
-    paddingHorizontal: 40,
+    marginTop: 12,
+    paddingHorizontal: 10,
   },
   descriptionText: {
     color: "#9ca3af",
     fontSize: 14,
-    textAlign: "center",
     lineHeight: 20,
-  },
-  moreLink: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 4,
   },
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    // backgroundColor: "red",
     justifyContent: "space-between",
     width: "100%",
-    marginTop: 18,
-    paddingHorizontal: 32,
-  },
-  mainPlayBtn: {
-    backgroundColor: "white",
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#fff",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    marginTop: 30,
+    paddingHorizontal: 10,
   },
   actionCircleBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.1)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  mainPlayBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   trackItem: {
     flexDirection: "row",
-    // backgroundColor: "green",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   trackImage: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: 50,
     borderRadius: 4,
-    marginRight: 12,
   },
   trackInfo: {
     flex: 1,
+    marginLeft: 16,
+    justifyContent: "center",
   },
   trackTitle: {
     color: "white",
@@ -407,30 +397,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  trackSub: {
-    color: "#9ca3af",
-    fontSize: 12,
-  },
   explicitBadge: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    width: 14,
-    height: 14,
+    backgroundColor: "#4b5563",
+    paddingHorizontal: 4,
+    paddingVertical: 1,
     borderRadius: 2,
-    justifyContent: "center",
-    alignItems: "center",
     marginRight: 6,
   },
   explicitText: {
-    color: "white",
-    fontSize: 9,
+    color: "#050505",
+    fontSize: 8,
     fontWeight: "bold",
   },
+  trackSub: {
+    color: "#9ca3af",
+    fontSize: 13,
+  },
   trackMore: {
-    padding: 4,
+    padding: 8,
   },
   footerContainer: {
-    paddingTop: 30,
-    paddingBottom: 60,
+    padding: 24,
     alignItems: "center",
   },
   footerText: {

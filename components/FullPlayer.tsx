@@ -23,11 +23,15 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { SongDetail } from "@/types/jiosaavn";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
-import { TrackPlayer, useNowPlaying, useOnPlaybackProgressChange, useOnPlaybackStateChange } from 'react-native-nitro-player';
-import { SongDetail } from "@/types/jiosaavn";
+import {
+  TrackPlayer,
+  useNowPlaying,
+  useOnPlaybackStateChange,
+} from "react-native-nitro-player";
 
 const { width } = Dimensions.get("window");
 
@@ -39,14 +43,15 @@ const FullPlayer = ({
   handleCloseMoreSheet: () => void;
 }) => {
   const { height, width: windowWidth } = useWindowDimensions();
-  
+
   // Nitro Player hooks
   const nowPlaying = useNowPlaying();
   const playbackState = useOnPlaybackStateChange();
   const currentTrack = nowPlaying.currentTrack;
-  const originalSong = currentTrack?.extraPayload?.song as unknown as SongDetail;
-  
-  const isPlaying = playbackState.state === 'playing';
+  const originalSong = currentTrack?.extraPayload
+    ?.song as unknown as SongDetail;
+
+  const isPlaying = playbackState.state === "playing";
 
   // Use store for position/duration to ensure immediate reset on track change
   const { position: storePosition, duration: storeDuration } = usePlayerStore();
@@ -85,6 +90,7 @@ const FullPlayer = ({
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   const setIsDragging = usePlayerStore((s) => s.setIsDragging);
+  const expandQueue = usePlayerStore((s) => s.expandQueue);
 
   // Track manual seeks to prevent "snap back"
   // We only set the cooldown if the change happened while dragging
@@ -174,8 +180,15 @@ const FullPlayer = ({
     );
   }
 
-  const trackImage = originalSong?.image?.[2]?.url || currentTrack.artwork || originalSong?.image?.[0]?.url;
-  const artistName = originalSong?.primaryArtists || currentTrack.artist || originalSong?.subtitle || "Unknown Artist";
+  const trackImage =
+    originalSong?.image?.[2]?.url ||
+    currentTrack.artwork ||
+    originalSong?.image?.[0]?.url;
+  const artistName =
+    originalSong?.primaryArtists ||
+    currentTrack.artist ||
+    originalSong?.subtitle ||
+    "Unknown Artist";
 
   const navigateToArtist = (artist: any) => {
     if (artist?.id) {
@@ -351,7 +364,14 @@ const FullPlayer = ({
               color="white"
               style={{ marginRight: 25 }}
             />
-            <MaterialIcons name="playlist-play" size={28} color="white" />
+            <Pressable
+              onPress={() => {
+                expandQueue();
+                console.log("pressed");
+              }}
+            >
+              <MaterialIcons name="playlist-play" size={28} color="white" />
+            </Pressable>
           </View>
         </View>
         {/* Lyrics & Artist - (Kept for aesthetics, can be made dynamic later) */}
@@ -414,34 +434,36 @@ const FullPlayer = ({
                 </View>
               </Pressable>
             ))}
-            {originalSong?.artists?.featured?.map((item: any, index: number) => (
-              <Pressable
-                key={index}
-                onPress={() => {
-                  item?.id ? navigateToArtist(item) : () => {};
-                }}
-              >
-                <View className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0">
-                  <View className="flex-1 pr-3">
-                    <Text className="text-white text-sm font-semibold">
-                      {item.name}
-                    </Text>
-                    <Text className="text-gray-400 text-xs mt-1 capitalize">
-                      {item.role.split("_").join(" ")}
-                    </Text>
-                  </View>
+            {originalSong?.artists?.featured?.map(
+              (item: any, index: number) => (
+                <Pressable
+                  key={index}
+                  onPress={() => {
+                    item?.id ? navigateToArtist(item) : () => {};
+                  }}
+                >
+                  <View className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0">
+                    <View className="flex-1 pr-3">
+                      <Text className="text-white text-sm font-semibold">
+                        {item.name}
+                      </Text>
+                      <Text className="text-gray-400 text-xs mt-1 capitalize">
+                        {item.role.split("_").join(" ")}
+                      </Text>
+                    </View>
 
-                  <TouchableOpacity
-                    onPress={() => {
-                      item.id ? navigateToArtist(item) : () => {};
-                    }}
-                    className="border border-gray-500 px-3 py-1 rounded-full"
-                  >
-                    <Text className="text-white text-xs">View</Text>
-                  </TouchableOpacity>
-                </View>
-              </Pressable>
-            ))}
+                    <TouchableOpacity
+                      onPress={() => {
+                        item.id ? navigateToArtist(item) : () => {};
+                      }}
+                      className="border border-gray-500 px-3 py-1 rounded-full"
+                    >
+                      <Text className="text-white text-xs">View</Text>
+                    </TouchableOpacity>
+                  </View>
+                </Pressable>
+              ),
+            )}
           </View>
         </View>
       </ScrollView>

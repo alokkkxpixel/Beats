@@ -1,4 +1,5 @@
 import { SongDetail } from "@/types/jiosaavn";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
 // ===== COMMENTED OUT: RNTP imports =====
 // import TrackPlayer, { State } from "react-native-track-player";
 
@@ -22,11 +23,13 @@ interface PlayerState {
   currentTrack: SongDetail | null;
   queue: SongDetail[];
   currentIndex: number;
+  activePlaylistId: string | null;
   isPlaying: boolean;
   isLoading: boolean;
   isFullPlayerOpen: boolean;
   selectedSongOption: SongDetail | null | string;
   isMoreOptionOpen: boolean;
+  isQueueOpen: boolean;
   isDrawerOpen: boolean;
   // --- Progress / Seekbar ---
   position: number; // Current playback time in seconds
@@ -37,14 +40,17 @@ interface PlayerState {
   setIsDragging: (isDragging: boolean) => void;
 
   // --- Actions ---
-  setCurrentTrack: (track: SongDetail) => void;
+  setCurrentTrack: (track: SongDetail, contextQueue?: SongDetail[]) => void;
 
   setQueue: (tracks: SongDetail[], startIndex?: number) => void;
+  fetchAndAppendSuggestions: (trackId: string) => Promise<void>;
   expandFullPlayer: () => void;
   setSelectedSongOption: (track: SongDetail | null) => void;
   minimizeFullPlayer: () => void;
   expandMoreOption: () => void;
   minizeMoreOption: () => void;
+  expandQueue: () => void;
+  minimizeQueue: () => void;
   setDrawerOpen: (isOpen: boolean) => void;
 
   // --- Playback Controls ---
@@ -68,6 +74,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentTrack: null,
   queue: [],
   currentIndex: -1,
+  activePlaylistId: null,
   isPlaying: false,
   isLoading: false,
   isFullPlayerOpen: false,
@@ -75,6 +82,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   duration: 0,
   buffered: 0,
   isMoreOptionOpen: false,
+  isQueueOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
   isDragging: false,
@@ -85,9 +93,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
   
   // Set individual track and start playing
-  setCurrentTrack: async (track) => {
+  setCurrentTrack: async (track, contextQueue) => {
     try {
-      // 1. Update store metadata IMMEDIATELY so GlobalAudioPlayer syncs correctly
+      // 1. If we have a context queue (like an album/playlist), use it instead of suggestions
+      if (contextQueue && contextQueue.length > 0) {
+        const index = contextQueue.findIndex(t => t.id === track.id);
+        if (index !== -1) {
+          console.log(`Context-aware play: Found ${track.name} in current collection. Using provided queue.`);
+          get().setQueue(contextQueue, index);
+          return;
+        }
+      }
+
+      console.log(`Single-Track Play: ${track.name}. Fetching suggestions...`);
+      
+      // 2. Update store metadata IMMEDIATELY
       set({ 
         currentTrack: track,
         queue: [track],
@@ -99,18 +119,33 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isPlaying: true
       });
 
-      const trackItem = mapToTrackItem(track);
+      // 3. Fetch suggested songs for autoplay
+      let suggestions: SongDetail[] = [];
+      try {
+        const response = await jioSaavnService.getSuggestedSongs(track.id, 10);
+        suggestions = Array.isArray(response) ? response : (response?.data || []);
+      } catch (e) {
+        console.error("Failed to fetch suggestions:", e);
+      }
+
+      const allTracks = [track, ...suggestions];
+      const trackItems = allTracks.map(mapToTrackItem);
       
-      // 2. Create and load playlist in native player
+      // Update store with final queue
+      set({ queue: allTracks });
+      
+      // 4. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
-        `Playing: ${track.name}`,
-        "Quick Play"
+        `Quick Play: ${track.name}`,
+        "Auto Queue"
       );
       
-      await PlayerQueue.addTracksToPlaylist(playlistId, [trackItem]);
+      set({ activePlaylistId: playlistId });
+      await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
       await PlayerQueue.loadPlaylist(playlistId);
       
-      // 3. Ensure we start at the beginning
+      // 5. Force skip to the first track (the selected one)
+      await TrackPlayer.skipToIndex(0);
       await TrackPlayer.seek(0);
       await TrackPlayer.play();
 
@@ -127,6 +162,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     
     try {
       const selectedTrack = tracks[startIndex];
+      console.log(`Setting Queue: ${tracks.length} tracks, starting at index ${startIndex}`);
       
       // 1. Update store metadata IMMEDIATELY
       set({
@@ -148,14 +184,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         "Playback Queue"
       );
       
+      set({ activePlaylistId: playlistId });
       await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
       await PlayerQueue.loadPlaylist(playlistId);
       
       // 3. Navigate to correct index and play
-      if (startIndex > 0) {
-        await TrackPlayer.skipToIndex(startIndex);
-      }
-      
+      // We explicitly skip to ensure the engine is on the right track
+      await TrackPlayer.skipToIndex(startIndex);
       await TrackPlayer.seek(0);
       await TrackPlayer.play();
 
@@ -166,11 +201,41 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
+  fetchAndAppendSuggestions: async (trackId: string) => {
+    try {
+      const { queue, activePlaylistId } = get();
+      if (!activePlaylistId) return;
+
+      console.log("🔄 Fetching more suggestions for autoplay...");
+      const response = await jioSaavnService.getSuggestedSongs(trackId, 5);
+      const suggestions: SongDetail[] = Array.isArray(response) ? response : (response?.data || []);
+      
+      if (suggestions.length === 0) return;
+
+      // Filter out songs already in queue to avoid duplicates
+      const newSongs = suggestions.filter(s => !queue.some(q => q.id === s.id));
+      if (newSongs.length === 0) return;
+
+      const updatedQueue = [...queue, ...newSongs];
+      set({ queue: updatedQueue });
+
+      // Add to native player queue
+      const trackItems = newSongs.map(mapToTrackItem);
+      await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
+      console.log(`✅ Appended ${newSongs.length} new songs to queue`);
+    } catch (error) {
+      console.error("Error fetching more suggestions:", error);
+    }
+  },
+
   expandFullPlayer: () => set({ isFullPlayerOpen: true }),
   minimizeFullPlayer: () => set({ isFullPlayerOpen: false }),
 
   expandMoreOption: () => set({ isMoreOptionOpen: true }),
   minizeMoreOption: () => set({ isMoreOptionOpen: false }),
+
+  expandQueue: () => set({ isQueueOpen: true }),
+  minimizeQueue: () => set({ isQueueOpen: false }),
 
   // Playback Controls
   play: async () => {

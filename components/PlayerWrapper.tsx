@@ -11,10 +11,7 @@ import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-// ===== COMMENTED OUT: Using Nitro Player instead of RNTP =====
-// import TrackPlayer, { Event } from "react-native-track-player";
-
-// ===== NEW: Nitro Player imports =====
+import QueueSheet from "./QueueSheet";
 
 export default function PlayerWrapper({
   children,
@@ -24,20 +21,22 @@ export default function PlayerWrapper({
   isPlayerReady?: boolean;
 }) {
   const insets = useSafeAreaInsets();
-  const {
-    isFullPlayerOpen,
-    minimizeFullPlayer,
-    expandFullPlayer,
-    minizeMoreOption,
-    isMoreOptionOpen,
-    currentTrack,
-    isDrawerOpen,
-  } = usePlayerStore();
+
+  const isFullPlayerOpen = usePlayerStore((state) => state.isFullPlayerOpen);
+  const isQueueOpen = usePlayerStore((state) => state.isQueueOpen);
+  const minimizeQueue = usePlayerStore((state) => state.minimizeQueue);
+  const minimizeFullPlayer = usePlayerStore(
+    (state) => state.minimizeFullPlayer,
+  );
+  const expandFullPlayer = usePlayerStore((state) => state.expandFullPlayer);
+  const minizeMoreOption = usePlayerStore((state) => state.minizeMoreOption);
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const isDrawerOpen = usePlayerStore((state) => state.isDrawerOpen);
+  const isMoreOptionOpen = usePlayerStore((state) => state.isMoreOptionOpen);
 
   const segments = useSegments();
 
-  // Hide mini player on non-tab routes (like settings, language change, etc.)
-  // and only show if a track is actually loaded and drawer is closed
+  // Hide mini player on non-tab routes
   const shouldShowMiniPlayer =
     segments.length > 0 &&
     (segments as string[]).includes("(tabs)") &&
@@ -46,28 +45,16 @@ export default function PlayerWrapper({
 
   const tabBarHeight = 55 + insets.bottom;
   const snapPoints = ["100%"];
+  const snapPointQueue = ["50%", "100%"];
   const MoreSheetSnapPoint = ["50%"];
 
   const sheetRef = useRef<BottomSheet>(null);
-  const moreSheetRed = useRef<BottomSheet>(null);
+  const moreSheetRef = useRef<BottomSheet>(null);
+  const queueSheetRef = useRef<BottomSheet>(null);
 
-useEffect(() => {
-  // ===== COMMENTED OUT: RNTP event listener =====
-  // const sub = TrackPlayer.addEventListener(Event.RemotePlay, () => {
-  //   console.log("🔥 UI LAYER: PLAY PRESSED");
-  // });
-  //
-  // return () => sub.remove();
-
-  // ===== NEW: Nitro Player handles remote controls automatically =====
-  console.log("🔥 UI LAYER: Nitro Player remote controls ready");
-  // Nitro Player automatically handles remote media controls
-  // No manual event listeners needed
-}, []);
   // Sync BottomSheet with Zustand state
   useEffect(() => {
     if (isFullPlayerOpen) {
-      // requestAnimationFrame is smoother than setTimeout
       const frame = requestAnimationFrame(() => {
         sheetRef.current?.expand();
       });
@@ -80,13 +67,24 @@ useEffect(() => {
   useEffect(() => {
     if (isMoreOptionOpen) {
       const frame = requestAnimationFrame(() => {
-        moreSheetRed.current?.snapToIndex(0);
+        moreSheetRef.current?.snapToIndex(0);
       });
       return () => cancelAnimationFrame(frame);
     } else {
-      moreSheetRed.current?.close();
+      moreSheetRef.current?.close();
     }
   }, [isMoreOptionOpen]);
+
+  useEffect(() => {
+    if (isQueueOpen) {
+      const frame = requestAnimationFrame(() => {
+        queueSheetRef.current?.snapToIndex(0);
+      });
+      return () => cancelAnimationFrame(frame);
+    } else {
+      queueSheetRef.current?.close();
+    }
+  }, [isQueueOpen]);
 
   const handleCloseSheet = useCallback(() => {
     minimizeFullPlayer();
@@ -95,6 +93,18 @@ useEffect(() => {
   const handleCloseMoreSheet = useCallback(() => {
     minizeMoreOption();
   }, [minizeMoreOption]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
 
   return (
     <View style={styles.container}>
@@ -112,13 +122,13 @@ useEffect(() => {
         </Pressable>
       )}
 
-      {/* Layer 3: Main Player/Sheet */}
+      {/* Layer 3: Main Player Sheet */}
       <View
         style={[
-          StyleSheet.absoluteFill,
-          { zIndex: isFullPlayerOpen ? 1000 : -1 }, // Move to back when closed
+          styles.sheetContainer,
+          { zIndex: isFullPlayerOpen ? 1000 : -1 },
         ]}
-        pointerEvents={isFullPlayerOpen ? "auto" : "none"} // Completely ignore touches when closed
+        pointerEvents={isFullPlayerOpen ? "auto" : "none"}
       >
         <BottomSheet
           ref={sheetRef}
@@ -135,12 +145,8 @@ useEffect(() => {
               disappearsOnIndex={-1}
             />
           )}
-          backgroundStyle={{
-            backgroundColor: "#1e1e1e",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-          onClose={() => minimizeFullPlayer()}
+          backgroundStyle={styles.fullPlayerBackground}
+          onClose={minimizeFullPlayer}
           handleComponent={null}
         >
           <BottomSheetScrollView
@@ -159,15 +165,16 @@ useEffect(() => {
         </BottomSheet>
       </View>
 
+      {/* Layer 4: More Options Sheet */}
       <View
         style={[
-          StyleSheet.absoluteFill,
-          { zIndex: isMoreOptionOpen ? 2000 : -1 }, // Move to back when closed
+          styles.sheetContainer,
+          { zIndex: isMoreOptionOpen ? 2000 : -1 },
         ]}
-        pointerEvents={isMoreOptionOpen ? "auto" : "none"} // Completely ignore touches when closed
+        pointerEvents={isMoreOptionOpen ? "auto" : "none"}
       >
         <BottomSheet
-          ref={moreSheetRed}
+          ref={moreSheetRef}
           index={-1}
           snapPoints={MoreSheetSnapPoint}
           enablePanDownToClose={true}
@@ -182,24 +189,44 @@ useEffect(() => {
               disappearsOnIndex={-1}
             />
           )}
-          backgroundStyle={{
-            backgroundColor: "#18181b",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
+          backgroundStyle={styles.moreSheetBackground}
           handleIndicatorStyle={{ backgroundColor: "#fff" }}
           handleComponent={null}
         >
           <BottomSheetScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              width: "100%",
-              paddingVertical: 10,
-            }}
+            contentContainerStyle={styles.moreSheetContent}
           >
             <MusicBottomSheet />
           </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
+
+      {/* Layer 5: Queue Sheet */}
+      <View 
+        style={[StyleSheet.absoluteFill, { zIndex: isQueueOpen ? 6000 : -1 }]}
+        pointerEvents="box-none"
+      >
+        <BottomSheet
+          ref={queueSheetRef}
+          index={-1}
+          snapPoints={snapPointQueue}
+          enablePanDownToClose={true}
+          enableDynamicSizing={false}
+          animateOnMount={false}
+          onClose={minimizeQueue}
+          backdropComponent={(props) => (
+            <BottomSheetBackdrop
+              {...props}
+              pressBehavior="close"
+              appearsOnIndex={0}
+              disappearsOnIndex={-1}
+            />
+          )}
+          backgroundStyle={styles.queueSheetBackground}
+          handleIndicatorStyle={{ backgroundColor: "#555" }}
+        >
+          <QueueSheet />
         </BottomSheet>
       </View>
     </View>
@@ -210,5 +237,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#050505",
+  },
+  sheetContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  fullPlayerBackground: {
+    backgroundColor: "#1e1e1e",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  moreSheetBackground: {
+    backgroundColor: "#18181b",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  queueSheetBackground: {
+    backgroundColor: "#121212",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  moreSheetContent: {
+    flexGrow: 1,
+    width: "100%",
+    paddingVertical: 10,
   },
 });

@@ -9,21 +9,25 @@ import { SongDetail } from "@/types/jiosaavn";
 export default function MiniPlayer() {
   const nowPlaying = useNowPlaying();
   const playbackState = useOnPlaybackStateChange();
-  const currentTrack = nowPlaying.currentTrack;
-  const originalSong = currentTrack?.extraPayload?.song as unknown as SongDetail;
+  
+  // Use store as primary source for MiniPlayer to prevent flickering during native load
+  const storeTrack = usePlayerStore((s) => s.currentTrack);
+  const currentTrack = nowPlaying.currentTrack || storeTrack;
+  // Safely extract metadata
+  const originalSong = (currentTrack as any)?.extraPayload?.song || currentTrack;
   
   const isLoaded = !!currentTrack;
   const isPlaying = playbackState.state === 'playing';
   
-  // Use store for position/duration to ensure immediate reset on track change
+  // Use store for position/duration
   const { position, duration } = usePlayerStore();
   
   const trackImage = isLoaded
-    ? currentTrack.artwork || originalSong?.image?.[1]?.url || originalSong?.image?.[0]?.url
-    : "https://via.placeholder.com/150?text=...";
+    ? (currentTrack as any).artwork || (originalSong as any)?.image?.[1]?.url || (originalSong as any)?.image?.[0]?.url
+    : "";
     
   const artistName = isLoaded
-    ? currentTrack.artist || originalSong?.primaryArtists || originalSong?.subtitle || "Unknown Artist"
+    ? (currentTrack as any).artist || (originalSong as any)?.primaryArtists || (originalSong as any)?.subtitle || "Unknown Artist"
     : "";
     
   const progressPercent = isLoaded && duration > 0 ? (position / duration) * 100 : 0;
@@ -40,7 +44,7 @@ export default function MiniPlayer() {
   return (
     <View style={styles.miniContainer}>
       <View style={styles.miniContent}>
-        {isLoaded ? (
+        {trackImage ? (
           <Image source={{ uri: trackImage }} style={styles.miniArt} />
         ) : (
           <View
@@ -58,7 +62,7 @@ export default function MiniPlayer() {
         )}
         <View style={styles.miniTextContainer}>
           <Text style={styles.miniTitle} numberOfLines={1}>
-            {isLoaded ? (currentTrack.title) : "Nothing to play"}
+            {isLoaded ? ((currentTrack as any).title || (originalSong as any).name) : "Nothing to play"}
           </Text>
           <Text style={styles.miniArtist} numberOfLines={1}>
             {artistName}
@@ -97,10 +101,9 @@ export default function MiniPlayer() {
 const styles = StyleSheet.create({
   miniContainer: {
     height: 70,
-    backgroundColor: "#000000ff",
+    backgroundColor: "#000000",
     borderBottomWidth: 1,
     borderBottomColor: "#333",
-    // paddingHorizontal: 10,
   },
   miniProgressBarBackground: {
     height: 2,
