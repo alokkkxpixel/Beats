@@ -32,12 +32,13 @@ interface PlayerState {
   isQueueOpen: boolean;
   isDrawerOpen: boolean;
   // --- Progress / Seekbar ---
-  position: number; // Current playback time in seconds
-  duration: number; // Total duration in seconds
-  buffered: number; // Buffered amount (optional)
+  position: number;
+  duration: number;
+  buffered: number;
 
   isDragging: boolean;
   setIsDragging: (isDragging: boolean) => void;
+  isFetchingSuggestions: boolean;
 
   // --- Actions ---
   setCurrentTrack: (track: SongDetail, contextQueue?: SongDetail[]) => void;
@@ -86,6 +87,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isDrawerOpen: false,
   selectedSongOption: "",
   isDragging: false,
+  isFetchingSuggestions: false,
 
   setIsDragging: (isDragging) => set({ isDragging }),
   // set individual track info
@@ -105,9 +107,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       }
 
-      console.log(`Single-Track Play: ${track.name}. Fetching suggestions...`);
+      console.log(`Single-Track Play: ${track.name}. Playback starting...`);
       
-      // 2. Update store metadata IMMEDIATELY
+      // 2. Update store metadata IMMEDIATELY with just the selected track
       set({ 
         currentTrack: track,
         queue: [track],
@@ -119,22 +121,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isPlaying: true
       });
 
-      // 3. Fetch suggested songs for autoplay
-      let suggestions: SongDetail[] = [];
-      try {
-        const response = await jioSaavnService.getSuggestedSongs(track.id, 10);
-        suggestions = Array.isArray(response) ? response : (response?.data || []);
-      } catch (e) {
-        console.error("Failed to fetch suggestions:", e);
-      }
-
-      const allTracks = [track, ...suggestions];
-      const trackItems = allTracks.map(mapToTrackItem);
+      const trackItems = [track].map(mapToTrackItem);
       
-      // Update store with final queue
-      set({ queue: allTracks });
-      
-      // 4. Create and load playlist in native player
+      // 3. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
         `Quick Play: ${track.name}`,
         "Auto Queue"
@@ -144,7 +133,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
       await PlayerQueue.loadPlaylist(playlistId);
       
-      // 5. Force skip to the first track (the selected one)
+      // 4. Force skip to the first track
       await TrackPlayer.skipToIndex(0);
       await TrackPlayer.seek(0);
       await TrackPlayer.play();
@@ -180,7 +169,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       
       // 2. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
-        "Queue",
+        `Queue_${Date.now()}`,
         "Playback Queue"
       );
       
@@ -189,7 +178,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       await PlayerQueue.loadPlaylist(playlistId);
       
       // 3. Navigate to correct index and play
-      // We explicitly skip to ensure the engine is on the right track
+      // Small delay to ensure native side has processed the tracks
+      await new Promise(resolve => setTimeout(resolve, 200));
       await TrackPlayer.skipToIndex(startIndex);
       await TrackPlayer.seek(0);
       await TrackPlayer.play();
@@ -203,18 +193,26 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   fetchAndAppendSuggestions: async (trackId: string) => {
     try {
-      const { queue, activePlaylistId } = get();
-      if (!activePlaylistId) return;
+      const { queue, activePlaylistId, isFetchingSuggestions } = get();
+      if (!activePlaylistId || isFetchingSuggestions) return;
 
       console.log("🔄 Fetching more suggestions for autoplay...");
-      const response = await jioSaavnService.getSuggestedSongs(trackId, 5);
+      set({ isFetchingSuggestions: true });
+      
+      const response = await jioSaavnService.getSuggestedSongs(trackId, 10);
       const suggestions: SongDetail[] = Array.isArray(response) ? response : (response?.data || []);
       
-      if (suggestions.length === 0) return;
+      if (suggestions.length === 0) {
+        set({ isFetchingSuggestions: false });
+        return;
+      }
 
       // Filter out songs already in queue to avoid duplicates
       const newSongs = suggestions.filter(s => !queue.some(q => q.id === s.id));
-      if (newSongs.length === 0) return;
+      if (newSongs.length === 0) {
+        set({ isFetchingSuggestions: false });
+        return;
+      }
 
       const updatedQueue = [...queue, ...newSongs];
       set({ queue: updatedQueue });
@@ -223,8 +221,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const trackItems = newSongs.map(mapToTrackItem);
       await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
       console.log(`✅ Appended ${newSongs.length} new songs to queue`);
+      set({ isFetchingSuggestions: false });
     } catch (error) {
       console.error("Error fetching more suggestions:", error);
+      set({ isFetchingSuggestions: false });
     }
   },
 

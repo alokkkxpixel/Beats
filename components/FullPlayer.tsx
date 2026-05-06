@@ -30,6 +30,7 @@ import { useWindowDimensions } from "react-native";
 import {
   TrackPlayer,
   useNowPlaying,
+  useOnPlaybackProgressChange,
   useOnPlaybackStateChange,
 } from "react-native-nitro-player";
 
@@ -46,15 +47,13 @@ const FullPlayer = ({
 
   // Nitro Player hooks
   const nowPlaying = useNowPlaying();
-  const playbackState = useOnPlaybackStateChange();
   const currentTrack = nowPlaying.currentTrack;
-  const originalSong = currentTrack?.extraPayload
-    ?.song as unknown as SongDetail;
-
+  const playbackState = useOnPlaybackStateChange();
+  
+  const originalSong = (currentTrack as any)?.extraPayload?.song || currentTrack;
   const isPlaying = playbackState.state === "playing";
+  const artistName = originalSong?.primaryArtists || currentTrack?.artist || originalSong?.subtitle || "Unknown Artist";
 
-  // Use store for position/duration to ensure immediate reset on track change
-  const { position: storePosition, duration: storeDuration } = usePlayerStore();
 
   // Control handlers
   const togglePlay = async () => {
@@ -73,83 +72,26 @@ const FullPlayer = ({
     await TrackPlayer.skipToPrevious();
   };
 
-  const seek = async (pos: number) => {
-    await TrackPlayer.seek(pos);
-  };
+
 
   const router = useRouter();
-  const duration = storeDuration || 0;
-  const position = storePosition || 0;
-  const progress = useSharedValue(0);
-  const isDragging = useSharedValue(false);
+  const position = usePlayerStore((s) => s.position);
+  const duration = usePlayerStore((s) => s.duration);
+  const isDraggingState = usePlayerStore((s) => s.isDragging);
+  const setIsDragging = usePlayerStore((s) => s.setIsDragging);
+  
   const lastSeekTime = useRef(0);
-  const [isDraggingState, setIsDraggingState] = React.useState(false);
   const [scrubProgress, setScrubProgress] = React.useState(0);
 
   // UI state from store (for menu controls)
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-  const setIsDragging = usePlayerStore((s) => s.setIsDragging);
   const expandQueue = usePlayerStore((s) => s.expandQueue);
 
-  // Track manual seeks to prevent "snap back"
-  // We only set the cooldown if the change happened while dragging
-  // or if the change is a "large" jump (manual seek)
-  useEffect(() => {
-    if (isDraggingState) {
-      lastSeekTime.current = Date.now();
-    }
-  }, [storePosition, isDraggingState]);
-
-  // Sync progress back to store
-  useEffect(() => {
-    const isRecentlySeeked = Date.now() - lastSeekTime.current < 2000;
-
-    if (duration > 0 && !isDraggingState && !isRecentlySeeked) {
-      progress.value = (position / duration) * 100;
-    }
-  }, [position, duration, isDraggingState]);
-
-  const onEnd = () => {
-    const newPosition = (progress.value / 100) * duration;
-    seek(newPosition);
+  const seek = async (pos: number) => {
+    await TrackPlayer.seek(pos);
     lastSeekTime.current = Date.now();
   };
-
-  const gesture = React.useMemo(
-    () =>
-      Gesture.Pan()
-        .onStart(() => {
-          isDragging.value = true;
-          runOnJS(setIsDraggingState)(true);
-          runOnJS(setIsDragging)(true);
-        })
-        .onUpdate((event) => {
-          const trackWidth = windowWidth - 50;
-          const newProgress = Math.min(
-            100,
-            Math.max(0, (event.x / trackWidth) * 100),
-          );
-          progress.value = newProgress;
-          runOnJS(setScrubProgress)(newProgress);
-        })
-        .onEnd(() => {
-          isDragging.value = false;
-          runOnJS(setIsDraggingState)(false);
-          runOnJS(setIsDragging)(false);
-          runOnJS(onEnd)();
-        }),
-    [windowWidth, duration],
-  );
-
-  const animatedFillStyle = useAnimatedStyle(() => ({
-    width: `${progress.value}%`,
-  }));
-
-  const animatedKnobStyle = useAnimatedStyle(() => ({
-    left: `${progress.value}%`,
-    transform: [{ scale: withSpring(isDragging.value ? 1.4 : 1) }],
-  }));
 
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
@@ -158,37 +100,14 @@ const FullPlayer = ({
   };
 
   if (!currentTrack) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <Ionicons
-          name="musical-notes"
-          size={64}
-          color="rgba(255,255,255,0.2)"
-        />
-        <Text style={{ color: "white", marginTop: 20, fontSize: 18 }}>
-          Nothing to play
-        </Text>
-        <Pressable onPress={() => handleCloseSheet()} style={{ marginTop: 40 }}>
-          <Text style={{ color: "rgba(255,255,255,0.5)" }}>Close</Text>
-        </Pressable>
-      </View>
-    );
+    return null;
   }
 
   const trackImage =
     originalSong?.image?.[2]?.url ||
     currentTrack.artwork ||
     originalSong?.image?.[0]?.url;
-  const artistName =
-    originalSong?.primaryArtists ||
-    currentTrack.artist ||
-    originalSong?.subtitle ||
-    "Unknown Artist";
+
 
   const navigateToArtist = (artist: any) => {
     if (artist?.id) {
@@ -227,7 +146,7 @@ const FullPlayer = ({
 
   const label = originalSong?.label;
   const copyright = originalSong?.copyright;
-  const aboutArtist = originalSong?.artists?.primary?.[0]?.name || "Artist";
+  const aboutArtist = originalSong?.artists?.primary?.[0]?.name || originalSong?.artist || currentTrack?.artist || "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
 
   return (
@@ -313,21 +232,23 @@ const FullPlayer = ({
           <Ionicons name="heart-outline" size={28} color="white" />
         </View>
         {/* --- Progress Bar --- */}
+        <PlayerProgressBar
+          duration={duration}
+          position={position}
+          isDraggingState={isDraggingState}
+          setIsDragging={setIsDragging}
+          setScrubProgress={setScrubProgress}
+          seek={seek}
+          windowWidth={windowWidth}
+        />
+
         <View style={styles.progressArea}>
-          <GestureDetector gesture={gesture}>
-            <View style={styles.sliderContainer}>
-              <View style={styles.track}>
-                <Animated.View style={[styles.fill, animatedFillStyle]} />
-                <Animated.View style={[styles.knob, animatedKnobStyle]} />
-              </View>
-            </View>
-          </GestureDetector>
           <View style={styles.timeRow}>
             <Text style={styles.timeText}>
               {formatTime(
                 isDraggingState
                   ? (scrubProgress / 100) * duration
-                  : storePosition,
+                  : position,
               )}
             </Text>
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
@@ -680,6 +601,80 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
+});
+
+const PlayerProgressBar = React.memo(({ 
+  duration, 
+  position, 
+  isDraggingState, 
+  setIsDragging, 
+  setScrubProgress, 
+  seek, 
+  windowWidth 
+}: any) => {
+  const progress = useSharedValue(0);
+  const isDraggingShared = useSharedValue(false);
+  const progressData = useOnPlaybackProgressChange();
+  
+  // Sync progress value from high-frequency source or store
+  useEffect(() => {
+    if (!isDraggingState) {
+      const currentPos = progressData?.position ?? position;
+      const totalDur = duration || 1;
+      progress.value = (currentPos / totalDur) * 100;
+    }
+  }, [progressData.position, position, duration, isDraggingState]);
+
+  const onEnd = (finalProgress: number) => {
+    const newPosition = (finalProgress / 100) * duration;
+    seek(newPosition);
+  };
+
+  const gesture = React.useMemo(
+    () =>
+      Gesture.Pan()
+        .onStart(() => {
+          isDraggingShared.value = true;
+          runOnJS(setIsDragging)(true);
+        })
+        .onUpdate((event) => {
+          const trackWidth = windowWidth - 50;
+          const newProgress = Math.min(
+            100,
+            Math.max(0, (event.x / trackWidth) * 100),
+          );
+          progress.value = newProgress;
+          runOnJS(setScrubProgress)(newProgress);
+        })
+        .onEnd(() => {
+          isDraggingShared.value = false;
+          runOnJS(setIsDragging)(false);
+          runOnJS(onEnd)(progress.value);
+        }),
+    [windowWidth, duration],
+  );
+
+  const animatedFillStyle = useAnimatedStyle(() => ({
+    width: `${progress.value}%`,
+  }));
+
+  const animatedKnobStyle = useAnimatedStyle(() => ({
+    left: `${progress.value}%`,
+    transform: [{ scale: withSpring(isDraggingShared.value ? 1.4 : 1) }],
+  }));
+
+  return (
+    <View style={styles.progressArea}>
+      <GestureDetector gesture={gesture}>
+        <View style={styles.sliderContainer}>
+          <View style={styles.track}>
+            <Animated.View style={[styles.fill, animatedFillStyle]} />
+            <Animated.View style={[styles.knob, animatedKnobStyle]} />
+          </View>
+        </View>
+      </GestureDetector>
+    </View>
+  );
 });
 
 export default FullPlayer;

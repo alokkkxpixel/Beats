@@ -42,11 +42,13 @@ const TrackItem = React.memo(
     item,
     index,
     artistName,
+    isCurrent,
     onPress,
   }: {
     item: Song;
     index: number;
     artistName: string;
+    isCurrent: boolean;
     onPress: () => void;
   }) => {
     const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
@@ -56,13 +58,16 @@ const TrackItem = React.memo(
     return (
       <TouchableOpacity
         activeOpacity={0.7}
-        style={styles.trackItem}
+        style={[styles.trackItem, isCurrent && styles.activeTrackItem]}
         onPress={onPress}
       >
         <Image source={{ uri: imageUri }} style={styles.trackImage} />
 
         <View style={styles.trackInfo}>
-          <Text style={styles.trackTitle} numberOfLines={1}>
+          <Text
+            style={[styles.trackTitle, isCurrent && styles.activeTrackTitle]}
+            numberOfLines={1}
+          >
             {item.name}
           </Text>
 
@@ -121,6 +126,7 @@ const AlbumDetailScreen = ({
   }
 
   const setQueue = usePlayerStore((state) => state.setQueue);
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
 
@@ -249,14 +255,18 @@ const AlbumDetailScreen = ({
 
         <TypedFlashList
           data={album.songs}
-          renderItem={({ item, index }: any) => (
-            <TrackItem
-              item={item}
-              index={index}
-              artistName={artistName}
-              onPress={() => setQueue(album.songs, index)}
-            />
-          )}
+          renderItem={({ item, index }: any) => {
+            const isCurrent = currentTrack?.id === item.id;
+            return (
+              <TrackItem
+                item={item}
+                index={index}
+                artistName={artistName}
+                isCurrent={isCurrent}
+                onPress={() => setQueue(album.songs, index)}
+              />
+            );
+          }}
           estimatedItemSize={76}
           drawDistance={300}
           onEndReached={onLoadMore}
@@ -374,28 +384,34 @@ const styles = StyleSheet.create({
   trackItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  activeTrackItem: {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   trackImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
+    width: 48,
+    height: 48,
+    borderRadius: 8,
   },
   trackInfo: {
     flex: 1,
     marginLeft: 16,
-    justifyContent: "center",
   },
   trackTitle: {
     color: "white",
     fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
+    fontWeight: "500",
+  },
+  activeTrackTitle: {
+    color: "#1DB954",
   },
   trackSubRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 4,
   },
   explicitBadge: {
     backgroundColor: "#4b5563",

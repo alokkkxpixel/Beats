@@ -4,7 +4,7 @@ import { SongDetail } from "@/types/jiosaavn";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import React, { useEffect, useRef } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 const QueueSheet = () => {
   const queue = usePlayerStore((state) => state.queue);
@@ -12,23 +12,38 @@ const QueueSheet = () => {
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const togglePlay = usePlayerStore((state) => state.togglePlay);
+  const isQueueOpen = usePlayerStore((state) => state.isQueueOpen);
+  const isFetchingSuggestions = usePlayerStore((state) => state.isFetchingSuggestions);
+  const fetchAndAppendSuggestions = usePlayerStore((state) => state.fetchAndAppendSuggestions);
   const flatListRef = useRef<any>(null);
 
   // Auto-scroll to current track when opened
   useEffect(() => {
-    if (currentTrack && queue.length > 0) {
+    if (isQueueOpen && currentTrack && queue.length > 0) {
       const index = queue.findIndex((t) => t.id === currentTrack.id);
       if (index !== -1) {
-        setTimeout(() => {
-          flatListRef.current?.scrollToIndex({
-            index,
-            animated: true,
-            viewPosition: 0.3,
-          });
-        }, 300);
+        const timeout = setTimeout(() => {
+          try {
+            flatListRef.current?.scrollToIndex({
+              index,
+              animated: true,
+              viewPosition: 0.3,
+            });
+          } catch (e) {
+            // Silently fail if list is not ready
+          }
+        }, 500);
+        return () => clearTimeout(timeout);
       }
     }
-  }, [currentTrack?.id]);
+  }, [isQueueOpen, currentTrack?.id]);
+
+  // Fetch suggestions when queue is small and sheet is opened
+  useEffect(() => {
+    if (isQueueOpen && queue.length === 1 && currentTrack) {
+      fetchAndAppendSuggestions(currentTrack.id);
+    }
+  }, [isQueueOpen, queue.length, currentTrack, fetchAndAppendSuggestions]);
 
   const renderTrackItem = ({
     item,
@@ -101,7 +116,16 @@ const QueueSheet = () => {
             </Text>
           </View>
         }
-        ListFooterComponent={<View style={{ height: 100 }} />}
+        ListFooterComponent={
+          <View style={{ height: 120, alignItems: "center", paddingTop: 20 }}>
+            {isFetchingSuggestions && (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#1DB954" style={{ marginRight: 10 }} />
+                <Text style={{ color: '#888', fontSize: 13 }}>Fetching suggestions...</Text>
+              </View>
+            )}
+          </View>
+        }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         getItemLayout={(data, index) => ({

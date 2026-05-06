@@ -1,26 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { TrackPlayer, useNowPlaying, useOnPlaybackProgressChange, useOnPlaybackStateChange } from 'react-native-nitro-player';
-import { SongDetail } from "@/types/jiosaavn";
 
 export default function MiniPlayer() {
   const nowPlaying = useNowPlaying();
   const playbackState = useOnPlaybackStateChange();
   
-  // Use store as primary source for MiniPlayer to prevent flickering during native load
+  // Use specific selectors to minimize re-renders
   const storeTrack = usePlayerStore((s) => s.currentTrack);
+  const position = usePlayerStore((s) => s.position);
+  const duration = usePlayerStore((s) => s.duration);
+  
   const currentTrack = nowPlaying.currentTrack || storeTrack;
-  // Safely extract metadata
   const originalSong = (currentTrack as any)?.extraPayload?.song || currentTrack;
   
   const isLoaded = !!currentTrack;
   const isPlaying = playbackState.state === 'playing';
-  
-  // Use store for position/duration
-  const { position, duration } = usePlayerStore();
+
+  if (!isLoaded) return null;
   
   const trackImage = isLoaded
     ? (currentTrack as any).artwork || (originalSong as any)?.image?.[1]?.url || (originalSong as any)?.image?.[0]?.url
@@ -29,8 +30,6 @@ export default function MiniPlayer() {
   const artistName = isLoaded
     ? (currentTrack as any).artist || (originalSong as any)?.primaryArtists || (originalSong as any)?.subtitle || "Unknown Artist"
     : "";
-    
-  const progressPercent = isLoaded && duration > 0 ? (position / duration) * 100 : 0;
   
   const togglePlay = async () => {
     if (!isLoaded) return;
@@ -82,21 +81,41 @@ export default function MiniPlayer() {
           </Pressable>
         </View>
       </View>
-      {/* Progress bar at the very top of the mini player */}
-      <View style={styles.miniProgressBarBackground}>
-        <View
-          style={[
-            styles.miniProgressBarFill,
-            {
-              width: `${progressPercent}%`,
-              backgroundColor: isLoaded ? "#d7d7d0ff" : "transparent",
-            },
-          ]}
-        />
-      </View>
+      {/* isolated Progress bar at the very top of the mini player */}
+      <MiniProgressBar 
+        isLoaded={isLoaded} 
+        duration={duration} 
+        storePosition={position} 
+      />
     </View>
   );
 }
+
+const MiniProgressBar = React.memo(({ isLoaded, duration, storePosition }: any) => {
+  const progressData = useOnPlaybackProgressChange();
+  const progressValue = useSharedValue(0);
+  
+  React.useEffect(() => {
+    if (isLoaded && duration > 0) {
+      // Use high-frequency progress if available, otherwise fallback to store
+      const currentPos = progressData?.position ?? storePosition;
+      progressValue.value = withTiming((currentPos / duration) * 100, { duration: 250 });
+    } else {
+      progressValue.value = 0;
+    }
+  }, [progressData.position, storePosition, duration, isLoaded]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${progressValue.value}%`,
+    backgroundColor: isLoaded ? "#d7d7d0ff" : "transparent",
+  }));
+
+  return (
+    <View style={styles.miniProgressBarBackground}>
+      <Animated.View style={[styles.miniProgressBarFill, animatedStyle]} />
+    </View>
+  );
+});
 
 const styles = StyleSheet.create({
   miniContainer: {

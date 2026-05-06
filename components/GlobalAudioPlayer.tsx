@@ -7,9 +7,11 @@ import {
 } from "react-native-nitro-player";
 
 export default function GlobalAudioPlayer() {
-  const { setPlaying, updateProgress, fetchAndAppendSuggestions } =
-    usePlayerStore();
-
+  const setPlaying = usePlayerStore((s) => s.setPlaying);
+  const updateProgress = usePlayerStore((s) => s.updateProgress);
+  const fetchAndAppendSuggestions = usePlayerStore(
+    (s) => s.fetchAndAppendSuggestions,
+  );
   // Sync Playback State (Playing/Paused)
   const playbackState = useOnPlaybackStateChange();
   useEffect(() => {
@@ -31,7 +33,17 @@ export default function GlobalAudioPlayer() {
       nativeTrackId === storeTrackId &&
       nativeTrackId !== undefined
     ) {
-      updateProgress(progressData.position, progressData.totalDuration);
+      // Throttle updates: Only update store when the second changes (once per second)
+      // This drastically reduces re-renders of any component listening to store.position
+      const currentPos = Math.floor(progressData.position);
+      const storePos = Math.floor(state.position);
+
+      if (
+        currentPos !== storePos ||
+        progressData.totalDuration !== state.duration
+      ) {
+        updateProgress(progressData.position, progressData.totalDuration);
+      }
     }
   }, [
     progressData.position,
@@ -67,7 +79,20 @@ export default function GlobalAudioPlayer() {
         }
       }
     }
-  }, [nowPlaying.currentTrack?.id, currentTrack?.id, queue, fetchAndAppendSuggestions]);
+  }, [
+    nowPlaying.currentTrack?.id,
+    currentTrack?.id,
+    queue,
+    fetchAndAppendSuggestions,
+  ]);
+
+  // Delayed suggestion fetch for single-song queues
+  const position = usePlayerStore((s) => s.position);
+  useEffect(() => {
+    if (queue.length === 1 && currentTrack && position > 10) {
+      fetchAndAppendSuggestions(currentTrack.id);
+    }
+  }, [position, queue.length, currentTrack, fetchAndAppendSuggestions]);
 
   return null;
 }

@@ -62,28 +62,6 @@ export const useSetupPlayer = () => {
           carPlayEnabled: false,
         });
 
-        // Create a default playlist
-        const playlistId = await PlayerQueue.createPlaylist(
-          'Default Queue',
-          'Default playback queue'
-        );
-
-        // Add test track to verify setup works
-        // await PlayerQueue.addTracksToPlaylist(playlistId, [
-        //   {
-        //     id: 'test-1',
-        //     title: 'Test Track',
-        //     artist: 'Test Artist',
-        //     album: 'Test Album',
-        //     duration: 245,
-        //     url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        //     artwork: 'https://via.placeholder.com/300x300?text=Test+Album',
-        //   },
-        // ]);
-
-        // Load the playlist
-        await PlayerQueue.loadPlaylist(playlistId);
-
         console.log('✅ Nitro Player setup complete');
         setIsPlayerReady(true);
       } catch (error) {
