@@ -1,10 +1,5 @@
 import PlayerWrapper from "@/components/PlayerWrapper";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
-import TrackPlayer from 'react-native-track-player';
-import { PlaybackService } from '@/src/services/playbackService';
-
-// Register the playback service
-TrackPlayer.registerPlaybackService(() => PlaybackService);
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "@expo-google-fonts/inter";
 import {

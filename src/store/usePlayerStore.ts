@@ -1,5 +1,21 @@
 import { SongDetail } from "@/types/jiosaavn";
+// ===== COMMENTED OUT: RNTP imports =====
+// import TrackPlayer, { State } from "react-native-track-player";
+
+// ===== NEW: Nitro Player imports =====
+import { TrackPlayer, PlayerQueue, TrackItem } from "react-native-nitro-player";
 import { create } from "zustand";
+
+const mapToTrackItem = (song: SongDetail): TrackItem => ({
+  id: song.id,
+  title: song.name,
+  artist: song.primaryArtists || song.artists?.primary?.[0]?.name || 'Unknown Artist',
+  album: typeof song.album === "string" ? song.album : (song.album?.name || "Unknown Album"),
+  duration: song.duration || 0,
+  url: song.downloadUrl?.[song.downloadUrl.length - 1]?.url || song.url,
+  artwork: song.image?.[song.image.length - 1]?.url || "",
+  extraPayload: { song: song as any }, // Store the full original song data
+});
 
 interface PlayerState {
   // --- Data ---
@@ -27,7 +43,7 @@ interface PlayerState {
   expandFullPlayer: () => void;
   setSelectedSongOption: (track: SongDetail | null) => void;
   minimizeFullPlayer: () => void;
-  expandMoreOption: () => void ;
+  expandMoreOption: () => void;
   minizeMoreOption: () => void;
   setDrawerOpen: (isOpen: boolean) => void;
 
@@ -67,28 +83,87 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   // set individual track info
   setSelectedSongOption: (track) => set({ selectedSongOption: track }),
   setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
+  
   // Set individual track and start playing
-  setCurrentTrack: (track) => {
-    set({
-      currentTrack: track,
-      duration: track.duration || 0,
-      position: 0,
-      isPlaying: true,
-      isFullPlayerOpen: true, // Auto open when track selected
-    });
+  setCurrentTrack: async (track) => {
+    try {
+      // 1. Update store metadata IMMEDIATELY so GlobalAudioPlayer syncs correctly
+      set({ 
+        currentTrack: track,
+        queue: [track],
+        currentIndex: 0,
+        position: 0, 
+        duration: track.duration || 0, 
+        isLoading: true,
+        isFullPlayerOpen: true,
+        isPlaying: true
+      });
+
+      const trackItem = mapToTrackItem(track);
+      
+      // 2. Create and load playlist in native player
+      const playlistId = await PlayerQueue.createPlaylist(
+        `Playing: ${track.name}`,
+        "Quick Play"
+      );
+      
+      await PlayerQueue.addTracksToPlaylist(playlistId, [trackItem]);
+      await PlayerQueue.loadPlaylist(playlistId);
+      
+      // 3. Ensure we start at the beginning
+      await TrackPlayer.seek(0);
+      await TrackPlayer.play();
+
+      set({ isLoading: false });
+    } catch (error) {
+      console.error("Error playing track:", error);
+      set({ isLoading: false });
+    }
   },
 
   // Set a whole queue (e.g. from an album or playlist)
-  setQueue: (tracks, startIndex = 0) => {
-    set({
-      queue: tracks,
-      currentIndex: startIndex,
-      currentTrack: tracks[startIndex],
-      duration: tracks[startIndex].duration || 0,
-      position: 0,
-      isPlaying: true,
-      isFullPlayerOpen: true,
-    });
+  setQueue: async (tracks, startIndex = 0) => {
+    if (!tracks || tracks.length === 0) return;
+    
+    try {
+      const selectedTrack = tracks[startIndex];
+      
+      // 1. Update store metadata IMMEDIATELY
+      set({
+        queue: tracks,
+        currentIndex: startIndex,
+        currentTrack: selectedTrack,
+        position: 0,
+        duration: selectedTrack.duration || 0,
+        isLoading: true,
+        isFullPlayerOpen: true,
+        isPlaying: true
+      });
+
+      const trackItems = tracks.map(mapToTrackItem);
+      
+      // 2. Create and load playlist in native player
+      const playlistId = await PlayerQueue.createPlaylist(
+        "Queue",
+        "Playback Queue"
+      );
+      
+      await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
+      await PlayerQueue.loadPlaylist(playlistId);
+      
+      // 3. Navigate to correct index and play
+      if (startIndex > 0) {
+        await TrackPlayer.skipToIndex(startIndex);
+      }
+      
+      await TrackPlayer.seek(0);
+      await TrackPlayer.play();
+
+      set({ isLoading: false });
+    } catch (error) {
+      console.error("Error setting queue:", error);
+      set({ isLoading: false });
+    }
   },
 
   expandFullPlayer: () => set({ isFullPlayerOpen: true }),
@@ -97,58 +172,52 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   expandMoreOption: () => set({ isMoreOptionOpen: true }),
   minizeMoreOption: () => set({ isMoreOptionOpen: false }),
 
-  // Playback Controls (Placeholders - will be connected to audio engine)
+  // Playback Controls
   play: async () => {
+    await TrackPlayer.play();
     set({ isPlaying: true });
   },
 
   pause: async () => {
+    await TrackPlayer.pause();
     set({ isPlaying: false });
   },
 
   togglePlay: async () => {
     const { isPlaying } = get();
-    set({ isPlaying: !isPlaying });
+    if (isPlaying) {
+      await TrackPlayer.pause();
+      set({ isPlaying: false });
+    } else {
+      await TrackPlayer.play();
+      set({ isPlaying: true });
+    }
   },
 
   next: async () => {
-    const { queue, currentIndex } = get();
-    if (currentIndex < queue.length - 1) {
-      const nextIndex = currentIndex + 1;
-      const nextTrack = queue[nextIndex];
-      set({
-        currentIndex: nextIndex,
-        currentTrack: nextTrack,
-        duration: nextTrack.duration || 0,
-        position: 0,
-        isPlaying: true,
-      });
+    try {
+      await TrackPlayer.skipToNext();
+      // Store update will be handled by GlobalAudioPlayer sync
+    } catch (error) {
+      console.error("Error skipping to next:", error);
     }
   },
 
   previous: async () => {
-    const { queue, currentIndex, position } = get();
-
-    // If we've played more than 3 seconds, restart the current track
-    if (position > 3) {
-      set({ position: 0 });
-      return;
-    }
-
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      const prevTrack = queue[prevIndex];
-      set({
-        currentIndex: prevIndex,
-        currentTrack: prevTrack,
-        duration: prevTrack.duration || 0,
-        position: 0,
-        isPlaying: true,
-      });
+    try {
+      const { position } = get();
+      if (position > 3) {
+        await TrackPlayer.seek(0);
+      } else {
+        await TrackPlayer.skipToPrevious();
+      }
+    } catch (error) {
+      console.error("Error skipping to previous:", error);
     }
   },
 
   seek: async (position) => {
+    await TrackPlayer.seek(position);
     set({ position });
   },
 

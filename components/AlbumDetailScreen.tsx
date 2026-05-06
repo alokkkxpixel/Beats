@@ -119,6 +119,7 @@ const AlbumDetailScreen = ({
   }
 
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+  const setQueue = usePlayerStore((state) => state.setQueue);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
 
@@ -154,7 +155,10 @@ const AlbumDetailScreen = ({
             <PlusSquare color="white" size={24} strokeWidth={1.2} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.mainPlayBtn}>
+          <TouchableOpacity
+            style={styles.mainPlayBtn}
+            onPress={() => setQueue(album.songs)}
+          >
             <Play color="black" size={25} fill="black" />
           </TouchableOpacity>
 

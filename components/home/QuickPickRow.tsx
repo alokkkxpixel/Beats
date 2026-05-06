@@ -82,12 +82,14 @@ export default function QuickPickRow({
             className="tracking-tighter "
             numberOfLines={1}
           >
-            {item.playCount && Number(item.playCount || "") > 0
-              ? item.artist +
-                " • " +
-                formatPlayCount(Number(item.playCount || "")) +
-                " plays"
-              : item.artist}
+            {decodeHtmlEntities(
+              item.playCount && Number(item.playCount || "") > 0
+                ? item.artist +
+                    " • " +
+                    formatPlayCount(Number(item.playCount || "")) +
+                    " plays"
+                : item.artist,
+            )}
           </Text>
         </Pressable>
       </View>

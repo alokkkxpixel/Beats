@@ -26,6 +26,8 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
+import { TrackPlayer, useNowPlaying, useOnPlaybackProgressChange, useOnPlaybackStateChange } from 'react-native-nitro-player';
+import { SongDetail } from "@/types/jiosaavn";
 
 const { width } = Dimensions.get("window");
 
@@ -37,26 +39,39 @@ const FullPlayer = ({
   handleCloseMoreSheet: () => void;
 }) => {
   const { height, width: windowWidth } = useWindowDimensions();
-  // const {
-  //   currentTrack,
-  //   isPlaying,
-  //   position: storePosition,
-  //   duration: storeDuration,
-  //   togglePlay,
-  //   next,
-  //   previous,
-  //   seek,
-  // } = usePlayerStore();
+  
+  // Nitro Player hooks
+  const nowPlaying = useNowPlaying();
+  const playbackState = useOnPlaybackStateChange();
+  const currentTrack = nowPlaying.currentTrack;
+  const originalSong = currentTrack?.extraPayload?.song as unknown as SongDetail;
+  
+  const isPlaying = playbackState.state === 'playing';
 
-  const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const isPlaying = usePlayerStore((state) => state.isPlaying);
-  const storePosition = usePlayerStore((state) => state.position);
-  const storeDuration = usePlayerStore((state) => state.duration);
-  const togglePlay = usePlayerStore((state) => state.togglePlay);
-  const next = usePlayerStore((state) => state.next);
-  const previous = usePlayerStore((state) => state.previous);
-  const seek = usePlayerStore((state) => state.seek);
-  const setIsDragging = usePlayerStore((state) => state.setIsDragging);
+  // Use store for position/duration to ensure immediate reset on track change
+  const { position: storePosition, duration: storeDuration } = usePlayerStore();
+
+  // Control handlers
+  const togglePlay = async () => {
+    if (isPlaying) {
+      await TrackPlayer.pause();
+    } else {
+      await TrackPlayer.play();
+    }
+  };
+
+  const next = async () => {
+    await TrackPlayer.skipToNext();
+  };
+
+  const previous = async () => {
+    await TrackPlayer.skipToPrevious();
+  };
+
+  const seek = async (pos: number) => {
+    await TrackPlayer.seek(pos);
+  };
+
   const router = useRouter();
   const duration = storeDuration || 0;
   const position = storePosition || 0;
@@ -65,8 +80,11 @@ const FullPlayer = ({
   const lastSeekTime = useRef(0);
   const [isDraggingState, setIsDraggingState] = React.useState(false);
   const [scrubProgress, setScrubProgress] = React.useState(0);
+
+  // UI state from store (for menu controls)
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
+  const setIsDragging = usePlayerStore((s) => s.setIsDragging);
 
   // Track manual seeks to prevent "snap back"
   // We only set the cooldown if the change happened while dragging
@@ -133,7 +151,7 @@ const FullPlayer = ({
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  if (!currentTrack || typeof currentTrack === "string") {
+  if (!currentTrack) {
     return (
       <View
         style={[
@@ -156,18 +174,8 @@ const FullPlayer = ({
     );
   }
 
-  const trackImage = currentTrack.image[2]?.url || currentTrack.image[0]?.url;
-  const primaryArtists = Array.isArray(currentTrack.artists?.primary)
-    ? currentTrack.artists.primary.map((a) => a.name).join(", ")
-    : currentTrack.primaryArtists || "";
-
-  const featuredArtists = Array.isArray(currentTrack.artists?.featured)
-    ? currentTrack.artists.featured.map((a) => a.name).join(", ")
-    : "";
-
-  const artistName = featuredArtists
-    ? `${primaryArtists} (feat. ${featuredArtists})`
-    : primaryArtists || currentTrack.subtitle || "Unknown Artist";
+  const trackImage = originalSong?.image?.[2]?.url || currentTrack.artwork || originalSong?.image?.[0]?.url;
+  const artistName = originalSong?.primaryArtists || currentTrack.artist || originalSong?.subtitle || "Unknown Artist";
 
   const navigateToArtist = (artist: any) => {
     if (artist?.id) {
@@ -180,12 +188,12 @@ const FullPlayer = ({
   };
 
   const handleArtistPress = () => {
-    const artist = currentTrack.artists?.primary?.[0];
+    const artist = originalSong?.artists?.primary?.[0];
     navigateToArtist(artist);
   };
 
   const getArtistImage = () => {
-    const rawImage = currentTrack.artists?.primary?.[0]?.image;
+    const rawImage = originalSong?.artists?.primary?.[0]?.image;
     let url = "";
 
     if (Array.isArray(rawImage)) {
@@ -204,8 +212,9 @@ const FullPlayer = ({
     return url;
   };
 
-  const { label, copyright } = currentTrack;
-  const aboutArtist = currentTrack.artists?.primary?.[0]?.name || "Artist";
+  const label = originalSong?.label;
+  const copyright = originalSong?.copyright;
+  const aboutArtist = originalSong?.artists?.primary?.[0]?.name || "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
 
   return (
@@ -256,9 +265,9 @@ const FullPlayer = ({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {typeof currentTrack?.album === "string"
-              ? currentTrack.album
-              : currentTrack?.album?.name || currentTrack?.name}
+            {typeof originalSong?.album === "string"
+              ? originalSong.album
+              : originalSong?.album?.name || currentTrack?.title}
           </Text>
 
           <Pressable
@@ -280,7 +289,7 @@ const FullPlayer = ({
         <View style={styles.trackInfo}>
           <View style={styles.titleContainer}>
             <Text style={styles.songTitle} numberOfLines={1}>
-              {currentTrack.name}
+              {currentTrack.title}
             </Text>
             <Pressable onPress={handleArtistPress}>
               <Text style={styles.songArtist} numberOfLines={1}>
@@ -366,18 +375,15 @@ const FullPlayer = ({
           </View>
         </Pressable>
         {/* --- Credits Section --- */}
-        <ScrollView
-          style={styles.creditsCard}
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.creditsCard}>
           {/* Header */}
           <View>
-            <Text className="text-white font-sans-medium ">Credits</Text>
+            <Text style={styles.creditsTitle}>Credits</Text>
           </View>
 
           {/* Credits List */}
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {currentTrack.artists?.primary?.map((item: any, index: number) => (
+          <View>
+            {originalSong?.artists?.primary?.map((item: any, index: number) => (
               <Pressable
                 key={index}
                 onPress={() => {
@@ -408,7 +414,7 @@ const FullPlayer = ({
                 </View>
               </Pressable>
             ))}
-            {currentTrack.artists?.featured?.map((item, index) => (
+            {originalSong?.artists?.featured?.map((item: any, index: number) => (
               <Pressable
                 key={index}
                 onPress={() => {
@@ -436,8 +442,8 @@ const FullPlayer = ({
                 </View>
               </Pressable>
             ))}
-          </ScrollView>
-        </ScrollView>
+          </View>
+        </View>
       </ScrollView>
     </GestureHandlerRootView>
   );
@@ -482,7 +488,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   mainArt: {
-    width: width * 0.88, // Note: styles object might still use Dimensions width if not careful
+    width: width * 0.88,
     height: width * 0.88,
     borderRadius: 8,
   },
@@ -559,16 +565,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  repeatContainer: {
-    alignItems: "center",
-  },
-  repeatDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#1DB954",
-    marginTop: 2,
-  },
   footerControls: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -598,30 +594,10 @@ const styles = StyleSheet.create({
     padding: 20,
     minHeight: 200,
   },
-  lyricsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
   lyricsTitle: {
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  moreButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  moreText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "bold",
-    marginRight: 5,
   },
   lyricsPreview: {
     color: "white",
@@ -630,7 +606,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   artistCard: {
-    // backgroundColor: "#1E2126",
     marginHorizontal: 20,
     marginTop: 20,
     borderRadius: 16,
@@ -641,7 +616,6 @@ const styles = StyleSheet.create({
   artistHeader: {
     position: "relative",
     height: 200,
-    // backgroundColor: "#1E2126",
     width: "100%",
   },
   artistPhoto: {
@@ -659,18 +633,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 20,
   },
-  artistNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
   artistNameText: {
     color: "white",
     fontSize: 20,
     fontWeight: "bold",
-  },
-  verifiedBadge: {
-    marginLeft: 8,
   },
   artistDescription: {
     color: "#CCCCCC",
@@ -691,30 +657,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 20,
-  },
-  creditGroup: {
-    marginBottom: 20,
-  },
-  creditLabel: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  artistLinkContainer: {
-    flexDirection: "row",
-    // borderBottomWidth: 2,
-    // borderBottomColor: "red",
-    alignItems: "center",
-    // justifyContent: "space-between",
-    gap: 10,
-    paddingVertical: 10,
-    // backgroundColor: "red",
-  },
-  artistLinkText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "500",
   },
 });
 

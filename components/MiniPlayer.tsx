@@ -3,30 +3,40 @@ import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { TrackPlayer, useNowPlaying, useOnPlaybackProgressChange, useOnPlaybackStateChange } from 'react-native-nitro-player';
+import { SongDetail } from "@/types/jiosaavn";
 
 export default function MiniPlayer() {
-  const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const isPlaying = usePlayerStore((state) => state.isPlaying);
-  const togglePlay = usePlayerStore((state) => state.togglePlay);
-  const position = usePlayerStore((state) => state.position);
-  const duration = usePlayerStore((state) => state.duration);
-
-  const isLoaded = !!currentTrack && typeof currentTrack !== "string";
-
+  const nowPlaying = useNowPlaying();
+  const playbackState = useOnPlaybackStateChange();
+  const currentTrack = nowPlaying.currentTrack;
+  const originalSong = currentTrack?.extraPayload?.song as unknown as SongDetail;
+  
+  const isLoaded = !!currentTrack;
+  const isPlaying = playbackState.state === 'playing';
+  
+  // Use store for position/duration to ensure immediate reset on track change
+  const { position, duration } = usePlayerStore();
+  
   const trackImage = isLoaded
-    ? currentTrack.image[1]?.url || currentTrack.image[0]?.url
-    : "https://via.placeholder.com/150?text=..."; // Or a local placeholder
-
+    ? currentTrack.artwork || originalSong?.image?.[1]?.url || originalSong?.image?.[0]?.url
+    : "https://via.placeholder.com/150?text=...";
+    
   const artistName = isLoaded
-    ? currentTrack.artists?.primary?.[0]?.name ||
-      currentTrack.primaryArtists ||
-      currentTrack.subtitle ||
-      "Unknown Artist"
+    ? currentTrack.artist || originalSong?.primaryArtists || originalSong?.subtitle || "Unknown Artist"
     : "";
-
-  const progressPercent =
-    isLoaded && duration > 0 ? (position / duration) * 100 : 0;
-
+    
+  const progressPercent = isLoaded && duration > 0 ? (position / duration) * 100 : 0;
+  
+  const togglePlay = async () => {
+    if (!isLoaded) return;
+    if (isPlaying) {
+      await TrackPlayer.pause();
+    } else {
+      await TrackPlayer.play();
+    }
+  };
+  
   return (
     <View style={styles.miniContainer}>
       <View style={styles.miniContent}>
@@ -48,17 +58,16 @@ export default function MiniPlayer() {
         )}
         <View style={styles.miniTextContainer}>
           <Text style={styles.miniTitle} numberOfLines={1}>
-            {isLoaded ? currentTrack.name : "Nothing to play"}
+            {isLoaded ? (currentTrack.title) : "Nothing to play"}
           </Text>
           <Text style={styles.miniArtist} numberOfLines={1}>
             {artistName}
           </Text>
         </View>
-
         <View style={styles.miniControls}>
           <Pressable
             style={styles.iconSpacing}
-            onPress={() => isLoaded && togglePlay()}
+            onPress={togglePlay}
             disabled={!isLoaded}
           >
             <Ionicons

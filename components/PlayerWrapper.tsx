@@ -11,6 +11,10 @@ import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+// ===== COMMENTED OUT: Using Nitro Player instead of RNTP =====
+// import TrackPlayer, { Event } from "react-native-track-player";
+
+// ===== NEW: Nitro Player imports =====
 
 export default function PlayerWrapper({
   children,
@@ -47,6 +51,19 @@ export default function PlayerWrapper({
   const sheetRef = useRef<BottomSheet>(null);
   const moreSheetRed = useRef<BottomSheet>(null);
 
+useEffect(() => {
+  // ===== COMMENTED OUT: RNTP event listener =====
+  // const sub = TrackPlayer.addEventListener(Event.RemotePlay, () => {
+  //   console.log("🔥 UI LAYER: PLAY PRESSED");
+  // });
+  //
+  // return () => sub.remove();
+
+  // ===== NEW: Nitro Player handles remote controls automatically =====
+  console.log("🔥 UI LAYER: Nitro Player remote controls ready");
+  // Nitro Player automatically handles remote media controls
+  // No manual event listeners needed
+}, []);
   // Sync BottomSheet with Zustand state
   useEffect(() => {
     if (isFullPlayerOpen) {

@@ -24,7 +24,9 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.WAKE_LOCK"
       ],
       "package": "com.anonymous.Beats"
     },
@@ -57,13 +59,7 @@
           }
         }
       ],
-      [
-        "expo-audio",
-        {
-          "supportsBackgroundPlayback": true,
-          "supportsRemoteMessaging": true
-        }
-      ],
+
       "expo-web-browser",
       "expo-asset"
     ],
