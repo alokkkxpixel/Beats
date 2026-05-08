@@ -33,6 +33,74 @@ const CATEGORIES: { label: string; value: Category }[] = [
   { label: "Playlists", value: "playlists" },
 ];
 
+const getArtistNames = (item: any) => {
+  if (typeof item?.artists === "string") return item.artists;
+
+  const names =
+    item?.artists?.primary?.map((artist: any) => artist?.name).filter(Boolean) ||
+    item?.artists?.all?.map((artist: any) => artist?.name).filter(Boolean) ||
+    item?.artistMap?.primary_artists
+      ?.map((artist: any) => artist?.name)
+      .filter(Boolean) ||
+    item?.artistMap?.artists?.map((artist: any) => artist?.name).filter(Boolean) ||
+    [];
+
+  return names.join(", ");
+};
+
+const getSubtitleForItem = (item: any, itemType: string) => {
+  const artistNames = getArtistNames(item);
+
+  if (itemType === "song") {
+    return (
+      item.subtitle ||
+      item.primaryArtists ||
+      item.primary_artists ||
+      artistNames ||
+      item.singers ||
+      item.music ||
+      item.artist ||
+      item.album?.name ||
+      item.description ||
+      ""
+    );
+  }
+
+  if (itemType === "album") {
+    return (
+      item.subtitle ||
+      artistNames ||
+      item.artist ||
+      item.music ||
+      item.description ||
+      ""
+    );
+  }
+
+  if (itemType === "artist") {
+    return item.subtitle || item.role || item.description || "";
+  }
+
+  if (itemType === "playlist") {
+    return (
+      item.subtitle || item.description || artistNames || item.artist || ""
+    );
+  }
+
+  return (
+    item.subtitle ||
+    item.description ||
+    item.primaryArtists ||
+    item.primary_artists ||
+    artistNames ||
+    item.singers ||
+    item.music ||
+    item.artist ||
+    item.role ||
+    ""
+  );
+};
+
 export default function SearchResultsScreen() {
   const { q } = useLocalSearchParams<{ q: string }>();
   const router = useRouter();
@@ -108,19 +176,7 @@ export default function SearchResultsScreen() {
   const renderResultItem = (item: any, type?: string) => {
     const itemType = type || item.type || "";
     const isArtist = itemType === "artist";
-    console.log("item search", type, JSON.stringify(item, null, 2));
-    // Extract subtitle with multiple fallbacks for different API structures
-    const subtitle =
-      item.subtitle ||
-      item.description ||
-      item.primaryArtists ||
-      item.primary_artists ||
-      item.singers ||
-      item.music ||
-      item.artist ||
-      item.role ||
-      (item.artists && typeof item.artists === "string" ? item.artists : "") ||
-      "";
+    const subtitle = getSubtitleForItem(item, itemType);
 
     return (
       <Pressable
@@ -175,7 +231,6 @@ export default function SearchResultsScreen() {
   const renderAllResults = () => {
     if (!detailedData) return null;
     const { songs, albums, artists, playlists } = detailedData;
-    console.log("songs", songs[0]);
     return (
       <View>
         {songs?.length > 0 && (

@@ -40,7 +40,6 @@ export default function Index() {
 
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomePreviews();
-  console.log("artist", data?.artist_recos.title);
   const { data: SpecialForYouData, isLoading: SpecialForYouLoading } =
     useSpecialForYou();
   // Time-based background logic
