@@ -3,6 +3,7 @@ import CityHotSection from "@/components/home/CityHotSection";
 import SpeedDialGrid from "@/components/home/MusicCarousel";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
 import TrendingSection from "@/components/home/TrendingSection";
+import RecommendedArtist from "@/components/RecommendedArtist";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
@@ -39,6 +40,7 @@ export default function Index() {
 
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading } = useHomePreviews();
+  console.log("artist", data?.artist_recos.title);
   const { data: SpecialForYouData, isLoading: SpecialForYouLoading } =
     useSpecialForYou();
   // Time-based background logic
@@ -156,6 +158,12 @@ export default function Index() {
       data: data?.topPlaylists,
     },
     {
+      id: "artist_recos",
+      title: data?.artist_recos.title as string,
+      type: "artistrecos",
+      data: data?.artist_recos.data,
+    },
+    {
       id: "albums",
       title: "New Releases",
       type: "albums",
@@ -231,7 +239,10 @@ export default function Index() {
               />
             );
           if (item.type === "foryou") return <SpeedDialGrid data={item.data} />;
-
+          if (item.type === "artistrecos") {
+            // console.log("artistrecos", item.title);
+            return <RecommendedArtist title={item.title} data={item.data} />;
+          }
           return (
             <TrendingSection
               title={item.title}

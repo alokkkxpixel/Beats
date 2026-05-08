@@ -174,7 +174,6 @@ export default function SearchScreen() {
           numberOfLines={1}
           className="font-sans-light"
         >
-          {item.type.charAt(0).toUpperCase() + item.type.slice(1)} •{" "}
           {item.subtitle || item.description || ""}
         </Text>
       </View>

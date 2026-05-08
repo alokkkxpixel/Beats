@@ -42,8 +42,7 @@ export default function RecommendedArtist({
         if (img.includes("50x50")) {
           img = img.replace("50x50", "500x500");
           // return img;
-        } else if (img.includes("150x150")) {
-          img = img.replace("150x150", "500x500");
+        } else {
           return img;
         }
         const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
@@ -63,7 +62,7 @@ export default function RecommendedArtist({
       <Pressable style={styles.card} onPress={handlePress}>
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: getImageUri(item.image_url) }}
+            source={{ uri: getImageUri(item.image_url || item.image) }}
             style={styles.image}
             contentFit="cover"
             transition={300}
@@ -93,7 +92,10 @@ export default function RecommendedArtist({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title} className="font-sans-semibold text-white">
+          <Text
+            style={styles.title}
+            className="font-sans-semibold tracking-tighter text-2xl text-white"
+          >
             {title}
           </Text>
           {subtitle && (
@@ -105,11 +107,6 @@ export default function RecommendedArtist({
             </Text>
           )}
         </View>
-        <Pressable hitSlop={10}>
-          <Text style={styles.moreBtn} className="font-sans-medium">
-            More
-          </Text>
-        </Pressable>
       </View>
 
       <OriginalFlashList
@@ -137,7 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 22,
+    // fontSize: 22,
   },
   subtitle: {
     fontSize: 13,

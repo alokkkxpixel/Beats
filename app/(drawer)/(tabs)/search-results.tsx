@@ -2,6 +2,7 @@ import { useDetailedSearch, useSearchInfinite } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
+import { SongDetail } from "@/types/jiosaavn";
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
@@ -107,7 +108,7 @@ export default function SearchResultsScreen() {
   const renderResultItem = (item: any, type?: string) => {
     const itemType = type || item.type || "";
     const isArtist = itemType === "artist";
-
+    console.log("item search", type, JSON.stringify(item, null, 2));
     // Extract subtitle with multiple fallbacks for different API structures
     const subtitle =
       item.subtitle ||
@@ -152,8 +153,8 @@ export default function SearchResultsScreen() {
             numberOfLines={1}
             className="font-sans-light"
           >
-            {itemType.charAt(0).toUpperCase() + itemType.slice(1)} •{" "}
-            {item.title || item.name}
+            {/* {itemType.charAt(0).toUpperCase() + itemType.slice(1)} •{" "} */}
+            {subtitle || item.subtitle}
           </Text>
         </View>
         {itemType === "song" && (
@@ -174,13 +175,13 @@ export default function SearchResultsScreen() {
   const renderAllResults = () => {
     if (!detailedData) return null;
     const { songs, albums, artists, playlists } = detailedData;
-
+    console.log("songs", songs[0]);
     return (
       <View>
         {songs?.length > 0 && (
           <View>
             {renderSectionHeader("Songs")}
-            {songs.map((item: any) => renderResultItem(item, "song"))}
+            {songs.map((item: SongDetail) => renderResultItem(item, "song"))}
           </View>
         )}
         {albums?.length > 0 && (

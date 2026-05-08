@@ -15,19 +15,19 @@ const BASE_URL =
 const API_SERVER =
   "https://jiosaavn-c451wwyru-sumit-kolhes-projects-94a4846a.vercel.app";
 
- const Search = `https://www.jiosaavn.com/api.php?`;
-   
+const Search = `https://www.jiosaavn.com/api.php?`;
+
 // https://www.jiosaavn.com/api.php?__call=search.getResults&q=butter&n=20&p=1&_format=json&_marker=0&api_version=4&ctx=web6dot0
- const song = "search.getResults"
-const artist = "search.getArtistResults"
-const album = "search.getAlbumResults"
-const playlist = "search.getPlaylistResults"
-  // n=20 no of results to fetch
-  // p=1 page number  
-  // q=query
-  // etc 
-  //  type = podcast
-  // &_format=json&_marker=0&api_version=4&ctx=web6dot0
+const song = "search.getResults";
+const artist = "search.getArtistResults";
+const album = "search.getAlbumResults";
+const playlist = "search.getPlaylistResults";
+// n=20 no of results to fetch
+// p=1 page number
+// q=query
+// etc
+//  type = podcast
+// &_format=json&_marker=0&api_version=4&ctx=web6dot0
 const mapArtistResponse = (data: any): ArtistType => {
   const mapArtists = (artistMap: any) => ({
     primary:
@@ -64,7 +64,9 @@ const mapArtistResponse = (data: any): ArtistType => {
         name: item.title,
         url: item.perma_url,
         explicitContent: item.explicit_content === "1",
-        duration: item.more_info?.duration ? parseInt(item.more_info.duration) : 0,
+        duration: item.more_info?.duration
+          ? parseInt(item.more_info.duration)
+          : 0,
         image: [{ quality: "150x150", url: item.image }],
         album: {
           id: item.more_info?.album_id,
@@ -136,12 +138,14 @@ export const jioSaavnService = {
     const params = `&q=${query}&n=${n}&p=${p}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
 
     try {
-      const [songsRes, albumsRes, artistsRes, playlistsRes] = await Promise.all([
-        fetch(`${Search}__call=${song}${params}`).then((r) => r.json()),
-        fetch(`${Search}__call=${album}${params}`).then((r) => r.json()),
-        fetch(`${Search}__call=${artist}${params}`).then((r) => r.json()),
-        fetch(`${Search}__call=${playlist}${params}`).then((r) => r.json()),
-      ]);
+      const [songsRes, albumsRes, artistsRes, playlistsRes] = await Promise.all(
+        [
+          fetch(`${Search}__call=${song}${params}`).then((r) => r.json()),
+          fetch(`${Search}__call=${album}${params}`).then((r) => r.json()),
+          fetch(`${Search}__call=${artist}${params}`).then((r) => r.json()),
+          fetch(`${Search}__call=${playlist}${params}`).then((r) => r.json()),
+        ],
+      );
 
       return recursiveClean({
         songs: songsRes?.results || [],
@@ -155,7 +159,6 @@ export const jioSaavnService = {
     }
   },
 
-  
   searchSongs: async (
     query: string,
     page = 0,
@@ -168,11 +171,7 @@ export const jioSaavnService = {
     return recursiveClean(data);
   },
 
-  searchAlbums: async (
-    query: string,
-    page = 0,
-    limit = 10,
-  ): Promise<any> => {
+  searchAlbums: async (query: string, page = 0, limit = 10): Promise<any> => {
     const response = await fetch(
       `${BASE_URL}/search/albums?query=${query}&page=${page}&limit=${limit}`,
     );
@@ -180,11 +179,7 @@ export const jioSaavnService = {
     return recursiveClean(data);
   },
 
-  searchArtists: async (
-    query: string,
-    page = 0,
-    limit = 10,
-  ): Promise<any> => {
+  searchArtists: async (query: string, page = 0, limit = 10): Promise<any> => {
     const response = await fetch(
       `${BASE_URL}/search/artists?query=${query}&page=${page}&limit=${limit}`,
     );
@@ -275,12 +270,13 @@ export const jioSaavnService = {
   },
 
   getSuggestedSongs: async (id: string, limit: number = 5): Promise<any> => {
-    const response = await fetch(`${BASE_URL}/songs/${id}/suggestions?limit=${limit}`);
+    const response = await fetch(
+      `${BASE_URL}/songs/${id}/suggestions?limit=${limit}`,
+    );
     const data = await response.json();
     return recursiveClean(data);
   },
 };
-
 
 export const SaavnService = {
   async getHomePreviews(languages: string[]): Promise<RootResponse> {
@@ -298,7 +294,11 @@ export const SaavnService = {
       "promo:vx:data:113": [],
       "promo:vx:data:107": [],
       radio: [],
-      artist_recos: [],
+      artist_recos: {
+        title: "",
+    
+        data: [],
+      },
       city_mod: { title: "", subtitle: "", data: [] },
       charts: [],
       modules: {
@@ -423,7 +423,14 @@ export const SaavnService = {
         "promo:vx:data:113": (json["promo:vx:data:113"] || []).map(mapItem),
         "promo:vx:data:107": (json["promo:vx:data:107"] || []).map(mapItem),
         radio: (json?.radio || []).map(mapItem),
-        artist_recos: (json?.artist_recos || []).map(mapItem),
+        artist_recos: {
+          title: decodeHtmlEntities(
+            json?.module?.artist_recos?.title ||
+              json?.modules?.artist_recos?.title ||
+              "",
+          ),
+          data: (json?.artist_recos || []).map(mapItem),
+        },
         city_mod: {
           title: decodeHtmlEntities(
             json?.module?.city_mod?.title ||
@@ -490,9 +497,9 @@ export const SaavnService = {
           Referer: "https://www.jiosaavn.com/",
           Accept: "application/json",
         },
-      })
-               
-      const data:SpecialForYou= await response.json(); 
+      });
+
+      const data: SpecialForYou = await response.json();
       return data;
     } catch (error) {
       console.error("Fetch failed:", error);
