@@ -23,7 +23,6 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { SongDetail } from "@/types/jiosaavn";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
@@ -49,11 +48,15 @@ const FullPlayer = ({
   const nowPlaying = useNowPlaying();
   const currentTrack = nowPlaying.currentTrack;
   const playbackState = useOnPlaybackStateChange();
-  
-  const originalSong = (currentTrack as any)?.extraPayload?.song || currentTrack;
-  const isPlaying = playbackState.state === "playing";
-  const artistName = originalSong?.primaryArtists || currentTrack?.artist || originalSong?.subtitle || "Unknown Artist";
 
+  const originalSong =
+    (currentTrack as any)?.extraPayload?.song || currentTrack;
+  const isPlaying = playbackState.state === "playing";
+  const artistName =
+    originalSong?.primaryArtists ||
+    currentTrack?.artist ||
+    originalSong?.subtitle ||
+    "Unknown Artist";
 
   // Control handlers
   const togglePlay = async () => {
@@ -72,14 +75,12 @@ const FullPlayer = ({
     await TrackPlayer.skipToPrevious();
   };
 
-
-
   const router = useRouter();
   const position = usePlayerStore((s) => s.position);
   const duration = usePlayerStore((s) => s.duration);
   const isDraggingState = usePlayerStore((s) => s.isDragging);
   const setIsDragging = usePlayerStore((s) => s.setIsDragging);
-  
+
   const lastSeekTime = useRef(0);
   const [scrubProgress, setScrubProgress] = React.useState(0);
 
@@ -107,7 +108,6 @@ const FullPlayer = ({
     originalSong?.image?.[2]?.url ||
     currentTrack.artwork ||
     originalSong?.image?.[0]?.url;
-
 
   const navigateToArtist = (artist: any) => {
     if (artist?.id) {
@@ -146,7 +146,11 @@ const FullPlayer = ({
 
   const label = originalSong?.label;
   const copyright = originalSong?.copyright;
-  const aboutArtist = originalSong?.artists?.primary?.[0]?.name || originalSong?.artist || currentTrack?.artist || "Artist";
+  const aboutArtist =
+    originalSong?.artists?.primary?.[0]?.name ||
+    originalSong?.artist ||
+    currentTrack?.artist ||
+    "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
 
   return (
@@ -246,9 +250,7 @@ const FullPlayer = ({
           <View style={styles.timeRow}>
             <Text style={styles.timeText}>
               {formatTime(
-                isDraggingState
-                  ? (scrubProgress / 100) * duration
-                  : position,
+                isDraggingState ? (scrubProgress / 100) * duration : position,
               )}
             </Text>
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
@@ -296,10 +298,10 @@ const FullPlayer = ({
           </View>
         </View>
         {/* Lyrics & Artist - (Kept for aesthetics, can be made dynamic later) */}
-        <View style={styles.lyricsCard}>
+        {/* <View style={styles.lyricsCard}>
           <Text style={styles.lyricsTitle}>Lyrics</Text>
           <Text style={styles.lyricsPreview}>Lyrics coming soon...</Text>
-        </View>
+        </View> */}
         <Pressable style={styles.artistCard} onPress={handleArtistPress}>
           <View style={styles.artistHeader}>
             <RNImage
@@ -454,10 +456,11 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.7)",
     fontSize: 16,
     marginTop: 4,
+    marginBottom: 5,
   },
   progressArea: {
     paddingHorizontal: 25,
-    marginTop: 25,
+    marginTop: 5,
   },
   sliderContainer: {
     height: 40,
@@ -498,7 +501,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 25,
-    marginTop: 20,
+    marginVertical: 20,
   },
   playButton: {
     width: 75,
@@ -513,7 +516,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 25,
-    marginTop: 30,
+    marginVertical: 40,
   },
   deviceIndicator: {
     flexDirection: "row",
@@ -550,7 +553,7 @@ const styles = StyleSheet.create({
   },
   artistCard: {
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 40,
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
@@ -603,78 +606,106 @@ const styles = StyleSheet.create({
   },
 });
 
-const PlayerProgressBar = React.memo(({ 
-  duration, 
-  position, 
-  isDraggingState, 
-  setIsDragging, 
-  setScrubProgress, 
-  seek, 
-  windowWidth 
-}: any) => {
-  const progress = useSharedValue(0);
-  const isDraggingShared = useSharedValue(false);
-  const progressData = useOnPlaybackProgressChange();
-  
-  // Sync progress value from high-frequency source or store
-  useEffect(() => {
-    if (!isDraggingState) {
-      const currentPos = progressData?.position ?? position;
-      const totalDur = duration || 1;
-      progress.value = (currentPos / totalDur) * 100;
-    }
-  }, [progressData.position, position, duration, isDraggingState]);
+const PlayerProgressBar = React.memo(
+  ({
+    duration,
+    position,
+    isDraggingState,
+    setIsDragging,
+    setScrubProgress,
+    seek,
+    windowWidth,
+  }: any) => {
+    const progress = useSharedValue(0);
+    const isDraggingShared = useSharedValue(false);
+    const progressData = useOnPlaybackProgressChange();
 
-  const onEnd = (finalProgress: number) => {
-    const newPosition = (finalProgress / 100) * duration;
-    seek(newPosition);
-  };
+    useEffect(() => {
+      if (!isDraggingState) {
+        const currentPos = progressData?.position ?? position;
+        const totalDur = duration || 1;
 
-  const gesture = React.useMemo(
-    () =>
-      Gesture.Pan()
-        .onStart(() => {
-          isDraggingShared.value = true;
-          runOnJS(setIsDragging)(true);
-        })
-        .onUpdate((event) => {
-          const trackWidth = windowWidth - 50;
-          const newProgress = Math.min(
-            100,
-            Math.max(0, (event.x / trackWidth) * 100),
-          );
-          progress.value = newProgress;
-          runOnJS(setScrubProgress)(newProgress);
-        })
-        .onEnd(() => {
-          isDraggingShared.value = false;
-          runOnJS(setIsDragging)(false);
-          runOnJS(onEnd)(progress.value);
-        }),
-    [windowWidth, duration],
-  );
+        progress.value = (currentPos / totalDur) * 100;
+      }
+    }, [progressData.position, position, duration, isDraggingState]);
 
-  const animatedFillStyle = useAnimatedStyle(() => ({
-    width: `${progress.value}%`,
-  }));
+    const TRACK_WIDTH = windowWidth - 40;
 
-  const animatedKnobStyle = useAnimatedStyle(() => ({
-    left: `${progress.value}%`,
-    transform: [{ scale: withSpring(isDraggingShared.value ? 1.4 : 1) }],
-  }));
+    const onEnd = (finalProgress: number) => {
+      const newPosition = (finalProgress / 100) * duration;
+      seek(newPosition);
+    };
 
-  return (
-    <View style={styles.progressArea}>
-      <GestureDetector gesture={gesture}>
-        <View style={styles.sliderContainer}>
-          <View style={styles.track}>
-            <Animated.View style={[styles.fill, animatedFillStyle]} />
-            <Animated.View style={[styles.knob, animatedKnobStyle]} />
-          </View>
-        </View>
-      </GestureDetector>
-    </View>
-  );
-});
+    const gesture = React.useMemo(
+      () =>
+        Gesture.Pan()
+          .onStart(() => {
+            isDraggingShared.value = true;
+            runOnJS(setIsDragging)(true);
+          })
+          .onUpdate((event) => {
+            const newProgress = Math.min(
+              100,
+              Math.max(0, (event.x / TRACK_WIDTH) * 100),
+            );
+
+            progress.value = newProgress;
+
+            runOnJS(setScrubProgress)(newProgress);
+          })
+          .onEnd(() => {
+            isDraggingShared.value = false;
+
+            runOnJS(setIsDragging)(false);
+
+            runOnJS(onEnd)(progress.value);
+          }),
+      [TRACK_WIDTH, duration],
+    );
+
+    const animatedFillStyle = useAnimatedStyle(() => ({
+      width: `${progress.value}%`,
+    }));
+
+    const animatedKnobStyle = useAnimatedStyle(() => ({
+      left: `${progress.value}%`,
+      transform: [
+        {
+          translateX: -8,
+        },
+        {
+          scale: withSpring(isDraggingShared.value ? 1.5 : 1),
+        },
+      ],
+    }));
+
+    const animatedTrackStyle = useAnimatedStyle(() => ({
+      height: withSpring(isDraggingShared.value ? 6 : 4),
+    }));
+
+    return (
+      <View className="px-8  mt-5">
+        <GestureDetector gesture={gesture}>
+          <Animated.View
+            style={animatedTrackStyle}
+            className="w-full rounded-full bg-zinc-700 justify-center"
+          >
+            {/* active fill */}
+            <Animated.View
+              style={animatedFillStyle}
+              className="h-full rounded-full  bg-white "
+            />
+
+            {/* thumb */}
+            <Animated.View
+              style={animatedKnobStyle}
+              className="absolute w-4 h-4 rounded-full bg-white"
+            />
+          </Animated.View>
+        </GestureDetector>
+      </View>
+    );
+  },
+);
 
 export default FullPlayer;
