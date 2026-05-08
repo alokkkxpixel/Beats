@@ -168,8 +168,28 @@ export default function Index() {
       type: "albums",
       data: data?.newreleases,
     },
-
     { id: "charts", title: "Top Charts", type: "charts", data: data?.charts },
+    {
+      id: "promo:vx:data:68",
+      title: data?.["promo:vx:data:68"]?.title,
+      subtitle: data?.["promo:vx:data:68"]?.subtitle,
+      type: "promo:vx:data:68",
+      data: data?.["promo:vx:data:68"].data,
+    },
+    {
+      id: "promo:vx:data:185",
+      title: data?.["promo:vx:data:185"]?.title,
+      subtitle: data?.["promo:vx:data:185"]?.subtitle,
+      type: "promo:vx:data:185",
+      data: data?.["promo:vx:data:185"].data,
+    },
+    {
+      id: "promo:vx:data:69",
+      title: data?.["promo:vx:data:69"]?.title,
+      subtitle: data?.["promo:vx:data:69"]?.subtitle,
+      type: "promo:vx:data:69",
+      data: data?.["promo:vx:data:69"].data,
+    },
   ];
 
   return (
@@ -242,8 +262,21 @@ export default function Index() {
             // console.log("artistrecos", item.title);
             return <RecommendedArtist title={item.title} data={item.data} />;
           }
+          if (item.type === "promo:vx:data:68") {
+            return (
+              <TrendingSection
+                key={item.id}
+                title={item.title}
+                // subtitle={item.subtitle}
+                data={item.data}
+                type={item.type}
+              />
+            );
+          }
+
           return (
             <TrendingSection
+              key={item.id}
               title={item.title}
               data={item.data}
               type={item.type}

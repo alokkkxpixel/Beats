@@ -286,17 +286,17 @@ export const SaavnService = {
       newreleases: [],
       raw_new_releases: [],
       quick_picks: [],
-      "promo:vx:data:76": [],
-      "promo:vx:data:68": [],
-      "promo:vx:data:69": [],
-      "promo:vx:data:185": [],
-      "promo:vx:data:209": [],
-      "promo:vx:data:113": [],
-      "promo:vx:data:107": [],
+      "promo:vx:data:76": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:68": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:69": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:185": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:209": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:113": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:107": { title: "", subtitle: "", data: [] },
       radio: [],
       artist_recos: {
         title: "",
-    
+       subtitle:"",
         data: [],
       },
       city_mod: { title: "", subtitle: "", data: [] },
@@ -416,12 +416,72 @@ export const SaavnService = {
         raw_new_releases: raw_new_releases,
         quick_picks: quick_picks,
         "promo:vx:data:76": (json["promo:vx:data:76"] || []).map(mapItem),
-        "promo:vx:data:68": (json["promo:vx:data:68"] || []).map(mapItem),
-        "promo:vx:data:69": (json["promo:vx:data:69"] || []).map(mapItem),
-        "promo:vx:data:185": (json["promo:vx:data:185"] || []).map(mapItem),
-        "promo:vx:data:209": (json["promo:vx:data:209"] || []).map(mapItem),
-        "promo:vx:data:113": (json["promo:vx:data:113"] || []).map(mapItem),
-        "promo:vx:data:107": (json["promo:vx:data:107"] || []).map(mapItem),
+        "promo:vx:data:68": {
+          title:
+            json?.module?.["promo:vx:data:68"]?.title ||
+            json?.modules?.["promo:vx:data:68"]?.title ||
+            "",
+          subtitle:
+            json?.module?.["promo:vx:data:68"]?.subtitle ||
+            json?.modules?.["promo:vx:data:68"]?.subtitle ||
+            "",
+          data: (json["promo:vx:data:68"] || []).map(mapItem),
+        },
+        "promo:vx:data:69": {
+          title:
+            json?.module?.["promo:vx:data:69"]?.title ||
+            json?.modules?.["promo:vx:data:69"]?.title ||
+            "",
+          subtitle:
+            json?.module?.["promo:vx:data:69"]?.subtitle ||
+            json?.modules?.["promo:vx:data:69"]?.subtitle ||
+            "",
+          data: (json["promo:vx:data:69"] || []).map(mapItem),
+        },
+        "promo:vx:data:185": {
+          title:
+            json?.module?.["promo:vx:data:185"]?.title ||
+            json?.modules?.["promo:vx:data:185"]?.title ||
+            "",
+          subtitle:
+            json?.module?.["promo:vx:data:185"]?.subtitle ||
+            json?.modules?.["promo:vx:data:185"]?.subtitle ||
+            "",
+          data: (json["promo:vx:data:185"] || []).map(mapItem),
+        },
+        "promo:vx:data:209": {
+          title:
+            json?.module?.["promo:vx:data:209"]?.title ||
+            json?.modules?.["promo:vx:data:209"]?.title ||
+            "",
+          subtitle:
+            json?.module?.["promo:vx:data:209"]?.subtitle ||
+            json?.modules?.["promo:vx:data:209"]?.subtitle ||
+            "",
+          data: (json["promo:vx:data:209"] || []).map(mapItem),
+        },
+        "promo:vx:data:113": {
+          title:
+            json?.module?.["promo:vx:data:113"]?.title ||
+            json?.modules?.["promo:vx:data:113"]?.title ||
+            "",
+          subtitle:
+            json?.module?.["promo:vx:data:113"]?.subtitle ||
+            json?.modules?.["promo:vx:data:113"]?.subtitle ||
+            "",
+          data: (json["promo:vx:data:113"] || []).map(mapItem),
+        },
+        "promo:vx:data:107": {
+          title:
+            json?.module?.["promo:vx:data:107"]?.title ||
+            json?.modules?.["promo:vx:data:107"]?.title ||
+            "",
+          subtitle:
+            json?.module?.["promo:vx:data:107"]?.subtitle ||
+            json?.modules?.["promo:vx:data:107"]?.subtitle ||
+            "",
+          data: (json["promo:vx:data:107"] || []).map(mapItem),
+        },
         radio: (json?.radio || []).map(mapItem),
         artist_recos: {
           title: decodeHtmlEntities(

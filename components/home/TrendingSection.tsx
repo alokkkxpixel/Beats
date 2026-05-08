@@ -21,7 +21,6 @@ export default function TrendingSection({
   const navigation = useNavigation<any>();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   if (!data || data.length === 0) return <></>;
-  // console.log("new data", data.topPlaylists[0]?.image as Top[]);
 
   const renderItem = ({ item }: { item: any }) => {
     // console.log("top play", item);
@@ -116,6 +115,34 @@ export default function TrendingSection({
       displaySubtitle =
         item.subtitle ||
         ["Single", extractedArtist].filter(Boolean).join(" • ");
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
+    } else if (type === "promo:vx:data:68") {
+      id = item.id;
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title || item.name;
+      displayImage = item?.image;
+      displaySubtitle = item?.subtitle || "Fresh Hits";
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
+    } else if (type === "promo:vx:data:185") {
+      id = item.id;
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title || item.name;
+      displayImage = item?.image;
+      displaySubtitle = item?.subtitle || "Best of 90s";
+      artists = extractedArtist;
+      itemType = item.type;
+      year = item.year;
+    }
+    else if (type === "promo:vx:data:69") {
+      id = item.id;
+      url = item?.url || item?.perma_url;
+      displayTitle = item.title || item.name;
+      displayImage = item?.image;
+      displaySubtitle = item?.subtitle || "Top K-pop ";
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;

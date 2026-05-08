@@ -631,13 +631,41 @@ export interface RootResponse {
   newreleases: NewRelease[];
   raw_new_releases: NewRelease[];
   quick_picks: any[];
-  "promo:vx:data:68": TopPlaylists[];
-  "promo:vx:data:209": TopPlaylists[];
-  "promo:vx:data:76": TopPlaylists[];
-  "promo:vx:data:185": TopPlaylists[];
-  "promo:vx:data:69": TopPlaylists[];
-  "promo:vx:data:107": TopPlaylists[];
-  "promo:vx:data:113": TopPlaylists[];
+  "promo:vx:data:68": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
+  "promo:vx:data:209": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
+  "promo:vx:data:76": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
+  "promo:vx:data:185": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
+  "promo:vx:data:69": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
+  "promo:vx:data:107": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
+  "promo:vx:data:113": {
+    title: string;
+    subtitle: string;
+    data: TopPlaylists[];
+  };
   radio: Radio[];
   artist_recos: {
     title: string;
