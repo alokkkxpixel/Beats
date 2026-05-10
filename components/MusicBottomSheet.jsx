@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
+
 import { usePlayerStore } from "../src/store/usePlayerStore";
 
 export default function MusicBottomSheet() {
@@ -8,15 +9,16 @@ export default function MusicBottomSheet() {
   const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
   const minizeMoreOption = usePlayerStore((s) => s.minizeMoreOption);
   const minimizeFullPlayer = usePlayerStore((s) => s.minimizeFullPlayer);
+  const addToQueue = usePlayerStore((s) => s.addToQueue);
+  const playNext = usePlayerStore((s) => s.playNext);
 
   const router = useRouter();
-
-
   const activeSong = selectedSongOption || currentTrack;
+  const hasPlayableSong =
+    !!activeSong && typeof activeSong === "object" && !!activeSong.id;
 
   if (!activeSong) return null;
 
-  // ✅ Safe image helper (unchanged)
   const getImageUri = (cover) => {
     if (Array.isArray(cover)) {
       const target = cover[1] || cover[0] || cover[2] || "";
@@ -32,7 +34,6 @@ export default function MusicBottomSheet() {
     return "";
   };
 
-  // ✅ Navigate to artist (unchanged)
   const handleArtistPress = () => {
     const artistId =
       activeSong?.artistId || activeSong?.artists?.primary?.[0]?.id;
@@ -49,6 +50,7 @@ export default function MusicBottomSheet() {
       params: { id: artistId, url: artistUrl },
     });
   };
+
   const handleAlbumPress = () => {
     const albumId = activeSong?.album?.id || activeSong?.albumId;
     const albumUrl = activeSong?.album?.url || activeSong?.albumUrl;
@@ -63,10 +65,24 @@ export default function MusicBottomSheet() {
       params: { albumId, albumUrl },
     });
   };
-  // ✅ Menu config (unchanged)
+
+  const handlePlayNext = async () => {
+    if (!hasPlayableSong) return;
+
+    await playNext(activeSong);
+    minizeMoreOption();
+  };
+
+  const handleAddToQueue = async () => {
+    if (!hasPlayableSong) return;
+
+    await addToQueue(activeSong);
+    minizeMoreOption();
+  };
+
   const menuItems = [
     { icon: "radio-outline", label: "Start radio" },
-    { icon: "list-outline", label: "Add to queue" },
+    { icon: "list-outline", label: "Add to queue", fnx: handleAddToQueue },
     { icon: "download-outline", label: "Download" },
     {
       icon: "disc-outline",
@@ -80,9 +96,14 @@ export default function MusicBottomSheet() {
     },
   ];
 
+  const quickActions = [
+    { icon: "play-skip-forward", label: "Play next", fnx: handlePlayNext },
+    { icon: "add", label: "Save" },
+    { icon: "share-social", label: "Share" },
+  ];
+
   return (
-    <View className="flex-1  px-4 w-full ">
-      {/* HEADER */}
+    <View className="flex-1 px-4 w-full">
       <View className="flex-row items-center gap-3 mb-4">
         <View className="w-12 h-12 bg-zinc-700 rounded-md overflow-hidden">
           <Image
@@ -107,29 +128,29 @@ export default function MusicBottomSheet() {
         </View>
       </View>
 
-      {/* ACTION BUTTONS */}
       <View className="flex-row justify-between mb-4">
-        {[
-          { icon: "play-skip-forward", label: "Play next" },
-          { icon: "add", label: "Save" },
-          { icon: "share-social", label: "Share" },
-        ].map((item, i) => (
+        {quickActions.map((item, i) => (
           <View key={i} className="items-center flex-1">
-            <View className="bg-zinc-800 p-4 rounded-xl mb-2">
+            <Pressable
+              className="bg-zinc-800 p-4 rounded-xl mb-2"
+              onPress={item.fnx}
+            >
               <Ionicons name={item.icon} size={20} color="white" />
-            </View>
+            </Pressable>
             <Text className="text-white text-xs">{item.label}</Text>
           </View>
         ))}
       </View>
 
-      {/* MENU */}
       {menuItems.map((item, i) => (
         <Pressable
           key={i}
           onPress={() => {
-            item.fnx?.();
-            minizeMoreOption();
+            if (item.fnx) {
+              item.fnx();
+            } else {
+              minizeMoreOption();
+            }
           }}
           className="flex-row items-center py-3"
         >

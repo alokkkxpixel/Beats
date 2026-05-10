@@ -14,7 +14,9 @@ const QueueSheet = () => {
   const togglePlay = usePlayerStore((state) => state.togglePlay);
   const isQueueOpen = usePlayerStore((state) => state.isQueueOpen);
   const isFetchingSuggestions = usePlayerStore((state) => state.isFetchingSuggestions);
+  const isShuffleEnabled = usePlayerStore((state) => state.isShuffleEnabled);
   const fetchAndAppendSuggestions = usePlayerStore((state) => state.fetchAndAppendSuggestions);
+  const toggleShuffle = usePlayerStore((state) => state.toggleShuffle);
   const flatListRef = useRef<any>(null);
 
   // Auto-scroll to current track when opened
@@ -136,9 +138,18 @@ const QueueSheet = () => {
       />
 
       <View style={styles.footer}>
-        <Pressable style={styles.footerBtn}>
-          <Ionicons name="shuffle" size={24} color="#1DB954" />
-          <Text style={[styles.footerBtnText, { color: "#1DB954" }]}>
+        <Pressable style={styles.footerBtn} onPress={toggleShuffle}>
+          <Ionicons
+            name="shuffle"
+            size={24}
+            color={isShuffleEnabled ? "#1DB954" : "white"}
+          />
+          <Text
+            style={[
+              styles.footerBtnText,
+              { color: isShuffleEnabled ? "#1DB954" : "white" },
+            ]}
+          >
             Shuffle
           </Text>
         </Pressable>

@@ -101,8 +101,10 @@ const FullPlayer = ({
 
   // UI state from store (for menu controls)
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  const isShuffleEnabled = usePlayerStore((s) => s.isShuffleEnabled);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   const expandQueue = usePlayerStore((s) => s.expandQueue);
+  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
 
   const seek = async (pos: number) => {
     await TrackPlayer.seek(pos);
@@ -281,7 +283,13 @@ const FullPlayer = ({
         </View>
         {/* --- Main Controls --- */}
         <View style={styles.mainControls}>
-          <Ionicons name="shuffle" size={24} color="#A3A3A3" />
+          <Pressable onPress={() => toggleShuffle()} hitSlop={12}>
+            <Ionicons
+              name="shuffle"
+              size={24}
+              color={isShuffleEnabled ? "#1DB954" : "#A3A3A3"}
+            />
+          </Pressable>
           <Pressable onPress={() => previous()}>
             <Ionicons name="play-skip-back" size={38} color="white" />
           </Pressable>

@@ -22,14 +22,55 @@ const mapToTrackItem = (song: SongDetail): TrackItem => ({
   extraPayload: { song: song as any }, // Store the full original song data
 });
 
+const shuffleSongs = (songs: SongDetail[]) => {
+  const shuffled = [...songs];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+};
+
+const reorderQueueInPlaylist = async (
+  playlistId: string,
+  currentQueue: SongDetail[],
+  targetQueue: SongDetail[],
+) => {
+  const workingQueue = [...currentQueue];
+
+  for (let targetIndex = 0; targetIndex < targetQueue.length; targetIndex += 1) {
+    const desiredTrackId = targetQueue[targetIndex]?.id;
+    const currentIndex = workingQueue.findIndex(
+      (track) => track.id === desiredTrackId,
+    );
+
+    if (currentIndex === -1 || currentIndex === targetIndex) {
+      continue;
+    }
+
+    await PlayerQueue.reorderTrackInPlaylist(
+      playlistId,
+      desiredTrackId,
+      targetIndex,
+    );
+
+    const [movedTrack] = workingQueue.splice(currentIndex, 1);
+    workingQueue.splice(targetIndex, 0, movedTrack);
+  }
+};
+
 interface PlayerState {
   // --- Data ---
   currentTrack: SongDetail | null;
   queue: SongDetail[];
   currentIndex: number;
   activePlaylistId: string | null;
+  originalQueue: SongDetail[] | null;
   isPlaying: boolean;
   isLoading: boolean;
+  isShuffleEnabled: boolean;
   isFullPlayerOpen: boolean;
   selectedSongOption: SongDetail | null | string;
   isMoreOptionOpen: boolean;
@@ -64,6 +105,9 @@ interface PlayerState {
   togglePlay: () => Promise<void>;
   next: () => Promise<void>;
   previous: () => Promise<void>;
+  toggleShuffle: () => Promise<void>;
+  addToQueue: (track: SongDetail) => Promise<void>;
+  playNext: (track: SongDetail) => Promise<void>;
 
   // --- Seek Bar Logic ---
   seek: (position: number) => Promise<void>;
@@ -80,8 +124,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   queue: [],
   currentIndex: -1,
   activePlaylistId: null,
+  originalQueue: null,
   isPlaying: false,
   isLoading: false,
+  isShuffleEnabled: false,
   isFullPlayerOpen: false,
   position: 0,
   duration: 0,
@@ -125,6 +171,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isLoading: true,
         isFullPlayerOpen: true,
         isPlaying: true,
+        isShuffleEnabled: false,
+        originalQueue: null,
       });
 
       const trackItems = [track].map(mapToTrackItem);
@@ -171,6 +219,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isLoading: true,
         isFullPlayerOpen: true,
         isPlaying: true,
+        isShuffleEnabled: false,
+        originalQueue: null,
       });
 
       const trackItems = tracks.map(mapToTrackItem);
@@ -296,6 +346,156 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   seek: async (position) => {
     await TrackPlayer.seek(position);
     set({ position });
+  },
+
+  toggleShuffle: async () => {
+    const {
+      currentTrack,
+      currentIndex,
+      activePlaylistId,
+      isShuffleEnabled,
+      originalQueue,
+      queue,
+    } = get();
+
+    if (!currentTrack || !activePlaylistId || queue.length < 2) return;
+
+    try {
+      if (isShuffleEnabled && originalQueue?.length) {
+        const playedTrackIds = new Set(
+          queue.slice(0, currentIndex).map((track) => track.id),
+        );
+        playedTrackIds.add(currentTrack.id);
+
+        const restoredUpcoming = originalQueue.filter(
+          (track) => !playedTrackIds.has(track.id),
+        );
+        const restoredQueue = [
+          ...queue.slice(0, currentIndex),
+          currentTrack,
+          ...restoredUpcoming,
+        ];
+
+        await reorderQueueInPlaylist(activePlaylistId, queue, restoredQueue);
+
+        set({
+          isShuffleEnabled: false,
+          originalQueue: null,
+          queue: restoredQueue,
+        });
+
+        return;
+      }
+
+      const trackAfterCurrent = queue
+        .slice(currentIndex + 1)
+        .filter((track) => track.id !== currentTrack.id);
+      const shuffledQueue = [
+        ...queue.slice(0, currentIndex + 1),
+        ...shuffleSongs(trackAfterCurrent),
+      ];
+
+      await reorderQueueInPlaylist(activePlaylistId, queue, shuffledQueue);
+
+      set({
+        isShuffleEnabled: true,
+        originalQueue: [...queue],
+        queue: shuffledQueue,
+      });
+    } catch (error) {
+      console.error("Error toggling shuffle:", error);
+    }
+  },
+
+  addToQueue: async (track) => {
+    const { activePlaylistId, originalQueue, queue } = get();
+    if (!track?.id) return;
+
+    if (!activePlaylistId || queue.length === 0) {
+      await get().setCurrentTrack(track);
+      return;
+    }
+
+    if (queue.some((queuedTrack) => queuedTrack.id === track.id)) {
+      return;
+    }
+
+    try {
+      await PlayerQueue.addTrackToPlaylist(activePlaylistId, mapToTrackItem(track));
+
+      set({
+        originalQueue: originalQueue ? [...originalQueue, track] : null,
+        queue: [...queue, track],
+      });
+    } catch (error) {
+      console.error("Error adding track to queue:", error);
+    }
+  },
+
+  playNext: async (track) => {
+    const { activePlaylistId, currentIndex, originalQueue, queue } = get();
+    if (!track?.id) return;
+
+    if (!activePlaylistId || queue.length === 0) {
+      await get().setCurrentTrack(track);
+      return;
+    }
+
+    const existingIndex = queue.findIndex((queuedTrack) => queuedTrack.id === track.id);
+    const insertIndex = Math.min(currentIndex + 1, queue.length);
+
+    try {
+      let nextQueue = [...queue];
+
+      if (existingIndex === -1) {
+        await PlayerQueue.addTrackToPlaylist(activePlaylistId, mapToTrackItem(track));
+        await PlayerQueue.reorderTrackInPlaylist(
+          activePlaylistId,
+          track.id,
+          insertIndex,
+        );
+        nextQueue.splice(insertIndex, 0, track);
+      } else {
+        await PlayerQueue.reorderTrackInPlaylist(
+          activePlaylistId,
+          track.id,
+          insertIndex,
+        );
+
+        const [existingTrack] = nextQueue.splice(existingIndex, 1);
+        const adjustedIndex =
+          existingIndex < insertIndex ? insertIndex - 1 : insertIndex;
+        nextQueue.splice(adjustedIndex, 0, existingTrack);
+      }
+
+      const nextOriginalQueue = originalQueue ? [...originalQueue] : null;
+      if (nextOriginalQueue) {
+        const originalExistingIndex = nextOriginalQueue.findIndex(
+          (queuedTrack) => queuedTrack.id === track.id,
+        );
+        if (originalExistingIndex !== -1) {
+          const [existingTrack] = nextOriginalQueue.splice(originalExistingIndex, 1);
+          nextOriginalQueue.splice(
+            Math.min(currentIndex + 1, nextOriginalQueue.length),
+            0,
+            existingTrack,
+          );
+        } else {
+          nextOriginalQueue.splice(
+            Math.min(currentIndex + 1, nextOriginalQueue.length),
+            0,
+            track,
+          );
+        }
+      }
+
+      set({
+        originalQueue: nextOriginalQueue,
+        queue: nextQueue,
+      });
+    } catch (error) {
+      console.error("Error moving track to play next:", error);
+    }
   },
 
   // Updates from audio engine
