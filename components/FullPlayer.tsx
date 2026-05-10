@@ -27,6 +27,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
 import {
+  RepeatMode,
   TrackPlayer,
   useNowPlaying,
   useOnPlaybackProgressChange,
@@ -48,6 +49,7 @@ const FullPlayer = ({
   const nowPlaying = useNowPlaying();
   const currentTrack = nowPlaying.currentTrack;
   const playbackState = useOnPlaybackStateChange();
+  const [repeatMode, setRepeatMode] = React.useState<RepeatMode>("off");
 
   const originalSong =
     (currentTrack as any)?.extraPayload?.song || currentTrack;
@@ -75,6 +77,19 @@ const FullPlayer = ({
     await TrackPlayer.skipToPrevious();
   };
 
+  const cycleRepeatMode = async () => {
+    const currentMode = TrackPlayer.getRepeatMode();
+    const nextMode: RepeatMode =
+      currentMode === "off"
+        ? "Playlist"
+        : currentMode === "Playlist"
+          ? "track"
+          : "off";
+
+    await TrackPlayer.setRepeatMode(nextMode);
+    setRepeatMode(nextMode);
+  };
+
   const router = useRouter();
   const position = usePlayerStore((s) => s.position);
   const duration = usePlayerStore((s) => s.duration);
@@ -99,6 +114,10 @@ const FullPlayer = ({
     const s = Math.floor(secs % 60);
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
   };
+
+  useEffect(() => {
+    setRepeatMode(TrackPlayer.getRepeatMode());
+  }, []);
 
   if (!currentTrack) {
     return null;
@@ -152,6 +171,10 @@ const FullPlayer = ({
     currentTrack?.artist ||
     "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
+
+  const repeatIconName =
+    repeatMode === "track" ? "repeat-one" : "repeat";
+  const repeatIconColor = repeatMode === "off" ? "#A3A3A3" : "#1DB954";
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -272,7 +295,13 @@ const FullPlayer = ({
           <Pressable onPress={() => next()}>
             <Ionicons name="play-skip-forward" size={38} color="white" />
           </Pressable>
-          <Ionicons name="repeat" size={24} color="#A3A3A3" />
+          <Pressable onPress={() => cycleRepeatMode()} hitSlop={12}>
+            <MaterialIcons
+              name={repeatIconName}
+              size={24}
+              color={repeatIconColor}
+            />
+          </Pressable>
         </View>
         {/* --- Footer Controls --- */}
         <View style={styles.footerControls}>
