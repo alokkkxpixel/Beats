@@ -723,7 +723,7 @@ const PlayerProgressBar = React.memo(
         <GestureDetector gesture={gesture}>
           <Animated.View
             style={animatedTrackStyle}
-            className="w-full rounded-full bg-zinc-700 justify-center"
+            className="w-full rounded-full bg-zinc-500 justify-center"
           >
             {/* active fill */}
             <Animated.View

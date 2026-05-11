@@ -204,28 +204,30 @@ export const useArtist = (
     sortOrder?: "asc" | "desc";
   },
 ) => {
+  const artistKey = artistId || artistUrl;
+  const page = options?.page ?? 0;
+  const songCount = options?.songCount ?? 10;
+  const albumCount = options?.albumCount ?? 10;
+  const sortBy = options?.sortBy ?? "";
+  const sortOrder = options?.sortOrder ?? "desc";
+
   return useQuery({
-    queryKey: [
-      "artist",
-      artistId || artistUrl,
-      options?.page ?? 0,
-      options?.songCount ?? 10,
-      options?.albumCount ?? 10,
-      options?.sortBy ?? "",
-      options?.sortOrder ?? "desc",
-    ],
+    queryKey: ["artist", artistKey, page, songCount, albumCount, sortBy, sortOrder],
     queryFn: () =>
       jioSaavnService.getArtistDetails(
         artistId,
         artistUrl,
         "artist",
-        options?.page ?? 0,
-        options?.songCount ?? 10,
-        options?.albumCount ?? 10,
-        options?.sortBy ?? "",
-        options?.sortOrder ?? "desc",
+        page,
+        songCount,
+        albumCount,
+        sortBy,
+        sortOrder,
       ),
-    placeholderData: (previousData) => previousData,
+    placeholderData: (previousData, previousQuery) => {
+      const previousArtistKey = previousQuery?.queryKey?.[1];
+      return previousArtistKey === artistKey ? previousData : undefined;
+    },
     enabled: !!artistId || !!artistUrl,
     staleTime: 1000 * 60 * 15,
     // 15 minutes
