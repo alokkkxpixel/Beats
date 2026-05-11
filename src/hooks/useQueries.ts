@@ -196,12 +196,38 @@ export const useSearchInfinite = (
 export const useArtist = (
   artistId: string | null,
   artistUrl: string | null = null,
+  options?: {
+    page?: number;
+    songCount?: number;
+    albumCount?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  },
 ) => {
   return useQuery({
-    queryKey: ["artist", artistId || artistUrl],
-    queryFn: () => jioSaavnService.getArtistDetails(artistId, artistUrl),
-    // enabled: !!artistId || !!artistUrl,
-    // staleTime: 1000 * 60 * 15
+    queryKey: [
+      "artist",
+      artistId || artistUrl,
+      options?.page ?? 0,
+      options?.songCount ?? 10,
+      options?.albumCount ?? 10,
+      options?.sortBy ?? "",
+      options?.sortOrder ?? "desc",
+    ],
+    queryFn: () =>
+      jioSaavnService.getArtistDetails(
+        artistId,
+        artistUrl,
+        "artist",
+        options?.page ?? 0,
+        options?.songCount ?? 10,
+        options?.albumCount ?? 10,
+        options?.sortBy ?? "",
+        options?.sortOrder ?? "desc",
+      ),
+    placeholderData: (previousData) => previousData,
+    enabled: !!artistId || !!artistUrl,
+    staleTime: 1000 * 60 * 15,
     // 15 minutes
   });
 };

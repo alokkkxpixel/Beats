@@ -22,6 +22,10 @@ const song = "search.getResults";
 const artist = "search.getArtistResults";
 const album = "search.getAlbumResults";
 const playlist = "search.getPlaylistResults";
+const extractTokenFromPermalink = (link: string | null | undefined) => {
+  if (!link) return null;
+  return link.split("?")[0].replace(/\/+$/, "").split("/").pop() || null;
+};
 // n=20 no of results to fetch
 // p=1 page number
 // q=query
@@ -243,7 +247,8 @@ export const jioSaavnService = {
   ): Promise<ArtistType | null> => {
     try {
       if (id && link) {
-        const token = link.split("/").pop();
+        const token = extractTokenFromPermalink(link);
+        if (!token) return null;
         const url = `https://www.jiosaavn.com/api.php?__call=webapi.get&token=${token}&type=${type}&p=${page}&n_song=${songCount}&n_album=${albumCount}&sub_type=&category=${sortBy}&sort_order=${sortOrder}&includeMetaTags=0&ctx=web6dot0&api_version=4&_format=json&_marker=0`;
         const response = await fetch(url);
         const data = await response.json();
@@ -255,7 +260,7 @@ export const jioSaavnService = {
         `${API_SERVER}/api/artists?id=${id}&page=${page}&songCount=${10}&albumCount=${10}`,
       );
       const json = await response.json();
-      const token = json.data?.url?.split("/").pop();
+      const token = extractTokenFromPermalink(json.data?.url);
 
       if (!token) return null;
 

@@ -174,8 +174,7 @@ const FullPlayer = ({
     "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
 
-  const repeatIconName =
-    repeatMode === "track" ? "repeat-one" : "repeat";
+  const repeatIconName = repeatMode === "track" ? "repeat-one" : "repeat";
   const repeatIconColor = repeatMode === "off" ? "#A3A3A3" : "#1DB954";
 
   return (
@@ -327,7 +326,6 @@ const FullPlayer = ({
             <Pressable
               onPress={() => {
                 expandQueue();
-                console.log("pressed");
               }}
             >
               <MaterialIcons name="playlist-play" size={28} color="white" />

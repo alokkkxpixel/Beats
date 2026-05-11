@@ -103,8 +103,8 @@ export default function MusicBottomSheet() {
   ];
 
   return (
-    <View className="flex-1 px-4 w-full">
-      <View className="flex-row items-center gap-3 mb-4">
+    <View className="flex-1 px-4 w-full  ">
+      <View className="flex-row items-center gap-3 mb-4 ">
         <View className="w-12 h-12 bg-zinc-700 rounded-md overflow-hidden">
           <Image
             source={{

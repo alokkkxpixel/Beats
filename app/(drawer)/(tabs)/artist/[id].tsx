@@ -10,7 +10,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from "react-native";
 import Animated, {
   Extrapolation,
@@ -25,18 +24,42 @@ import QuickPicksSection from "@/components/home/QuickPicksSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
 import { useArtist } from "@/src/hooks/useQueries";
-import { formatPlayCount } from "@/src/utils/transform";
+import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
+
+const IMAGE_HEIGHT = 450;
+
+const getImageUri = (img: any): string => {
+  let imageUrl = "";
+
+  if (Array.isArray(img)) {
+    imageUrl = img[2]?.url || img[1]?.url || img[0]?.url || "";
+  } else if (typeof img === "string") {
+    imageUrl = img;
+  }
+
+  if (imageUrl.includes("150x150")) {
+    imageUrl = imageUrl.replace("150x150", "500x500");
+  } else if (imageUrl.includes("50x50")) {
+    imageUrl = imageUrl.replace("50x50", "500x500");
+  }
+
+  if (
+    imageUrl === "https://static.saavncdn.com/_i/share-image-2.png" ||
+    !imageUrl
+  ) {
+    return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+  }
+
+  return imageUrl;
+};
 
 export default function ArtistScreen() {
   const { id, url } = useLocalSearchParams<{ id: string; url: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
   const scrollY = useSharedValue(0);
 
   const { data: artist, isLoading } = useArtist(id, url);
-  // console.log("artist", JSON.stringify(artist?.topSongs[0], null, 2));
-  const IMAGE_HEIGHT = 450;
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -51,6 +74,7 @@ export default function ArtistScreen() {
       [0, 1],
       Extrapolation.CLAMP,
     );
+
     return {
       opacity,
       backgroundColor: "#050505",
@@ -72,10 +96,18 @@ export default function ArtistScreen() {
       [0, -50],
       Extrapolation.CLAMP,
     );
+
     return {
       transform: [{ scale }, { translateY }],
     };
   });
+
+  const openCatalog = (tab: "songs" | "albums") => {
+    router.push({
+      pathname: "/artist-catalog",
+      params: { id, url, tab },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -88,9 +120,7 @@ export default function ArtistScreen() {
   if (!artist) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={{ color: "#fff", marginBottom: 20, fontSize: 16 }}>
-          Artist details not available
-        </Text>
+        <Text style={styles.errorText}>Artist details not available</Text>
         <Pressable
           onPress={() => router.back()}
           style={[styles.topBarIcon, { backgroundColor: "#333" }]}
@@ -109,13 +139,13 @@ export default function ArtistScreen() {
     {
       id: "top_songs",
       type: "top_songs",
-      title: artist?.modules?.topSongs?.title,
+      title: artist?.modules?.topSongs?.title || "Top songs",
       data: artist?.topSongs || [],
     },
     {
       id: "albums",
       type: "albums",
-      title: artist?.modules?.topAlbums?.title,
+      title: artist?.modules?.topAlbums?.title || "Top albums",
       data: artist?.topAlbums || [],
     },
     {
@@ -151,26 +181,6 @@ export default function ArtistScreen() {
   ];
 
   const renderHeader = () => {
-    const getImageUri = (img: any): string => {
-      let url = "";
-      if (Array.isArray(img)) {
-        url = img[2]?.url || img[1]?.url || img[0]?.url || "";
-      } else if (typeof img === "string") {
-        url = img;
-      }
-
-      if (url.includes("150x150")) {
-        url = url.replace("150x150", "500x500");
-      } else if (url.includes("50x50")) {
-        url = url.replace("50x50", "500x500");
-      }
-
-      if (url === "https://static.saavncdn.com/_i/share-image-2.png" || !url) {
-        return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
-      }
-      return url;
-    };
-
     const artistImage = getImageUri(artist?.image);
 
     return (
@@ -190,18 +200,18 @@ export default function ArtistScreen() {
 
         <View style={styles.infoContainer}>
           <Text style={styles.artistName} numberOfLines={2}>
-            {artist?.name}
+            {decodeHtmlEntities(artist?.name || "")}
           </Text>
 
           <View style={styles.actionsRow}>
-            <Text
-              style={styles.audienceText}
-              className="text-md font-sans-medium"
-            >
+            <Text style={styles.audienceText}>
               {formatPlayCount(artist?.fanCount || artist?.followerCount || 0)}{" "}
               monthly listeners
             </Text>
-            <Pressable style={styles.playButtonCircle}>
+            <Pressable
+              style={styles.playButtonCircle}
+              onPress={() => openCatalog("songs")}
+            >
               <Play size={24} color="#000" fill="#000" />
             </Pressable>
           </View>
@@ -214,7 +224,6 @@ export default function ArtistScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
 
-      {/* Floating Header Icons */}
       <View style={[styles.topBar, { top: insets.top }]}>
         <Pressable onPress={() => router.back()} style={styles.topBarIcon}>
           <ArrowLeft size={24} color="#fff" />
@@ -232,14 +241,9 @@ export default function ArtistScreen() {
         </View>
       </View>
 
-      {/* Sticky Header when scrolled */}
       <Animated.View style={[styles.stickyHeader, headerAnimatedStyle]}>
-        <Text
-          style={styles.stickyHeaderTitle}
-          ellipsizeMode="tail"
-          numberOfLines={1}
-        >
-          {artist?.name}
+        <Text style={styles.stickyHeaderTitle} numberOfLines={1}>
+          {decodeHtmlEntities(artist?.name || "")}
         </Text>
       </Animated.View>
 
@@ -255,26 +259,31 @@ export default function ArtistScreen() {
           if (item.type === "spacer") {
             return <View style={{ height: 20 }} />;
           }
+
           if (item.type === "top_songs") {
             return (
               <View style={styles.sectionWrapper}>
                 <QuickPicksSection
-                  data={item.data as any}
+                  data={(item.data as any)?.slice?.(0, 12) || []}
                   title="Top songs"
                   subtitle=""
+                  onMorePress={() => openCatalog("songs")}
                 />
               </View>
             );
           }
+
           if (item.type === "albums") {
             return (
               <TrendingSection
                 title={item.title}
-                data={item.data as any}
+                data={(item.data as any)?.slice?.(0, 10) || []}
                 type="albums"
+                onMorePress={() => openCatalog("albums")}
               />
             );
           }
+
           if (item.type === "singles") {
             return (
               <TrendingSection
@@ -284,6 +293,7 @@ export default function ArtistScreen() {
               />
             );
           }
+
           if (item.type === "dedicated_artist_playlist") {
             return (
               <TrendingSection
@@ -293,6 +303,7 @@ export default function ArtistScreen() {
               />
             );
           }
+
           if (item.type === "featured_artist_playlist") {
             return (
               <TrendingSection
@@ -302,11 +313,23 @@ export default function ArtistScreen() {
               />
             );
           }
+
+          if (item.type === "latest_release") {
+            return (
+              <TrendingSection
+                title={item.title}
+                data={item.data as any}
+                type="albums"
+              />
+            );
+          }
+
           if (item.type === "recommended_artists") {
             return (
               <RecommendedArtist title={item.title} data={item.data as any} />
             );
           }
+
           return null;
         }}
       />
@@ -324,6 +347,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#050505",
     justifyContent: "center",
     alignItems: "center",
+  },
+  errorText: {
+    color: "#fff",
+    marginBottom: 20,
+    fontSize: 16,
   },
   topBar: {
     position: "absolute",
@@ -356,7 +384,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 110, // Prevent overlap with top bar icons
+    paddingHorizontal: 110,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "rgba(255,255,255,0.1)",
   },
@@ -368,11 +396,9 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     height: 450,
-    // backgroundColor: "red",
   },
   imageContainer: {
     width: "100%",
-    // backgroundColor: "red",
     height: 450,
     position: "absolute",
   },
@@ -409,32 +435,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    // marginTop: 10,
     width: "100%",
-  },
-  leftActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  subscribeButton: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 25,
-  },
-  subscribeText: {
-    color: "#fff",
-    fontSize: 12,
-    fontFamily: "sans-semibold",
-  },
-  iconButtonPill: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    justifyContent: "center",
-    alignItems: "center",
   },
   playButtonCircle: {
     width: 56,
@@ -443,11 +444,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
   },
   sectionWrapper: {
     marginTop: -20,

@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     alignItems: "center",
   },
+
   card: {
     width: ITEM_SIZE - 2,
     height: ITEM_SIZE - 2,
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   activeCard: {
-    borderColor: "#fff", // Or use your primary app color here
+    borderColor: "#ffffffff", // Or use your primary app color here
     shadowColor: "#fff",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,

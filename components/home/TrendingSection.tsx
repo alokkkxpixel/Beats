@@ -11,12 +11,14 @@ interface TrendingSectionProps {
   title?: string;
   data: TopPlaylists[];
   type: string;
+  onMorePress?: () => void;
 }
 
 export default function TrendingSection({
   title,
   data,
   type,
+  onMorePress,
 }: TrendingSectionProps): React.JSX.Element {
   const navigation = useNavigation<any>();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
@@ -270,7 +272,7 @@ export default function TrendingSection({
         <Text style={styles.title} className="font-sans-semibold text-white">
           {title}
         </Text>
-        <Pressable hitSlop={10}>
+        <Pressable hitSlop={10} onPress={onMorePress}>
           <Text style={styles.moreBtn} className="font-sans-medium">
             More
           </Text>

@@ -63,12 +63,14 @@ interface QuickPicksSectionProps {
   data?: SongDetail[];
   title?: string;
   subtitle?: string;
+  onMorePress?: () => void;
 }
 
 export default function QuickPicksSection({
   data,
   title = "Quick picks",
   subtitle = "Start a queue full of your favorites",
+  onMorePress,
 }: QuickPicksSectionProps) {
   const { width: screenWidth } = useWindowDimensions();
   // console.log("quick picks", data);
@@ -132,9 +134,11 @@ export default function QuickPicksSection({
             </Text>
           ) : null}
         </View>
-        <Pressable style={styles.headerActions}>
+        <Pressable style={styles.headerActions} onPress={onMorePress}>
           <View style={styles.playAllButton}>
-            <Text style={styles.playAllText}>Play all</Text>
+            <Text style={styles.playAllText}>
+              {onMorePress ? "More" : "Play all"}
+            </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
         </Pressable>
