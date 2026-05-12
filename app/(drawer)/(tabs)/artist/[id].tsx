@@ -25,8 +25,26 @@ import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
 import { useArtist } from "@/src/hooks/useQueries";
 import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
-
+import { FlashList } from "@shopify/flash-list";
 const IMAGE_HEIGHT = 450;
+const AnimatedFlashList: any = Animated.createAnimatedComponent(
+  FlashList as any,
+);
+
+type ArtistSection = {
+  id: string;
+  type:
+    | "spacer"
+    | "top_songs"
+    | "albums"
+    | "singles"
+    | "dedicated_artist_playlist"
+    | "featured_artist_playlist"
+    | "latest_release"
+    | "recommended_artists";
+  title?: string;
+  data?: any;
+};
 
 const getImageUri = (img: any): string => {
   let imageUrl = "";
@@ -131,7 +149,7 @@ export default function ArtistScreen() {
     );
   }
 
-  const sections = [
+  const sections: ArtistSection[] = [
     {
       id: "header_spacer",
       type: "spacer",
@@ -247,15 +265,16 @@ export default function ArtistScreen() {
         </Text>
       </Animated.View>
 
-      <Animated.FlatList
+      <AnimatedFlashList
         data={sections}
+        estimatedItemSize={260}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         ListHeaderComponent={renderHeader()}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: ArtistSection) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 200 }}
-        renderItem={({ item }) => {
+        renderItem={({ item }: { item: ArtistSection }) => {
           if (item.type === "spacer") {
             return <View style={{ height: 20 }} />;
           }

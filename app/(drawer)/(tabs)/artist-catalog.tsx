@@ -1,4 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import {
   ArrowDownUp,
   ArrowLeft,
@@ -9,7 +11,6 @@ import {
 import React from "react";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -25,7 +26,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useArtist } from "@/src/hooks/useQueries";
+import { useArtistInfinite } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
@@ -50,6 +51,23 @@ const orderTabs: { key: SortOrder; label: string }[] = [
   { key: "desc", label: "Desc" },
   { key: "asc", label: "Asc" },
 ];
+
+const AnimatedFlashList: any = Animated.createAnimatedComponent(
+  FlashList as any,
+);
+
+const mergeUniqueById = <T extends { id: string }>(items: T[]): T[] => {
+  const seen = new Set<string>();
+  const merged: T[] = [];
+
+  for (const item of items) {
+    if (!item?.id || seen.has(item.id)) continue;
+    seen.add(item.id);
+    merged.push(item);
+  }
+
+  return merged;
+};
 
 const getImageUri = (img: any): string => {
   let url = "";
@@ -76,50 +94,159 @@ const getArtistNames = (artists: any) => {
   return names.join(", ");
 };
 
-const FilterPill = ({
-  label,
-  active,
-  onPress,
-  icon,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  icon?: React.ReactNode;
-}) => (
-  <Pressable
-    onPress={onPress}
-    style={[styles.filterPill, active && styles.filterPillActive]}
-  >
-    {icon}
-    <Text
-      style={[styles.filterPillText, active && styles.filterPillTextActive]}
+const FilterPill = React.memo(
+  ({
+    label,
+    active,
+    onPress,
+    icon,
+  }: {
+    label: string;
+    active: boolean;
+    onPress: () => void;
+    icon?: React.ReactNode;
+  }) => (
+    <Pressable
+      onPress={onPress}
+      style={[styles.filterPill, active && styles.filterPillActive]}
     >
-      {label}
-    </Text>
-  </Pressable>
+      {icon}
+      <Text
+        style={[styles.filterPillText, active && styles.filterPillTextActive]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  ),
 );
+FilterPill.displayName = "FilterPill";
 
-const SectionTab = ({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) => (
-  <Pressable onPress={onPress} style={styles.sectionTab}>
-    <Text
-      style={[styles.sectionTabText, active && styles.sectionTabTextActive]}
-    >
-      {label}
-    </Text>
-    <View
-      style={[styles.sectionTabLine, active && styles.sectionTabLineActive]}
-    />
-  </Pressable>
+const SectionTab = React.memo(
+  ({
+    label,
+    active,
+    onPress,
+  }: {
+    label: string;
+    active: boolean;
+    onPress: () => void;
+  }) => (
+    <Pressable onPress={onPress} style={styles.sectionTab}>
+      <Text
+        style={[styles.sectionTabText, active && styles.sectionTabTextActive]}
+      >
+        {label}
+      </Text>
+      <View
+        style={[styles.sectionTabLine, active && styles.sectionTabLineActive]}
+      />
+    </Pressable>
+  ),
 );
+SectionTab.displayName = "SectionTab";
+
+const SongRow = React.memo(
+  ({
+    item,
+    isActive,
+    onPress,
+    onOptionsPress,
+  }: {
+    item: SongType;
+    isActive: boolean;
+    onPress: () => void;
+    onOptionsPress: () => void;
+  }) => {
+    const artistNames = getArtistNames(item.artists);
+    const subtitle = decodeHtmlEntities(
+      item.album?.name || artistNames || item.subtitle || "Single",
+    );
+    const meta = [
+      artistNames,
+      item.playCount ? `${formatPlayCount(item.playCount)} plays` : "",
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    return (
+      <Pressable onPress={onPress} style={[styles.listRow, isActive && styles.activeRow]}>
+        <Image source={{ uri: getImageUri(item.image) }} style={styles.rowArtwork} />
+
+        <View style={styles.rowContent}>
+          <Text style={[styles.rowTitle, isActive && styles.activeTitle]} numberOfLines={1}>
+            {decodeHtmlEntities(item.name || item.title || "")}
+          </Text>
+
+          <View style={styles.rowSubline}>
+            {Boolean(item.explicitContent && item.explicitContent !== "0") && (
+              <View style={styles.explicitBadge}>
+                <Text style={styles.explicitBadgeText}>E</Text>
+              </View>
+            )}
+            <Text style={styles.rowSubtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          </View>
+
+          {!!meta && (
+            <Text style={styles.rowMeta} numberOfLines={1}>
+              {decodeHtmlEntities(meta)}
+            </Text>
+          )}
+        </View>
+
+        <Pressable hitSlop={10} style={styles.rowAction} onPress={onOptionsPress}>
+          <MoreVertical size={20} color="#8b8f98" />
+        </Pressable>
+      </Pressable>
+    );
+  },
+);
+SongRow.displayName = "SongRow";
+
+const AlbumRow = React.memo(
+  ({
+    item,
+    onPress,
+  }: {
+    item: AlbumType;
+    onPress: () => void;
+  }) => {
+    const artistNames = getArtistNames(item.artists);
+    const meta = [
+      item.year || "",
+      item.songCount ? `${item.songCount} songs` : "",
+      item.playCount ? `${formatPlayCount(item.playCount)} plays` : "",
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    return (
+      <Pressable onPress={onPress} style={styles.listRow}>
+        <Image source={{ uri: getImageUri(item.image) }} style={styles.rowArtwork} />
+
+        <View style={styles.rowContent}>
+          <Text style={styles.rowTitle} numberOfLines={1}>
+            {decodeHtmlEntities(item.name || item.title || "")}
+          </Text>
+          <Text style={styles.rowSubtitle} numberOfLines={1}>
+            {decodeHtmlEntities(artistNames || item.subtitle || "Album")}
+          </Text>
+          {!!meta && (
+            <Text style={styles.rowMeta} numberOfLines={1}>
+              {meta}
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.rowAction}>
+          <MoreVertical size={20} color="#8b8f98" />
+        </View>
+      </Pressable>
+    );
+  },
+);
+AlbumRow.displayName = "AlbumRow";
 
 export default function ArtistCatalogScreen() {
   const { id, url, tab } = useLocalSearchParams<{
@@ -146,22 +273,40 @@ export default function ArtistCatalogScreen() {
   const currentTrack = usePlayerStore((state) => state.currentTrack);
 
   const {
-    data: artist,
+    data,
     isLoading,
     isFetching,
-    isPlaceholderData,
-  } = useArtist(id, url, {
-    page: 0,
-    songCount: 30,
-    albumCount: 30,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useArtistInfinite(id, url, {
+    tab: selectedTab,
+    pageSize: 10,
     sortBy: selectedCategory,
     sortOrder,
   });
 
-  const shouldShowResultsLoading = isFetching && isPlaceholderData;
+  const artist = data?.pages?.[0];
+  const shouldShowResultsLoading = isFetching && !isFetchingNextPage;
 
-  const songs = artist?.topSongs || [];
-  const albums = artist?.topAlbums || [];
+  const songs = React.useMemo(() => {
+    const merged = (data?.pages ?? []).flatMap(
+      (page: any) => page?.topSongs ?? [],
+    );
+    return mergeUniqueById<SongType>(merged);
+  }, [data]);
+
+  const albums = React.useMemo(() => {
+    const merged = (data?.pages ?? []).flatMap(
+      (page: any) => page?.topAlbums ?? [],
+    );
+    return mergeUniqueById<AlbumType>(merged);
+  }, [data]);
+
+  const listData = React.useMemo(
+    () => (selectedTab === "songs" ? songs : albums),
+    [selectedTab, songs, albums],
+  );
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -185,217 +330,163 @@ export default function ArtistCatalogScreen() {
     };
   });
 
-  const handleSongPress = async (song: SongType) => {
-    const response = await jioSaavnService.getSongByIdandLink(
-      song.id,
-      song.url || song.perma_url || undefined,
-    );
+  const handleSongPress = React.useCallback(
+    async (song: SongType) => {
+      const response = await jioSaavnService.getSongByIdandLink(
+        song.id,
+        song.url || song.perma_url || undefined,
+      );
 
-    if (response.success && response.data[0]) {
-      setCurrentTrack(response.data[0]);
-    }
-  };
-
-  const handleSongOptions = async (song: SongType) => {
-    const response = await jioSaavnService.getSongByIdandLink(
-      song.id,
-      song.url || song.perma_url || undefined,
-    );
-
-    if (response.success && response.data[0]) {
-      setSelectedSongOption(response.data[0]);
-    } else {
-      setSelectedSongOption(song as any);
-    }
-
-    expandMoreOption();
-  };
-
-  const handleAlbumPress = (album: AlbumType) => {
-    router.push({
-      pathname: "/album-detail",
-      params: {
-        albumId: album.id,
-        albumUrl: album.url,
-      },
-    });
-  };
-
-  const renderSongItem = (item: SongType, index: number) => {
-    const artistNames = getArtistNames(item.artists);
-    const subtitle = decodeHtmlEntities(
-      item.album?.name || artistNames || item.subtitle || "Single",
-    );
-    const meta = [
-      artistNames,
-      item.playCount ? `${formatPlayCount(item.playCount)} plays` : "",
-    ]
-      .filter(Boolean)
-      .join(" • ");
-    const isActive = currentTrack?.id === item.id;
-
-    return (
-      <Pressable
-        key={`${item.id}-${index}`}
-        onPress={() => handleSongPress(item)}
-        style={[styles.listRow, isActive && styles.activeRow]}
-      >
-        <Image
-          source={{ uri: getImageUri(item.image) }}
-          style={styles.rowArtwork}
-        />
-
-        <View style={styles.rowContent}>
-          <Text
-            style={[styles.rowTitle, isActive && styles.activeTitle]}
-            numberOfLines={1}
-          >
-            {decodeHtmlEntities(item.name || item.title || "")}
-          </Text>
-
-          <View style={styles.rowSubline}>
-            {Boolean(item.explicitContent && item.explicitContent !== "0") && (
-              <View style={styles.explicitBadge}>
-                <Text style={styles.explicitBadgeText}>E</Text>
-              </View>
-            )}
-            <Text style={styles.rowSubtitle} numberOfLines={1}>
-              {subtitle}
-            </Text>
-          </View>
-
-          {!!meta && (
-            <Text style={styles.rowMeta} numberOfLines={1}>
-              {decodeHtmlEntities(meta)}
-            </Text>
-          )}
-        </View>
-
-        <Pressable
-          hitSlop={10}
-          style={styles.rowAction}
-          onPress={() => handleSongOptions(item)}
-        >
-          <MoreVertical size={20} color="#8b8f98" />
-        </Pressable>
-      </Pressable>
-    );
-  };
-
-  const renderAlbumItem = (item: AlbumType, index: number) => {
-    const artistNames = getArtistNames(item.artists);
-    const meta = [
-      item.year || "",
-      item.songCount ? `${item.songCount} songs` : "",
-      item.playCount ? `${formatPlayCount(item.playCount)} plays` : "",
-    ]
-      .filter(Boolean)
-      .join(" • ");
-
-    return (
-      <Pressable
-        key={`${item.id}-${index}`}
-        onPress={() => handleAlbumPress(item)}
-        style={styles.listRow}
-      >
-        <Image
-          source={{ uri: getImageUri(item.image) }}
-          style={styles.rowArtwork}
-        />
-
-        <View style={styles.rowContent}>
-          <Text style={styles.rowTitle} numberOfLines={1}>
-            {decodeHtmlEntities(item.name || item.title || "")}
-          </Text>
-          <Text style={styles.rowSubtitle} numberOfLines={1}>
-            {decodeHtmlEntities(artistNames || item.subtitle || "Album")}
-          </Text>
-          {!!meta && (
-            <Text style={styles.rowMeta} numberOfLines={1}>
-              {meta}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.rowAction}>
-          <MoreVertical size={20} color="#8b8f98" />
-        </View>
-      </Pressable>
-    );
-  };
-
-  const renderHeader = () => (
-    <View>
-      <View style={styles.compactHeader}>
-        <Text style={styles.artistName} numberOfLines={2}>
-          {decodeHtmlEntities(artist?.name || "")}
-        </Text>
-      </View>
-
-      <View style={styles.controlsBlock}>
-        <View style={styles.sectionTabsRow}>
-          {catalogTabs.map((catalogTab) => (
-            <SectionTab
-              key={catalogTab.key}
-              label={catalogTab.label}
-              active={selectedTab === catalogTab.key}
-              onPress={() =>
-                startTransition(() => setSelectedTab(catalogTab.key))
-              }
-            />
-          ))}
-        </View>
-
-        <View style={styles.filtersRow}>
-          {categoryTabs.map((categoryTab) => (
-            <FilterPill
-              key={categoryTab.key}
-              label={categoryTab.label}
-              active={selectedCategory === categoryTab.key}
-              onPress={() =>
-                startTransition(() => setSelectedCategory(categoryTab.key))
-              }
-            />
-          ))}
-        </View>
-
-        <View style={styles.filtersRow}>
-          {orderTabs.map((orderTab) => (
-            <FilterPill
-              key={orderTab.key}
-              label={orderTab.label}
-              active={sortOrder === orderTab.key}
-              onPress={() =>
-                startTransition(() => setSortOrder(orderTab.key))
-              }
-              icon={
-                orderTab.key === sortOrder ? (
-                  <ArrowDownUp
-                    size={14}
-                    color={sortOrder === orderTab.key ? "#050505" : "#c4c7d0"}
-                  />
-                ) : undefined
-              }
-            />
-          ))}
-        </View>
-
-        <View style={styles.resultsHeader}>
-          <Text style={styles.resultsTitle}>
-            Top {selectedTab === "songs" ? "Songs" : "Albums"}
-          </Text>
-          <Text style={styles.resultsSubtitle}>
-            {selectedCategory} • {sortOrder}
-          </Text>
-        </View>
-      </View>
-    </View>
+      if (response.success && response.data[0]) {
+        setCurrentTrack(response.data[0]);
+      }
+    },
+    [setCurrentTrack],
   );
 
-  const selectedContent =
-    selectedTab === "songs"
-      ? songs.map((song, index) => renderSongItem(song, index))
-      : albums.map((album, index) => renderAlbumItem(album, index));
+  const handleSongOptions = React.useCallback(
+    async (song: SongType) => {
+      const response = await jioSaavnService.getSongByIdandLink(
+        song.id,
+        song.url || song.perma_url || undefined,
+      );
+
+      if (response.success && response.data[0]) {
+        setSelectedSongOption(response.data[0]);
+      } else {
+        setSelectedSongOption(song as any);
+      }
+
+      expandMoreOption();
+    },
+    [expandMoreOption, setSelectedSongOption],
+  );
+
+  const handleAlbumPress = React.useCallback(
+    (album: AlbumType) => {
+      router.push({
+        pathname: "/album-detail",
+        params: {
+          albumId: album.id,
+          albumUrl: album.url,
+        },
+      });
+    },
+    [router],
+  );
+
+  const renderSongItem = React.useCallback(
+    (item: SongType) => {
+      const isActive = currentTrack?.id === item.id;
+
+      return (
+        <SongRow
+          item={item}
+          isActive={isActive}
+          onPress={() => handleSongPress(item)}
+          onOptionsPress={() => handleSongOptions(item)}
+        />
+      );
+    },
+    [currentTrack?.id, handleSongOptions, handleSongPress],
+  );
+
+  const renderAlbumItem = React.useCallback(
+    (item: AlbumType) => {
+      return <AlbumRow item={item} onPress={() => handleAlbumPress(item)} />;
+    },
+    [handleAlbumPress],
+  );
+
+  const renderHeader = React.useMemo(
+    () => (
+      <View>
+        <View style={styles.compactHeader}>
+          <Text style={styles.artistName} numberOfLines={2}>
+            {decodeHtmlEntities(artist?.name || "")}
+          </Text>
+        </View>
+
+        <View style={styles.controlsBlock}>
+          <View style={styles.sectionTabsRow}>
+            {catalogTabs.map((catalogTab) => (
+              <SectionTab
+                key={catalogTab.key}
+                label={catalogTab.label}
+                active={selectedTab === catalogTab.key}
+                onPress={() =>
+                  startTransition(() => setSelectedTab(catalogTab.key))
+                }
+              />
+            ))}
+          </View>
+
+          <View style={styles.filtersRow}>
+            {categoryTabs.map((categoryTab) => (
+              <FilterPill
+                key={categoryTab.key}
+                label={categoryTab.label}
+                active={selectedCategory === categoryTab.key}
+                onPress={() =>
+                  startTransition(() => setSelectedCategory(categoryTab.key))
+                }
+              />
+            ))}
+          </View>
+
+          <View style={styles.filtersRow}>
+            {orderTabs.map((orderTab) => (
+              <FilterPill
+                key={orderTab.key}
+                label={orderTab.label}
+                active={sortOrder === orderTab.key}
+                onPress={() =>
+                  startTransition(() => setSortOrder(orderTab.key))
+                }
+                icon={
+                  orderTab.key === sortOrder ? (
+                    <ArrowDownUp
+                      size={14}
+                      color={sortOrder === orderTab.key ? "#050505" : "#c4c7d0"}
+                    />
+                  ) : undefined
+                }
+              />
+            ))}
+          </View>
+
+          <View style={styles.resultsHeader}>
+            <Text style={styles.resultsTitle}>
+              Top {selectedTab === "songs" ? "Songs" : "Albums"}
+            </Text>
+            <Text style={styles.resultsSubtitle}>
+              {selectedCategory} • {sortOrder}
+            </Text>
+          </View>
+        </View>
+      </View>
+    ),
+    [artist?.name, selectedCategory, selectedTab, sortOrder, startTransition],
+  );
+
+  const handleEndReached = React.useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const keyExtractor = React.useCallback(
+    (item: SongType | AlbumType) => item.id,
+    [],
+  );
+
+  const renderListItem = React.useCallback(
+    ({ item }: { item: SongType | AlbumType }) =>
+      selectedTab === "songs"
+        ? renderSongItem(item as SongType)
+        : renderAlbumItem(item as AlbumType),
+    [renderAlbumItem, renderSongItem, selectedTab],
+  );
 
   if (isLoading && !artist) {
     return (
@@ -447,24 +538,30 @@ export default function ArtistCatalogScreen() {
         </Text>
       </Animated.View>
 
-      <Animated.ScrollView
+      <AnimatedFlashList
+        data={listData}
+        estimatedItemSize={74}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-      >
-        {renderHeader()}
-
-        {shouldShowResultsLoading && (
-          <View style={styles.resultsLoadingRow}>
-            <ActivityIndicator color="#fff" size="small" />
-            <Text style={styles.resultsLoadingText}>Updating list...</Text>
-          </View>
-        )}
-
-        {selectedContent.length ? (
-          selectedContent
-        ) : (
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.3}
+        keyExtractor={keyExtractor}
+        getItemType={() => (selectedTab === "songs" ? "song" : "album")}
+        removeClippedSubviews={true}
+        ListHeaderComponent={
+          <>
+            {renderHeader}
+            {shouldShowResultsLoading && (
+              <View style={styles.resultsLoadingRow}>
+                <ActivityIndicator color="#fff" size="small" />
+                <Text style={styles.resultsLoadingText}>Updating list...</Text>
+              </View>
+            )}
+          </>
+        }
+        ListEmptyComponent={
           <View style={styles.emptyState}>
             {isFetching ? (
               <ActivityIndicator color="#fff" />
@@ -479,8 +576,19 @@ export default function ArtistCatalogScreen() {
               </>
             )}
           </View>
-        )}
-      </Animated.ScrollView>
+        }
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={styles.paginationLoader}>
+              <ActivityIndicator color="#fff" size="small" />
+              <Text style={styles.paginationLoaderText}>Loading more...</Text>
+            </View>
+          ) : (
+            <View style={{ height: 24 }} />
+          )
+        }
+        renderItem={renderListItem}
+      />
     </View>
   );
 }
@@ -644,18 +752,6 @@ const styles = StyleSheet.create({
   activeRow: {
     backgroundColor: "#0f1014",
   },
-  rowIndex: {
-    width: 20,
-    alignItems: "center",
-  },
-  rowIndexText: {
-    color: "#737882",
-    fontSize: 13,
-    fontFamily: "sans-medium",
-  },
-  activeIndexText: {
-    color: "#fff",
-  },
   rowContent: {
     flex: 1,
     gap: 4,
@@ -748,18 +844,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "sans-medium",
   },
-  inlineLoadingCard: {
+  paginationLoader: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: "rgba(18,18,20,0.92)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    paddingVertical: 18,
   },
-  inlineLoadingText: {
+  paginationLoaderText: {
     color: "#fff",
     fontSize: 13,
     fontFamily: "sans-medium",

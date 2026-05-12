@@ -38,33 +38,33 @@ const chunkData = (data: Lists[] | null, size: number) => {
   return chunks;
 };
 
+// Fix #10: Separate component so hooks aren't called inside map()
+const PaginationDot = ({ index, scrollX }: { index: number; scrollX: any }) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const dotWidth = interpolate(
+      scrollX.value / PAGE_WIDTH,
+      [index - 1, index, index + 1],
+      [8, 20, 8],
+      Extrapolation.CLAMP,
+    );
+    const opacity = interpolate(
+      scrollX.value / PAGE_WIDTH,
+      [index - 1, index, index + 1],
+      [0.4, 1, 0.4],
+      Extrapolation.CLAMP,
+    );
+    return { width: dotWidth, opacity };
+  });
+
+  return <Animated.View style={[styles.paginationDot, animatedStyle]} />;
+};
+
 const Pagination = ({ data, scrollX }: { data: any[]; scrollX: any }) => {
   return (
     <View style={styles.paginationContainer}>
-      {data.map((_, i) => {
-        const animatedStyle = useAnimatedStyle(() => {
-          const width = interpolate(
-            scrollX.value / PAGE_WIDTH,
-            [i - 1, i, i + 1],
-            [8, 20, 8],
-            Extrapolation.CLAMP,
-          );
-          const opacity = interpolate(
-            scrollX.value / PAGE_WIDTH,
-            [i - 1, i, i + 1],
-            [0.4, 1, 0.4],
-            Extrapolation.CLAMP,
-          );
-          return { width, opacity };
-        });
-
-        return (
-          <Animated.View
-            key={i}
-            style={[styles.paginationDot, animatedStyle]}
-          />
-        );
-      })}
+      {data.map((_, i) => (
+        <PaginationDot key={i} index={i} scrollX={scrollX} />
+      ))}
     </View>
   );
 };
@@ -168,13 +168,13 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
                   >
                     <Image
                       source={{
-                        uri: item.image.replace("150x150", "500x500"),
+                        uri: item.image,
                       }}
                       style={styles.image}
                     />
-                    <LinearGradient
-                      colors={["transparent", "rgba(0, 0, 0, 0.6)"]}
-                      style={StyleSheet.absoluteFill}
+                    {/* Fix #6: Lightweight overlay instead of LinearGradient */}
+                    <View
+                      style={[StyleSheet.absoluteFill, styles.tileOverlay]}
                     />
                     <Text
                       style={styles.itemTitle}
@@ -277,5 +277,8 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: "white",
+  },
+  tileOverlay: {
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
 });

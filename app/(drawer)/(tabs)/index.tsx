@@ -6,11 +6,11 @@ import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   ActivityIndicator,
-  Image as RNImage,
   StatusBar,
   StyleSheet,
   View,
@@ -122,8 +122,8 @@ export default function Index() {
     );
   }
 
-  // Map home data to flat list items
-  const sections = [
+  // Fix #12: Memoize sections to prevent FlashList re-diffing
+  const sections = React.useMemo(() => [
     {
       id: "quick",
       title: "Quick Picks",
@@ -190,7 +190,7 @@ export default function Index() {
       type: "promo:vx:data:69",
       data: data?.["promo:vx:data:69"].data,
     },
-  ];
+  ], [data, SpecialForYouData]);
 
   return (
     <View style={[styles.container, { backgroundColor: "#000" }]}>
@@ -203,10 +203,10 @@ export default function Index() {
           { backgroundColor: "#050505" },
         ]}
       >
-        <RNImage
+        <Image
           source={bgImage}
           style={{ width: "100%", height: 550, position: "absolute", top: 0 }}
-          resizeMode="cover"
+          contentFit="cover"
           blurRadius={0}
         />
         <LinearGradient

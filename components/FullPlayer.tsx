@@ -1,9 +1,9 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import React, { useEffect, useRef } from "react";
+import { Image } from "expo-image";
+import React, { useCallback, useEffect } from "react";
 import {
   Dimensions,
   Pressable,
-  Image as RNImage,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,8 +33,18 @@ import {
   useOnPlaybackProgressChange,
   useOnPlaybackStateChange,
 } from "react-native-nitro-player";
+import { formatDuration } from "../src/utils/transform";
 
 const { width } = Dimensions.get("window");
+
+// ─── FIX #1: Module-level util — not recreated on every render ───────────────
+const formatTime = (secs: number) => {
+  const mins = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${mins}:${s < 10 ? "0" : ""}${s}`;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const FullPlayer = ({
   handleCloseSheet,
@@ -60,24 +70,37 @@ const FullPlayer = ({
     originalSong?.subtitle ||
     "Unknown Artist";
 
-  // Control handlers
-  const togglePlay = async () => {
+  // ─── FIX #2: Only subscribe to what FullPlayer actually needs ─────────────
+  // Removed: position, duration (now only in ProgressSection)
+  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  const isShuffleEnabled = usePlayerStore((s) => s.isShuffleEnabled);
+  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
+  const expandQueue = usePlayerStore((s) => s.expandQueue);
+  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    setRepeatMode(TrackPlayer.getRepeatMode());
+  }, []);
+
+  // ─── FIX #3: useCallback for all handlers — stable refs, no child re-renders
+  const togglePlay = useCallback(async () => {
     if (isPlaying) {
       await TrackPlayer.pause();
     } else {
       await TrackPlayer.play();
     }
-  };
+  }, [isPlaying]);
 
-  const next = async () => {
+  const next = useCallback(async () => {
     await TrackPlayer.skipToNext();
-  };
+  }, []);
 
-  const previous = async () => {
+  const previous = useCallback(async () => {
     await TrackPlayer.skipToPrevious();
-  };
+  }, []);
 
-  const cycleRepeatMode = async () => {
+  const cycleRepeatMode = useCallback(async () => {
     const currentMode = TrackPlayer.getRepeatMode();
     const nextMode: RepeatMode =
       currentMode === "off"
@@ -85,67 +108,32 @@ const FullPlayer = ({
         : currentMode === "Playlist"
           ? "track"
           : "off";
-
     await TrackPlayer.setRepeatMode(nextMode);
     setRepeatMode(nextMode);
-  };
-
-  const router = useRouter();
-  const position = usePlayerStore((s) => s.position);
-  const duration = usePlayerStore((s) => s.duration);
-  const isDraggingState = usePlayerStore((s) => s.isDragging);
-  const setIsDragging = usePlayerStore((s) => s.setIsDragging);
-
-  const lastSeekTime = useRef(0);
-  const [scrubProgress, setScrubProgress] = React.useState(0);
-
-  // UI state from store (for menu controls)
-  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
-  const isShuffleEnabled = usePlayerStore((s) => s.isShuffleEnabled);
-  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-  const expandQueue = usePlayerStore((s) => s.expandQueue);
-  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
-
-  const seek = async (pos: number) => {
-    await TrackPlayer.seek(pos);
-    lastSeekTime.current = Date.now();
-  };
-
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${mins}:${s < 10 ? "0" : ""}${s}`;
-  };
-
-  useEffect(() => {
-    setRepeatMode(TrackPlayer.getRepeatMode());
   }, []);
 
-  if (!currentTrack) {
-    return null;
-  }
+  const router = useRouter();
 
-  const trackImage =
-    originalSong?.image?.[2]?.url ||
-    currentTrack.artwork ||
-    originalSong?.image?.[0]?.url;
+  // ─── FIX #3 cont: useCallback for navigation and image helpers ────────────
+  const navigateToArtist = useCallback(
+    (artist: any) => {
+      if (artist?.id) {
+        handleCloseSheet();
+        router.push({
+          pathname: "/artist/[id]",
+          params: { id: artist.id, url: artist.url || artist.perma_url },
+        });
+      }
+    },
+    [handleCloseSheet, router],
+  );
 
-  const navigateToArtist = (artist: any) => {
-    if (artist?.id) {
-      handleCloseSheet();
-      router.push({
-        pathname: "/artist/[id]",
-        params: { id: artist.id, url: artist.url || artist.perma_url },
-      });
-    }
-  };
-
-  const handleArtistPress = () => {
+  const handleArtistPress = useCallback(() => {
     const artist = originalSong?.artists?.primary?.[0];
     navigateToArtist(artist);
-  };
+  }, [originalSong, navigateToArtist]);
 
-  const getArtistImage = () => {
+  const getArtistImage = useCallback(() => {
     const rawImage = originalSong?.artists?.primary?.[0]?.image;
     let url = "";
 
@@ -163,7 +151,17 @@ const FullPlayer = ({
       return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
     }
     return url;
-  };
+  }, [originalSong]);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (!currentTrack) {
+    return null;
+  }
+
+  const trackImage =
+    originalSong?.image?.[2]?.url ||
+    currentTrack.artwork ||
+    originalSong?.image?.[0]?.url;
 
   const label = originalSong?.label;
   const copyright = originalSong?.copyright;
@@ -179,33 +177,10 @@ const FullPlayer = ({
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {/* Top Blurred Backdrop */}
-      <View
-        style={{
-          height: height + 1500,
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-        }}
-      >
-        <RNImage
-          source={{ uri: trackImage }}
-          style={StyleSheet.absoluteFill}
-          blurRadius={10}
-        />
-        <LinearGradient
-          colors={[
-            "rgba(5,5,5,0.2)",
-            "rgba(5,5,5,0.8)",
-            "rgba(5,5,5,0.9)",
-            "#050505",
-          ]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
+      {/* FIX #4: Memoized blurred backdrop — expensive blur never re-renders */}
+      <BlurredBackground imageUri={trackImage} height={height} />
       <ScrollView
-        style={[styles.container, { backgroundColor: "transparent" }]} // Fallback or dynamic bg
+        style={[styles.container, { backgroundColor: "transparent" }]}
         bounces={true}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -213,7 +188,7 @@ const FullPlayer = ({
         {/* --- Header --- */}
         <View style={styles.header}>
           <Pressable
-            onPress={() => handleCloseSheet()}
+            onPress={handleCloseSheet}
             style={styles.headerIconButton}
             hitSlop={20}
           >
@@ -233,7 +208,7 @@ const FullPlayer = ({
           <Pressable
             style={styles.headerIconButton}
             onPress={() => {
-              setSelectedSongOption(null); // ✅ clear old list selection
+              setSelectedSongOption(null);
               expandMoreOption();
             }}
             hitSlop={20}
@@ -241,10 +216,16 @@ const FullPlayer = ({
             <Ionicons name="ellipsis-horizontal" size={24} color="white" />
           </Pressable>
         </View>
+
         {/* --- Album Artwork --- */}
         <View style={styles.artWrapper}>
-          <RNImage source={{ uri: trackImage }} style={styles.mainArt} />
+          <Image
+            source={{ uri: trackImage }}
+            style={styles.mainArt}
+            contentFit="cover"
+          />
         </View>
+
         {/* --- Track Info --- */}
         <View style={styles.trackInfo}>
           <View style={styles.titleContainer}>
@@ -259,50 +240,35 @@ const FullPlayer = ({
           </View>
           <Ionicons name="heart-outline" size={28} color="white" />
         </View>
-        {/* --- Progress Bar --- */}
-        <PlayerProgressBar
-          duration={duration}
-          position={position}
-          isDraggingState={isDraggingState}
-          setIsDragging={setIsDragging}
-          setScrubProgress={setScrubProgress}
-          seek={seek}
-          windowWidth={windowWidth}
-        />
 
-        <View style={styles.progressArea}>
-          <View style={styles.timeRow}>
-            <Text style={styles.timeText}>
-              {formatTime(
-                isDraggingState ? (scrubProgress / 100) * duration : position,
-              )}
-            </Text>
-            <Text style={styles.timeText}>{formatTime(duration)}</Text>
-          </View>
-        </View>
+        {/* --- FIX #5: ProgressSection is fully self-contained ─────────────────
+            Parent FullPlayer no longer subscribes to position/duration at all.
+            All per-second re-renders are isolated inside ProgressSection only. */}
+        <ProgressSection windowWidth={windowWidth} />
+
         {/* --- Main Controls --- */}
         <View style={styles.mainControls}>
-          <Pressable onPress={() => toggleShuffle()} hitSlop={12}>
+          <Pressable onPress={toggleShuffle} hitSlop={12}>
             <Ionicons
               name="shuffle"
               size={24}
               color={isShuffleEnabled ? "#1DB954" : "#A3A3A3"}
             />
           </Pressable>
-          <Pressable onPress={() => previous()}>
+          <Pressable onPress={previous}>
             <Ionicons name="play-skip-back" size={38} color="white" />
           </Pressable>
-          <Pressable style={styles.playButton} onPress={() => togglePlay()}>
+          <Pressable style={styles.playButton} onPress={togglePlay}>
             <Ionicons
               name={isPlaying ? "pause" : "play"}
               size={40}
               color="black"
             />
           </Pressable>
-          <Pressable onPress={() => next()}>
+          <Pressable onPress={next}>
             <Ionicons name="play-skip-forward" size={38} color="white" />
           </Pressable>
-          <Pressable onPress={() => cycleRepeatMode()} hitSlop={12}>
+          <Pressable onPress={cycleRepeatMode} hitSlop={12}>
             <MaterialIcons
               name={repeatIconName}
               size={24}
@@ -310,6 +276,7 @@ const FullPlayer = ({
             />
           </Pressable>
         </View>
+
         {/* --- Footer Controls --- */}
         <View style={styles.footerControls}>
           <View style={styles.deviceIndicator}>
@@ -323,27 +290,19 @@ const FullPlayer = ({
               color="white"
               style={{ marginRight: 25 }}
             />
-            <Pressable
-              onPress={() => {
-                expandQueue();
-              }}
-            >
+            <Pressable onPress={expandQueue}>
               <MaterialIcons name="playlist-play" size={28} color="white" />
             </Pressable>
           </View>
         </View>
-        {/* Lyrics & Artist - (Kept for aesthetics, can be made dynamic later) */}
-        {/* <View style={styles.lyricsCard}>
-          <Text style={styles.lyricsTitle}>Lyrics</Text>
-          <Text style={styles.lyricsPreview}>Lyrics coming soon...</Text>
-        </View> */}
+
+        {/* --- Artist Card --- */}
         <Pressable style={styles.artistCard} onPress={handleArtistPress}>
           <View style={styles.artistHeader}>
-            <RNImage
-              source={{
-                uri: getArtistImage(),
-              }}
+            <Image
+              source={{ uri: getArtistImage() }}
               style={styles.artistPhoto}
+              contentFit="cover"
             />
             <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
           </View>
@@ -352,26 +311,22 @@ const FullPlayer = ({
             <Text style={styles.artistDescription}>{bioDisplayText}</Text>
           </View>
         </Pressable>
+
         {/* --- Credits Section --- */}
         <View style={styles.creditsCard}>
-          {/* Header */}
           <View>
             <Text style={styles.creditsTitle}>Credits</Text>
           </View>
-
-          {/* Credits List */}
           <View>
+            {/* FIX #6: key only on outermost element — removed duplicate key on inner View */}
             {originalSong?.artists?.primary?.map((item: any, index: number) => (
               <Pressable
-                key={index}
+                key={`primary-${item.id ?? index}`}
                 onPress={() => {
-                  item.id ? navigateToArtist(item) : () => {};
+                  if (item.id) navigateToArtist(item);
                 }}
               >
-                <View
-                  key={index}
-                  className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0"
-                >
+                <View className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0">
                   <View className="flex-1 pr-3">
                     <Text className="text-white text-sm font-semibold">
                       {item.name}
@@ -380,10 +335,9 @@ const FullPlayer = ({
                       {item.role.split("_").join(" ")}
                     </Text>
                   </View>
-
                   <TouchableOpacity
                     onPress={() => {
-                      item.id ? navigateToArtist(item) : () => {};
+                      if (item.id) navigateToArtist(item);
                     }}
                     className="border border-gray-500 px-3 py-1 rounded-full"
                   >
@@ -395,9 +349,9 @@ const FullPlayer = ({
             {originalSong?.artists?.featured?.map(
               (item: any, index: number) => (
                 <Pressable
-                  key={index}
+                  key={`featured-${item.id ?? index}`}
                   onPress={() => {
-                    item?.id ? navigateToArtist(item) : () => {};
+                    if (item?.id) navigateToArtist(item);
                   }}
                 >
                   <View className="flex-row justify-between items-start py-3 border-b border-gray-700 last:border-b-0">
@@ -409,10 +363,9 @@ const FullPlayer = ({
                         {item.role.split("_").join(" ")}
                       </Text>
                     </View>
-
                     <TouchableOpacity
                       onPress={() => {
-                        item.id ? navigateToArtist(item) : () => {};
+                        if (item.id) navigateToArtist(item);
                       }}
                       className="border border-gray-500 px-3 py-1 rounded-full"
                     >
@@ -428,6 +381,161 @@ const FullPlayer = ({
     </GestureHandlerRootView>
   );
 };
+
+// ─── FIX #4: Memoized blurred backdrop ────────────────────────────────────────
+// React.memo with custom comparator — only re-renders when imageUri actually changes.
+// The expensive blur + gradient never fires on playback state changes.
+const BlurredBackground = React.memo(
+  ({ imageUri, height }: { imageUri: string; height: number }) => (
+    <View
+      style={{
+        height: height + 100,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+      }}
+    >
+      <Image
+        source={{ uri: imageUri }}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        blurRadius={10}
+        cachePolicy="memory-disk"
+      />
+      <LinearGradient
+        colors={[
+          "rgba(5,5,5,0.2)",
+          "rgba(5,5,5,0.8)",
+          "rgba(5,5,5,0.9)",
+          "#050505",
+        ]}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  ),
+  (prev, next) =>
+    prev.imageUri === next.imageUri && prev.height === next.height,
+);
+
+// ─── FIX #5: Self-contained ProgressSection ───────────────────────────────────
+// Single source of truth: useOnPlaybackProgressChange() from Nitro Player only.
+// Removed the redundant Zustand position/duration subscription that was causing
+// double re-renders (once from the native hook, once from the store update).
+// formatTime is a module-level function — not recreated each render.
+const ProgressSection = React.memo(
+  ({ windowWidth }: { windowWidth: number }) => {
+    // ── Single subscription: native hook only ────────────────────────────────
+    const progressData = useOnPlaybackProgressChange();
+    const position = progressData?.position ?? 0;
+    const duration = progressData?.totalDuration ?? 0;
+
+    // Dragging state stays local — no reason to put it in Zustand
+    const isDragging = useSharedValue(false);
+    const [isDraggingJS, setIsDraggingJS] = React.useState(false);
+    const [scrubPosition, setScrubPosition] = React.useState(0);
+
+    const progress = useSharedValue(0);
+
+    // Sync shared value from native progress, only when not dragging
+    useEffect(() => {
+      if (!isDraggingJS && duration > 0) {
+        progress.value = (position / duration) * 100;
+      }
+    }, [position, duration, isDraggingJS]);
+
+    const TRACK_WIDTH = windowWidth - 40;
+
+    const seek = useCallback(async (pos: number) => {
+      await TrackPlayer.seek(pos);
+    }, []);
+
+    const gesture = React.useMemo(
+      () =>
+        Gesture.Pan()
+          .onStart(() => {
+            isDragging.value = true;
+            runOnJS(setIsDraggingJS)(true);
+          })
+          .onUpdate((event) => {
+            const newProgress = Math.min(
+              100,
+              Math.max(0, (event.x / TRACK_WIDTH) * 100),
+            );
+            progress.value = newProgress;
+            runOnJS(setScrubPosition)(newProgress);
+          })
+          .onEnd(() => {
+            isDragging.value = false;
+            runOnJS(setIsDraggingJS)(false);
+            const newPosition = (progress.value / 100) * duration;
+            runOnJS(seek)(newPosition);
+          }),
+      [TRACK_WIDTH, duration, seek],
+    );
+
+    const animatedFillStyle = useAnimatedStyle(() => ({
+      width: `${progress.value}%`,
+    }));
+
+    const animatedKnobStyle = useAnimatedStyle(() => ({
+      left: `${progress.value}%`,
+      transform: [
+        { translateX: -8 },
+        { scale: withSpring(isDragging.value ? 1.5 : 1) },
+      ],
+    }));
+
+    const animatedTrackStyle = useAnimatedStyle(() => ({
+      height: withSpring(isDragging.value ? 6 : 4),
+    }));
+
+    const displayPosition = isDraggingJS
+      ? (scrubPosition / 100) * duration
+      : position;
+
+    return (
+      <>
+        <View className="px-8 mt-5">
+          <GestureDetector gesture={gesture}>
+            <Animated.View
+              style={animatedTrackStyle}
+              className="w-full rounded-full bg-zinc-500 justify-center"
+            >
+              <Animated.View
+                style={animatedFillStyle}
+                className="h-full rounded-full bg-white"
+              />
+              <Animated.View
+                style={animatedKnobStyle}
+                className="absolute w-4 h-4 rounded-full bg-white"
+              />
+            </Animated.View>
+          </GestureDetector>
+        </View>
+        {/* FIX #5 cont: TimeDisplay is a separate memo'd child ────────────────
+            The time strings update every second but only this tiny component
+            re-renders — not the whole ProgressSection. */}
+        <TimeDisplay position={displayPosition} duration={duration} />
+      </>
+    );
+  },
+);
+
+// ─── FIX #5 cont: Isolated time display ──────────────────────────────────────
+// Receives pre-computed values as props so it only re-renders when they change.
+// Previously this lived inline inside ProgressSection (line 736-742) and also
+// had a broken duplicate at line 377-391 that caused a compile error.
+const TimeDisplay = React.memo(
+  ({ position, duration }: { position: number; duration: number }) => (
+    <View style={styles.progressArea}>
+      <View style={styles.timeRow}>
+        <Text style={styles.timeText}>{formatTime(position)}</Text>
+        <Text style={styles.timeText}>{formatTime(duration)}</Text>
+      </View>
+    </View>
+  ),
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -640,107 +748,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
-
-const PlayerProgressBar = React.memo(
-  ({
-    duration,
-    position,
-    isDraggingState,
-    setIsDragging,
-    setScrubProgress,
-    seek,
-    windowWidth,
-  }: any) => {
-    const progress = useSharedValue(0);
-    const isDraggingShared = useSharedValue(false);
-    const progressData = useOnPlaybackProgressChange();
-
-    useEffect(() => {
-      if (!isDraggingState) {
-        const currentPos = progressData?.position ?? position;
-        const totalDur = duration || 1;
-
-        progress.value = (currentPos / totalDur) * 100;
-      }
-    }, [progressData.position, position, duration, isDraggingState]);
-
-    const TRACK_WIDTH = windowWidth - 40;
-
-    const onEnd = (finalProgress: number) => {
-      const newPosition = (finalProgress / 100) * duration;
-      seek(newPosition);
-    };
-
-    const gesture = React.useMemo(
-      () =>
-        Gesture.Pan()
-          .onStart(() => {
-            isDraggingShared.value = true;
-            runOnJS(setIsDragging)(true);
-          })
-          .onUpdate((event) => {
-            const newProgress = Math.min(
-              100,
-              Math.max(0, (event.x / TRACK_WIDTH) * 100),
-            );
-
-            progress.value = newProgress;
-
-            runOnJS(setScrubProgress)(newProgress);
-          })
-          .onEnd(() => {
-            isDraggingShared.value = false;
-
-            runOnJS(setIsDragging)(false);
-
-            runOnJS(onEnd)(progress.value);
-          }),
-      [TRACK_WIDTH, duration],
-    );
-
-    const animatedFillStyle = useAnimatedStyle(() => ({
-      width: `${progress.value}%`,
-    }));
-
-    const animatedKnobStyle = useAnimatedStyle(() => ({
-      left: `${progress.value}%`,
-      transform: [
-        {
-          translateX: -8,
-        },
-        {
-          scale: withSpring(isDraggingShared.value ? 1.5 : 1),
-        },
-      ],
-    }));
-
-    const animatedTrackStyle = useAnimatedStyle(() => ({
-      height: withSpring(isDraggingShared.value ? 6 : 4),
-    }));
-
-    return (
-      <View className="px-8  mt-5">
-        <GestureDetector gesture={gesture}>
-          <Animated.View
-            style={animatedTrackStyle}
-            className="w-full rounded-full bg-zinc-500 justify-center"
-          >
-            {/* active fill */}
-            <Animated.View
-              style={animatedFillStyle}
-              className="h-full rounded-full  bg-white "
-            />
-
-            {/* thumb */}
-            <Animated.View
-              style={animatedKnobStyle}
-              className="absolute w-4 h-4 rounded-full bg-white"
-            />
-          </Animated.View>
-        </GestureDetector>
-      </View>
-    );
-  },
-);
 
 export default FullPlayer;

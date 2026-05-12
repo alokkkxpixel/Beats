@@ -16,7 +16,6 @@ import {
 import React from "react";
 import {
   ActivityIndicator,
-  Image as RNImage,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -210,9 +209,10 @@ const AlbumDetailScreen = ({
       <View
         style={{ height: 450, position: "absolute", top: 0, left: 0, right: 0 }}
       >
-        <RNImage
+        <Image
           source={{ uri: highResCover }}
           style={StyleSheet.absoluteFill}
+          contentFit="cover"
           blurRadius={30}
         />
         <LinearGradient

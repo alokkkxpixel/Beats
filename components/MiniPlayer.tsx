@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
@@ -12,8 +13,6 @@ export default function MiniPlayer() {
   
   // Use specific selectors to minimize re-renders
   const storeTrack = usePlayerStore((s) => s.currentTrack);
-  const position = usePlayerStore((s) => s.position);
-  const duration = usePlayerStore((s) => s.duration);
   
   const currentTrack = nowPlaying.currentTrack || storeTrack;
   const originalSong = (currentTrack as any)?.extraPayload?.song || currentTrack;
@@ -44,7 +43,7 @@ export default function MiniPlayer() {
     <View style={styles.miniContainer}>
       <View style={styles.miniContent}>
         {trackImage ? (
-          <Image source={{ uri: trackImage }} style={styles.miniArt} />
+          <Image source={{ uri: trackImage }} style={styles.miniArt} contentFit="cover" />
         ) : (
           <View
             style={[
@@ -84,26 +83,25 @@ export default function MiniPlayer() {
       {/* isolated Progress bar at the very top of the mini player */}
       <MiniProgressBar 
         isLoaded={isLoaded} 
-        duration={duration} 
-        storePosition={position} 
       />
     </View>
   );
 }
 
-const MiniProgressBar = React.memo(({ isLoaded, duration, storePosition }: any) => {
+// Fix #8: Self-contained — reads its own progress data so MiniPlayer parent doesn't re-render every second
+const MiniProgressBar = React.memo(({ isLoaded }: { isLoaded: boolean }) => {
   const progressData = useOnPlaybackProgressChange();
+  const duration = usePlayerStore((s) => s.duration);
   const progressValue = useSharedValue(0);
   
   React.useEffect(() => {
     if (isLoaded && duration > 0) {
-      // Use high-frequency progress if available, otherwise fallback to store
-      const currentPos = progressData?.position ?? storePosition;
+      const currentPos = progressData?.position ?? 0;
       progressValue.value = withTiming((currentPos / duration) * 100, { duration: 250 });
     } else {
       progressValue.value = 0;
     }
-  }, [progressData.position, storePosition, duration, isLoaded]);
+  }, [progressData.position, duration, isLoaded]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: `${progressValue.value}%`,

@@ -1,6 +1,6 @@
 import React from "react";
+import { FlashList } from "@shopify/flash-list";
 import {
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
@@ -145,14 +145,14 @@ export default function QuickPicksSection({
       </View>
 
       {/* Horizontal Rail */}
-      <FlatList
+      <FlashList
         data={columns}
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={snapInterval}
         snapToAlignment="start"
         decelerationRate="fast"
-        contentContainerStyle={{ paddingLeft: padding }}
+        contentContainerStyle={styles.contentContainer}
         keyExtractor={(_, index) => `quick-column-${index}`}
         renderItem={({ item }) => (
           <View
@@ -220,7 +220,9 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 24,
   },
-
+  contentContainer: {
+    paddingLeft: 16,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -1,7 +1,7 @@
 import { AlbumResponse } from "@/types/jiosaavn";
 import { Track } from "../../constants/album-data";
 
-const formatDuration = (seconds: number | null): string => {
+export const formatDuration = (seconds: number | null): string => {
   if (!seconds) return "0:00";
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;

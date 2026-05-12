@@ -233,3 +233,82 @@ export const useArtist = (
     // 15 minutes
   });
 };
+
+export const useArtistInfinite = (
+  artistId: string | null,
+  artistUrl: string | null = null,
+  options?: {
+    tab?: "songs" | "albums";
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  },
+) => {
+  const artistKey = artistId || artistUrl;
+  const tab = options?.tab ?? "songs";
+  const pageSize = options?.pageSize ?? 10;
+  const sortBy = options?.sortBy ?? "";
+  const sortOrder = options?.sortOrder ?? "desc";
+
+  return useInfiniteQuery({
+    queryKey: [
+      "artist-infinite",
+      artistKey,
+      tab,
+      pageSize,
+      sortBy,
+      sortOrder,
+    ],
+    queryFn: ({ pageParam = 0 }) =>
+      jioSaavnService.getArtistDetails(
+        artistId,
+        artistUrl,
+        "artist",
+        pageParam,
+        tab === "songs" ? pageSize : 0,
+        tab === "albums" ? pageSize : 0,
+        sortBy,
+        sortOrder,
+      ),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: any, allPages: any[]) => {
+      const currentItems =
+        tab === "songs" ? lastPage?.topSongs ?? [] : lastPage?.topAlbums ?? [];
+
+      if (!currentItems.length || currentItems.length < pageSize) {
+        return undefined;
+      }
+
+      if (allPages.length > 1) {
+        const previousPage = allPages[allPages.length - 2];
+        const previousItems =
+          tab === "songs"
+            ? previousPage?.topSongs ?? []
+            : previousPage?.topAlbums ?? [];
+
+        const previousIds = previousItems.map((item: any) => item.id).join(",");
+        const currentIds = currentItems.map((item: any) => item.id).join(",");
+
+        if (previousIds === currentIds) {
+          return undefined;
+        }
+      }
+
+      return allPages.length;
+    },
+    placeholderData: (previousData, previousQuery) => {
+      const previousArtistKey = previousQuery?.queryKey?.[1];
+      const previousTab = previousQuery?.queryKey?.[2];
+
+      if (previousArtistKey === artistKey && previousTab === tab) {
+        return previousData;
+      }
+
+      return undefined;
+    },
+    enabled: !!artistId || !!artistUrl,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 15,
+  });
+};

@@ -1,8 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { MoveLeft } from "lucide-react-native";
 import React, { useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 const LANGUAGES = [
   "Hindi",
@@ -37,7 +38,7 @@ export default function LanguageSelectionScreen() {
       {/* Header */}
       <LanguageHeader />
       {/* Grid */}
-      <FlatList
+      <FlashList
         data={LANGUAGES}
         numColumns={2}
         keyExtractor={(item) => item}

@@ -191,24 +191,22 @@ export default function TrendingSection({
     };
 
     // Smart image picker: handles array (mapped), object array (raw), or plain string
+    // Fix #7: Pure function — no mutations to source data
     const getImageUri = (img: any): string => {
       if (Array.isArray(img)) {
         const target = img[2] || img[1] || img[0] || "";
         if (typeof target === "string") return target;
-        // console.log("title", target?.url || target?.uri);
-        if (target?.url.includes("150x150")) {
-          target.url = target.url.replace("150x150", "500x500");
+        let url = target?.url || target?.uri || "";
+        if (url.includes("150x150")) {
+          url = url.replace("150x150", "500x500");
         }
-        return target?.url || target?.uri || "";
+        return url;
       }
       if (typeof img === "string" && img) {
-        // If it's already a high-res or doesn't need transform
         if (img.includes("50x50")) {
-          img = img.replace("50x50", "500x500");
-          // return img;
+          return img.replace("50x50", "500x500");
         } else if (img.includes("150x150")) {
-          img = img.replace("150x150", "500x500");
-          return img;
+          return img.replace("150x150", "500x500");
         }
         const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
         return `${base}-500x500.jpg`;

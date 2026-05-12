@@ -13,15 +13,15 @@ import { useRouter } from "expo-router";
 type QuickPickRowProps = {
   item: QuickPick;
 };
-export default function QuickPickRow({
+function QuickPickRow({
   item,
 }: QuickPickRowProps): React.JSX.Element {
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const router = useRouter();
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
-  const CurrentTrack = usePlayerStore((s) => s.currentTrack);
+  // Fix #4: Only subscribe to whether THIS row is active, not the entire currentTrack object
+  const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-  const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
 
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);
@@ -64,7 +64,7 @@ export default function QuickPickRow({
   };
   return (
     <Pressable
-      style={[styles.row, CurrentTrack?.id === item.id && styles.activerow]}
+      style={[styles.row, isActive && styles.activerow]}
       //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
       onPress={() => handlePlay(item.id, item.url)}
     >
@@ -150,3 +150,5 @@ const styles = StyleSheet.create({
     // marginLeft: 12,
   },
 });
+
+export default React.memo(QuickPickRow);

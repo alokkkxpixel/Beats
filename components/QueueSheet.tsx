@@ -1,10 +1,18 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { SongDetail } from "@/types/jiosaavn";
+import { FlashList } from "@shopify/flash-list";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import { useBottomSheetScrollableCreator } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
 import React, { useEffect, useRef } from "react";
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 const QueueSheet = () => {
   const queue = usePlayerStore((state) => state.queue);
@@ -13,11 +21,16 @@ const QueueSheet = () => {
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const togglePlay = usePlayerStore((state) => state.togglePlay);
   const isQueueOpen = usePlayerStore((state) => state.isQueueOpen);
-  const isFetchingSuggestions = usePlayerStore((state) => state.isFetchingSuggestions);
+  const isFetchingSuggestions = usePlayerStore(
+    (state) => state.isFetchingSuggestions,
+  );
   const isShuffleEnabled = usePlayerStore((state) => state.isShuffleEnabled);
-  const fetchAndAppendSuggestions = usePlayerStore((state) => state.fetchAndAppendSuggestions);
+  const fetchAndAppendSuggestions = usePlayerStore(
+    (state) => state.fetchAndAppendSuggestions,
+  );
   const toggleShuffle = usePlayerStore((state) => state.toggleShuffle);
   const flatListRef = useRef<any>(null);
+  const renderScrollComponent = useBottomSheetScrollableCreator();
 
   // Auto-scroll to current track when opened
   useEffect(() => {
@@ -105,9 +118,10 @@ const QueueSheet = () => {
 
   return (
     <View style={styles.container}>
-      <BottomSheetFlatList
+      <FlashList
         ref={flatListRef}
         data={queue}
+        renderScrollComponent={renderScrollComponent}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         renderItem={renderTrackItem}
         ListHeaderComponent={
@@ -119,22 +133,23 @@ const QueueSheet = () => {
           </View>
         }
         ListFooterComponent={
-          <View style={{ height: 120, alignItems: "center", paddingTop: 20 }}>
+          <View style={styles.ListFooterComponent}>
             {isFetchingSuggestions && (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#1DB954" style={{ marginRight: 10 }} />
-                <Text style={{ color: '#888', fontSize: 13 }}>Fetching suggestions...</Text>
+              <View style={styles.ListFooterComponentFetching}>
+                <ActivityIndicator
+                  size="small"
+                  color="#1DB954"
+                  style={{ marginRight: 10 }}
+                />
+                <Text style={{ color: "#888", fontSize: 13 }}>
+                  Fetching suggestions...
+                </Text>
               </View>
             )}
           </View>
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        getItemLayout={(data, index) => ({
-          length: 76,
-          offset: 76 * index,
-          index,
-        })}
       />
 
       <View style={styles.footer}>
@@ -167,6 +182,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#121212",
+  },
+  ListFooterComponent: {
+    height: 120,
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  ListFooterComponentFetching: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   header: {
     paddingHorizontal: 20,

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { usePlayerStore } from "../src/store/usePlayerStore";
 
@@ -25,12 +26,7 @@ export default function MusicBottomSheet() {
       if (typeof target === "string") return target;
       return target?.url || "";
     }
-    if (typeof cover === "string" && cover) {
-      if (cover.includes("50x50")) {
-        return cover.replace("50x50", "150x150");
-      }
-      return cover;
-    }
+    
     return "";
   };
 
@@ -111,7 +107,7 @@ export default function MusicBottomSheet() {
               uri: getImageUri(activeSong?.cover || activeSong?.image),
             }}
             style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
+            contentFit="cover"
           />
         </View>
 

@@ -43,7 +43,7 @@ export default function PlayerWrapper({
     !!currentTrack &&
     !isDrawerOpen;
 
-  const tabBarHeight = 55 + insets.bottom;
+  let TABBAR_HEIGHT = 55 + insets.bottom;
   const snapPoints = ["100%"];
   const snapPointQueue = ["50%", "100%"];
   const MoreSheetSnapPoint = ["50%"];
@@ -115,8 +115,8 @@ export default function PlayerWrapper({
       {shouldShowMiniPlayer && (
         <Pressable
           onPress={() => expandFullPlayer()}
-          className="absolute w-full z-50 h-20"
-          style={{ bottom: tabBarHeight }}
+          className={`absolute w-full z-50 h-20 `}
+          style={[{ bottom: TABBAR_HEIGHT }]}
         >
           <MiniPlayer />
         </Pressable>
@@ -137,14 +137,7 @@ export default function PlayerWrapper({
           enablePanDownToClose={true}
           enableDynamicSizing={false}
           animateOnMount={false}
-          backdropComponent={(props) => (
-            <BottomSheetBackdrop
-              {...props}
-              pressBehavior="close"
-              appearsOnIndex={0}
-              disappearsOnIndex={-1}
-            />
-          )}
+          backdropComponent={renderBackdrop}
           backgroundStyle={styles.fullPlayerBackground}
           onClose={minimizeFullPlayer}
           handleComponent={null}
@@ -181,14 +174,7 @@ export default function PlayerWrapper({
           enableDynamicSizing={false}
           animateOnMount={false}
           onClose={minizeMoreOption}
-          backdropComponent={(props) => (
-            <BottomSheetBackdrop
-              {...props}
-              pressBehavior="close"
-              appearsOnIndex={0}
-              disappearsOnIndex={-1}
-            />
-          )}
+          backdropComponent={renderBackdrop}
           backgroundStyle={styles.moreSheetBackground}
           handleIndicatorStyle={{ backgroundColor: "#fff" }}
           handleComponent={null}
@@ -203,7 +189,7 @@ export default function PlayerWrapper({
       </View>
 
       {/* Layer 5: Queue Sheet */}
-      <View 
+      <View
         style={[StyleSheet.absoluteFill, { zIndex: isQueueOpen ? 6000 : -1 }]}
         pointerEvents="box-none"
       >
@@ -215,14 +201,7 @@ export default function PlayerWrapper({
           enableDynamicSizing={false}
           animateOnMount={false}
           onClose={minimizeQueue}
-          backdropComponent={(props) => (
-            <BottomSheetBackdrop
-              {...props}
-              pressBehavior="close"
-              appearsOnIndex={0}
-              disappearsOnIndex={-1}
-            />
-          )}
+          backdropComponent={renderBackdrop}
           backgroundStyle={styles.queueSheetBackground}
           handleIndicatorStyle={{ backgroundColor: "#555" }}
         >
@@ -241,6 +220,7 @@ const styles = StyleSheet.create({
   sheetContainer: {
     ...StyleSheet.absoluteFillObject,
   },
+
   fullPlayerBackground: {
     backgroundColor: "#1e1e1e",
     borderTopLeftRadius: 20,
