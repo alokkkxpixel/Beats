@@ -1,6 +1,6 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import {
   Dimensions,
   Pressable,
@@ -10,31 +10,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
-import {
-  RepeatMode,
-  TrackPlayer,
-  useNowPlaying,
-  useOnPlaybackProgressChange,
-  useOnPlaybackStateChange,
-} from "react-native-nitro-player";
-import { formatDuration } from "../src/utils/transform";
-
+import { useNowPlaying } from "react-native-nitro-player";
+// import BlurredBackground from "./BlurredBackground";
+import { LinearGradient } from "expo-linear-gradient";
+import PlayerControls from "./PlayerControls";
+import ProgressSection from "./ProgressSection";
 const { width } = Dimensions.get("window");
 
 // ─── FIX #1: Module-level util — not recreated on every render ───────────────
@@ -55,62 +40,23 @@ const FullPlayer = ({
 }) => {
   const { height, width: windowWidth } = useWindowDimensions();
 
-  // Nitro Player hooks
+  // FullPlayer only reads track identity — zero playback state here.
+  // play/pause, shuffle, repeat all live in PlayerControls below.
   const nowPlaying = useNowPlaying();
   const currentTrack = nowPlaying.currentTrack;
-  const playbackState = useOnPlaybackStateChange();
-  const [repeatMode, setRepeatMode] = React.useState<RepeatMode>("off");
 
   const originalSong =
     (currentTrack as any)?.extraPayload?.song || currentTrack;
-  const isPlaying = playbackState.state === "playing";
   const artistName =
     originalSong?.primaryArtists ||
     currentTrack?.artist ||
     originalSong?.subtitle ||
     "Unknown Artist";
 
-  // ─── FIX #2: Only subscribe to what FullPlayer actually needs ─────────────
-  // Removed: position, duration (now only in ProgressSection)
+  // Only the actions that the parent shell actually needs
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
-  const isShuffleEnabled = usePlayerStore((s) => s.isShuffleEnabled);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   const expandQueue = usePlayerStore((s) => s.expandQueue);
-  const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
-  // ─────────────────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    setRepeatMode(TrackPlayer.getRepeatMode());
-  }, []);
-
-  // ─── FIX #3: useCallback for all handlers — stable refs, no child re-renders
-  const togglePlay = useCallback(async () => {
-    if (isPlaying) {
-      await TrackPlayer.pause();
-    } else {
-      await TrackPlayer.play();
-    }
-  }, [isPlaying]);
-
-  const next = useCallback(async () => {
-    await TrackPlayer.skipToNext();
-  }, []);
-
-  const previous = useCallback(async () => {
-    await TrackPlayer.skipToPrevious();
-  }, []);
-
-  const cycleRepeatMode = useCallback(async () => {
-    const currentMode = TrackPlayer.getRepeatMode();
-    const nextMode: RepeatMode =
-      currentMode === "off"
-        ? "Playlist"
-        : currentMode === "Playlist"
-          ? "track"
-          : "off";
-    await TrackPlayer.setRepeatMode(nextMode);
-    setRepeatMode(nextMode);
-  }, []);
 
   const router = useRouter();
 
@@ -171,9 +117,6 @@ const FullPlayer = ({
     currentTrack?.artist ||
     "Artist";
   const bioDisplayText = label || copyright || "No artist biography available.";
-
-  const repeatIconName = repeatMode === "track" ? "repeat-one" : "repeat";
-  const repeatIconColor = repeatMode === "off" ? "#A3A3A3" : "#1DB954";
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -244,57 +187,12 @@ const FullPlayer = ({
         {/* --- FIX #5: ProgressSection is fully self-contained ─────────────────
             Parent FullPlayer no longer subscribes to position/duration at all.
             All per-second re-renders are isolated inside ProgressSection only. */}
-        <ProgressSection windowWidth={windowWidth} />
+        <ProgressSection />
 
-        {/* --- Main Controls --- */}
-        <View style={styles.mainControls}>
-          <Pressable onPress={toggleShuffle} hitSlop={12}>
-            <Ionicons
-              name="shuffle"
-              size={24}
-              color={isShuffleEnabled ? "#1DB954" : "#A3A3A3"}
-            />
-          </Pressable>
-          <Pressable onPress={previous}>
-            <Ionicons name="play-skip-back" size={38} color="white" />
-          </Pressable>
-          <Pressable style={styles.playButton} onPress={togglePlay}>
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={40}
-              color="black"
-            />
-          </Pressable>
-          <Pressable onPress={next}>
-            <Ionicons name="play-skip-forward" size={38} color="white" />
-          </Pressable>
-          <Pressable onPress={cycleRepeatMode} hitSlop={12}>
-            <MaterialIcons
-              name={repeatIconName}
-              size={24}
-              color={repeatIconColor}
-            />
-          </Pressable>
-        </View>
-
-        {/* --- Footer Controls --- */}
-        <View style={styles.footerControls}>
-          <View style={styles.deviceIndicator}>
-            <MaterialIcons name="speaker" size={16} color="#1DB954" />
-            <Text style={styles.deviceText}>SPEAKER</Text>
-          </View>
-          <View style={styles.footerRightIcons}>
-            <Ionicons
-              name="share-outline"
-              size={22}
-              color="white"
-              style={{ marginRight: 25 }}
-            />
-            <Pressable onPress={expandQueue}>
-              <MaterialIcons name="playlist-play" size={28} color="white" />
-            </Pressable>
-          </View>
-        </View>
+        {/* ── PlayerControls — the ONLY component aware of play/pause state ──
+            Tapping play only re-renders this ~60-line component.
+            Everything above (backdrop, artwork, track info) stays frozen. */}
+        <PlayerControls />
 
         {/* --- Artist Card --- */}
         <Pressable style={styles.artistCard} onPress={handleArtistPress}>
@@ -382,7 +280,107 @@ const FullPlayer = ({
   );
 };
 
-// ─── FIX #4: Memoized blurred backdrop ────────────────────────────────────────
+// ─── PlayerControls ───────────────────────────────────────────────────────────
+// Owns ALL playback state: isPlaying, shuffle, repeat.
+// BEFORE this fix: play/pause re-rendered the entire 750-line FullPlayer tree.
+// AFTER: only this ~60-line component re-renders. Everything else stays frozen.
+// const PlayerControls = React.memo(
+//   ({ expandQueue }: { expandQueue: () => void }) => {
+//     const playbackState = useOnPlaybackStateChange();
+//     const isPlaying = playbackState.state === "playing";
+
+//     const isShuffleEnabled = usePlayerStore((s) => s.isShuffleEnabled);
+//     const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
+
+//     const [repeatMode, setRepeatMode] = React.useState<RepeatMode>("off");
+
+//     useEffect(() => {
+//       setRepeatMode(TrackPlayer.getRepeatMode());
+//     }, []);
+
+//     const togglePlay = useCallback(async () => {
+//       if (isPlaying) await TrackPlayer.pause();
+//       else await TrackPlayer.play();
+//     }, [isPlaying]);
+
+//     const next = useCallback(async () => {
+//       await TrackPlayer.skipToNext();
+//     }, []);
+
+//     const previous = useCallback(async () => {
+//       await TrackPlayer.skipToPrevious();
+//     }, []);
+
+//     const cycleRepeatMode = useCallback(async () => {
+//       const currentMode = TrackPlayer.getRepeatMode();
+//       const nextMode: RepeatMode =
+//         currentMode === "off"
+//           ? "Playlist"
+//           : currentMode === "Playlist"
+//             ? "track"
+//             : "off";
+//       await TrackPlayer.setRepeatMode(nextMode);
+//       setRepeatMode(nextMode);
+//     }, []);
+
+//     const repeatIconName = repeatMode === "track" ? "repeat-one" : "repeat";
+//     const repeatIconColor = repeatMode === "off" ? "#A3A3A3" : "#1DB954";
+
+//     return (
+//       <>
+//         <View style={styles.mainControls}>
+//           <Pressable onPress={toggleShuffle} hitSlop={12}>
+//             <Ionicons
+//               name="shuffle"
+//               size={24}
+//               color={isShuffleEnabled ? "#1DB954" : "#A3A3A3"}
+//             />
+//           </Pressable>
+//           <Pressable onPress={previous}>
+//             <Ionicons name="play-skip-back" size={38} color="white" />
+//           </Pressable>
+//           <Pressable style={styles.playButton} onPress={togglePlay}>
+//             <Ionicons
+//               name={isPlaying ? "pause" : "play"}
+//               size={40}
+//               color="black"
+//             />
+//           </Pressable>
+//           <Pressable onPress={next}>
+//             <Ionicons name="play-skip-forward" size={38} color="white" />
+//           </Pressable>
+//           <Pressable onPress={cycleRepeatMode} hitSlop={12}>
+//             <MaterialIcons
+//               name={repeatIconName}
+//               size={24}
+//               color={repeatIconColor}
+//             />
+//           </Pressable>
+//         </View>
+
+//         <View style={styles.footerControls}>
+//           <View style={styles.deviceIndicator}>
+//             <MaterialIcons name="speaker" size={16} color="#1DB954" />
+//             <Text style={styles.deviceText}>SPEAKER</Text>
+//           </View>
+//           <View style={styles.footerRightIcons}>
+//             <Ionicons
+//               name="share-outline"
+//               size={22}
+//               color="white"
+//               style={{ marginRight: 25 }}
+//             />
+//             <Pressable onPress={expandQueue}>
+//               <MaterialIcons name="playlist-play" size={28} color="white" />
+//             </Pressable>
+//           </View>
+//         </View>
+//       </>
+//     );
+//   },
+// );
+
+// ─── BlurredBackground ───────────────────────────────────────────────────────
 // React.memo with custom comparator — only re-renders when imageUri actually changes.
 // The expensive blur + gradient never fires on playback state changes.
 const BlurredBackground = React.memo(
@@ -416,125 +414,6 @@ const BlurredBackground = React.memo(
   ),
   (prev, next) =>
     prev.imageUri === next.imageUri && prev.height === next.height,
-);
-
-// ─── FIX #5: Self-contained ProgressSection ───────────────────────────────────
-// Single source of truth: useOnPlaybackProgressChange() from Nitro Player only.
-// Removed the redundant Zustand position/duration subscription that was causing
-// double re-renders (once from the native hook, once from the store update).
-// formatTime is a module-level function — not recreated each render.
-const ProgressSection = React.memo(
-  ({ windowWidth }: { windowWidth: number }) => {
-    // ── Single subscription: native hook only ────────────────────────────────
-    const progressData = useOnPlaybackProgressChange();
-    const position = progressData?.position ?? 0;
-    const duration = progressData?.totalDuration ?? 0;
-
-    // Dragging state stays local — no reason to put it in Zustand
-    const isDragging = useSharedValue(false);
-    const [isDraggingJS, setIsDraggingJS] = React.useState(false);
-    const [scrubPosition, setScrubPosition] = React.useState(0);
-
-    const progress = useSharedValue(0);
-
-    // Sync shared value from native progress, only when not dragging
-    useEffect(() => {
-      if (!isDraggingJS && duration > 0) {
-        progress.value = (position / duration) * 100;
-      }
-    }, [position, duration, isDraggingJS]);
-
-    const TRACK_WIDTH = windowWidth - 40;
-
-    const seek = useCallback(async (pos: number) => {
-      await TrackPlayer.seek(pos);
-    }, []);
-
-    const gesture = React.useMemo(
-      () =>
-        Gesture.Pan()
-          .onStart(() => {
-            isDragging.value = true;
-            runOnJS(setIsDraggingJS)(true);
-          })
-          .onUpdate((event) => {
-            const newProgress = Math.min(
-              100,
-              Math.max(0, (event.x / TRACK_WIDTH) * 100),
-            );
-            progress.value = newProgress;
-            runOnJS(setScrubPosition)(newProgress);
-          })
-          .onEnd(() => {
-            isDragging.value = false;
-            runOnJS(setIsDraggingJS)(false);
-            const newPosition = (progress.value / 100) * duration;
-            runOnJS(seek)(newPosition);
-          }),
-      [TRACK_WIDTH, duration, seek],
-    );
-
-    const animatedFillStyle = useAnimatedStyle(() => ({
-      width: `${progress.value}%`,
-    }));
-
-    const animatedKnobStyle = useAnimatedStyle(() => ({
-      left: `${progress.value}%`,
-      transform: [
-        { translateX: -8 },
-        { scale: withSpring(isDragging.value ? 1.5 : 1) },
-      ],
-    }));
-
-    const animatedTrackStyle = useAnimatedStyle(() => ({
-      height: withSpring(isDragging.value ? 6 : 4),
-    }));
-
-    const displayPosition = isDraggingJS
-      ? (scrubPosition / 100) * duration
-      : position;
-
-    return (
-      <>
-        <View className="px-8 mt-5">
-          <GestureDetector gesture={gesture}>
-            <Animated.View
-              style={animatedTrackStyle}
-              className="w-full rounded-full bg-zinc-500 justify-center"
-            >
-              <Animated.View
-                style={animatedFillStyle}
-                className="h-full rounded-full bg-white"
-              />
-              <Animated.View
-                style={animatedKnobStyle}
-                className="absolute w-4 h-4 rounded-full bg-white"
-              />
-            </Animated.View>
-          </GestureDetector>
-        </View>
-        {/* FIX #5 cont: TimeDisplay is a separate memo'd child ────────────────
-            The time strings update every second but only this tiny component
-            re-renders — not the whole ProgressSection. */}
-        <TimeDisplay position={displayPosition} duration={duration} />
-      </>
-    );
-  },
-);
-
-// ─── FIX #5 cont: Isolated time display ──────────────────────────────────────
-// Receives pre-computed values as props so it only re-renders when they change.
-// Previously this lived inline inside ProgressSection (line 736-742) and also
-// had a broken duplicate at line 377-391 that caused a compile error.
-const TimeDisplay = React.memo(
-  ({ position, duration }: { position: number; duration: number }) => (
-    <View style={styles.progressArea}>
-      <View style={styles.timeRow}>
-        <Text style={styles.timeText}>{formatTime(position)}</Text>
-        <Text style={styles.timeText}>{formatTime(duration)}</Text>
-      </View>
-    </View>
-  ),
 );
 
 const styles = StyleSheet.create({

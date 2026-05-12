@@ -138,8 +138,7 @@ export default function TrendingSection({
       artists = extractedArtist;
       itemType = item.type;
       year = item.year;
-    }
-    else if (type === "promo:vx:data:69") {
+    } else if (type === "promo:vx:data:69") {
       id = item.id;
       url = item?.url || item?.perma_url;
       displayTitle = item.title || item.name;

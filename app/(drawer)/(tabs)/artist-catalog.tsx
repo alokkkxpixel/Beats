@@ -169,11 +169,20 @@ const SongRow = React.memo(
       .join(" • ");
 
     return (
-      <Pressable onPress={onPress} style={[styles.listRow, isActive && styles.activeRow]}>
-        <Image source={{ uri: getImageUri(item.image) }} style={styles.rowArtwork} />
+      <Pressable
+        onPress={onPress}
+        style={[styles.listRow, isActive && styles.activeRow]}
+      >
+        <Image
+          source={{ uri: getImageUri(item.image) }}
+          style={styles.rowArtwork}
+        />
 
         <View style={styles.rowContent}>
-          <Text style={[styles.rowTitle, isActive && styles.activeTitle]} numberOfLines={1}>
+          <Text
+            style={[styles.rowTitle, isActive && styles.activeTitle]}
+            numberOfLines={1}
+          >
             {decodeHtmlEntities(item.name || item.title || "")}
           </Text>
 
@@ -195,7 +204,11 @@ const SongRow = React.memo(
           )}
         </View>
 
-        <Pressable hitSlop={10} style={styles.rowAction} onPress={onOptionsPress}>
+        <Pressable
+          hitSlop={10}
+          style={styles.rowAction}
+          onPress={onOptionsPress}
+        >
           <MoreVertical size={20} color="#8b8f98" />
         </Pressable>
       </Pressable>
@@ -205,13 +218,7 @@ const SongRow = React.memo(
 SongRow.displayName = "SongRow";
 
 const AlbumRow = React.memo(
-  ({
-    item,
-    onPress,
-  }: {
-    item: AlbumType;
-    onPress: () => void;
-  }) => {
+  ({ item, onPress }: { item: AlbumType; onPress: () => void }) => {
     const artistNames = getArtistNames(item.artists);
     const meta = [
       item.year || "",
@@ -223,7 +230,10 @@ const AlbumRow = React.memo(
 
     return (
       <Pressable onPress={onPress} style={styles.listRow}>
-        <Image source={{ uri: getImageUri(item.image) }} style={styles.rowArtwork} />
+        <Image
+          source={{ uri: getImageUri(item.image) }}
+          style={styles.rowArtwork}
+        />
 
         <View style={styles.rowContent}>
           <Text style={styles.rowTitle} numberOfLines={1}>

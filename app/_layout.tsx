@@ -1,4 +1,4 @@
-import PlayerWrapper from "@/components/PlayerWrapper";
+import { PlayerWrapper } from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
 import { useFonts } from "@expo-google-fonts/inter";

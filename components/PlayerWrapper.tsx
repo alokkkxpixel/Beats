@@ -13,7 +13,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import QueueSheet from "./QueueSheet";
 
-export default function PlayerWrapper({
+export function PlayerWrapper({
   children,
   isPlayerReady = false,
 }: {
@@ -87,13 +87,16 @@ export default function PlayerWrapper({
   }, [isQueueOpen]);
 
   const handleCloseSheet = useCallback(() => {
+    const minimizeFullPlayer = usePlayerStore(
+      (state) => state.minimizeFullPlayer,
+    );
     minimizeFullPlayer();
-  }, [minimizeFullPlayer]);
+  }, []);
 
   const handleCloseMoreSheet = useCallback(() => {
+    const minizeMoreOption = usePlayerStore((state) => state.minizeMoreOption);
     minizeMoreOption();
   }, [minizeMoreOption]);
-
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
