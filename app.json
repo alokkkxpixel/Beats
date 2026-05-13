@@ -59,9 +59,10 @@
           }
         }
       ],
-
       "expo-web-browser",
-      "expo-asset"
+      "expo-asset",
+      "expo-audio",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

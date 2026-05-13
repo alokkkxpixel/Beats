@@ -122,7 +122,7 @@ export default function ArtistScreen() {
 
   const openCatalog = (tab: "songs" | "albums") => {
     router.push({
-      pathname: "/artist-catalog",
+      pathname: "/artist-catalog" as any,
       params: { id, url, tab },
     });
   };

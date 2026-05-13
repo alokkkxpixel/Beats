@@ -272,10 +272,10 @@ export default function ExploreScreen() {
               Array.from(
                 {
                   length: Math.ceil(
-                    (data?.["promo:vx:data:76"]?.length || 0) / 3,
+                    (data?.["promo:vx:data:76"]?.data?.length || 0) / 3,
                   ),
                 },
-                (_, i) => data?.["promo:vx:data:76"]?.slice(i * 3, i * 3 + 3),
+                (_, i) => data?.["promo:vx:data:76"]?.data?.slice(i * 3, i * 3 + 3),
               ) || []
             }
             horizontal
