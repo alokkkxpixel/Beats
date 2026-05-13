@@ -1,3 +1,4 @@
+import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import { PlayerWrapper } from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
@@ -78,7 +79,8 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
         >
-          <PlayerWrapper isPlayerReady={isPlayerReady}>
+          <PlayerWrapper>
+            {isPlayerReady && <GlobalAudioPlayer />}
             <Stack
               screenOptions={{
                 contentStyle: { backgroundColor: "#050505" },

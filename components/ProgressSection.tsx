@@ -131,7 +131,7 @@ const TimeDisplay = React.memo(
   ({ position, duration }: { position: number; duration: number }) => (
     <View style={styles.progressArea}>
       <View style={styles.timeRow}>
-        <Text style={styles.timeText}>{formatTime(position)} "jkjhjhjh"</Text>
+        <Text style={styles.timeText}>{formatTime(position)}</Text>
         <Text style={styles.timeText}>{formatTime(duration)}</Text>
       </View>
     </View>

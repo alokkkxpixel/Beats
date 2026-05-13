@@ -1,5 +1,4 @@
 import FullPlayer from "@/components/FullPlayer";
-import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
 import MusicBottomSheet from "@/components/MusicBottomSheet";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
@@ -11,92 +10,56 @@ import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
 
-export function PlayerWrapper({
-  children,
-  isPlayerReady = false,
-}: {
-  children: React.ReactNode;
-  isPlayerReady?: boolean;
-}) {
-  const insets = useSafeAreaInsets();
+// --- Sub-components for better isolation ---
 
-  const isFullPlayerOpen = usePlayerStore((state) => state.isFullPlayerOpen);
-  const isQueueOpen = usePlayerStore((state) => state.isQueueOpen);
-  const minimizeQueue = usePlayerStore((state) => state.minimizeQueue);
-  const minimizeFullPlayer = usePlayerStore(
-    (state) => state.minimizeFullPlayer,
+const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
+  const { hasTrack, isDrawerOpen, expandFullPlayer } = usePlayerStore(
+    useShallow((s) => ({
+      hasTrack: !!s.currentTrack,
+      isDrawerOpen: s.isDrawerOpen,
+      expandFullPlayer: s.expandFullPlayer,
+    })),
   );
-  const expandFullPlayer = usePlayerStore((state) => state.expandFullPlayer);
-  const minizeMoreOption = usePlayerStore((state) => state.minizeMoreOption);
-  const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const isDrawerOpen = usePlayerStore((state) => state.isDrawerOpen);
-  const isMoreOptionOpen = usePlayerStore((state) => state.isMoreOptionOpen);
-
   const segments = useSegments();
-
-  // Hide mini player on non-tab routes
-  const shouldShowMiniPlayer =
+  const shouldShow =
     segments.length > 0 &&
     (segments as string[]).includes("(tabs)") &&
-    !!currentTrack &&
+    hasTrack &&
     !isDrawerOpen;
 
-  let TABBAR_HEIGHT = 55 + insets.bottom;
-  const snapPoints = ["100%"];
-  const snapPointQueue = ["50%", "100%"];
-  const MoreSheetSnapPoint = ["50%"];
+  if (!shouldShow) return null;
+
+  return (
+    <Pressable
+      onPress={() => expandFullPlayer()}
+      className="absolute w-full z-50 h-20"
+      style={{ bottom: tabHeight }}
+    >
+      <MiniPlayer />
+    </Pressable>
+  );
+});
+
+const FullPlayerSheetLayer = React.memo(() => {
+  const { isFullPlayerOpen, minimizeFullPlayer, hasTrack } = usePlayerStore(
+    useShallow((s) => ({
+      isFullPlayerOpen: s.isFullPlayerOpen,
+      minimizeFullPlayer: s.minimizeFullPlayer,
+      hasTrack: !!s.currentTrack,
+    })),
+  );
 
   const sheetRef = useRef<BottomSheet>(null);
-  const moreSheetRef = useRef<BottomSheet>(null);
-  const queueSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = React.useMemo(() => ["100%"], []);
 
-  // Sync BottomSheet with Zustand state
   useEffect(() => {
-    if (isFullPlayerOpen) {
-      const frame = requestAnimationFrame(() => {
-        sheetRef.current?.expand();
-      });
-      return () => cancelAnimationFrame(frame);
-    } else {
-      sheetRef.current?.close();
-    }
+    if (isFullPlayerOpen) sheetRef.current?.expand();
+    else sheetRef.current?.close();
   }, [isFullPlayerOpen]);
 
-  useEffect(() => {
-    if (isMoreOptionOpen) {
-      const frame = requestAnimationFrame(() => {
-        moreSheetRef.current?.snapToIndex(0);
-      });
-      return () => cancelAnimationFrame(frame);
-    } else {
-      moreSheetRef.current?.close();
-    }
-  }, [isMoreOptionOpen]);
-
-  useEffect(() => {
-    if (isQueueOpen) {
-      const frame = requestAnimationFrame(() => {
-        queueSheetRef.current?.snapToIndex(0);
-      });
-      return () => cancelAnimationFrame(frame);
-    } else {
-      queueSheetRef.current?.close();
-    }
-  }, [isQueueOpen]);
-
-  const handleCloseSheet = useCallback(() => {
-    const minimizeFullPlayer = usePlayerStore(
-      (state) => state.minimizeFullPlayer,
-    );
-    minimizeFullPlayer();
-  }, []);
-
-  const handleCloseMoreSheet = useCallback(() => {
-    const minizeMoreOption = usePlayerStore((state) => state.minizeMoreOption);
-    minizeMoreOption();
-  }, [minizeMoreOption]);
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
@@ -110,107 +73,159 @@ export function PlayerWrapper({
   );
 
   return (
+    <View
+      style={[styles.sheetContainer, { zIndex: isFullPlayerOpen ? 1000 : -1 }]}
+      pointerEvents={isFullPlayerOpen ? "auto" : "none"}
+    >
+      <BottomSheet
+        ref={sheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        enableDynamicSizing={false}
+        animateOnMount={false}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.fullPlayerBackground}
+        onClose={minimizeFullPlayer}
+        handleComponent={null}
+      >
+        <BottomSheetScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {hasTrack ? (
+            <FullPlayer
+              handleCloseSheet={minimizeFullPlayer}
+              handleCloseMoreSheet={() => {}}
+            />
+          ) : (
+            <View style={{ flex: 1 }} />
+          )}
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </View>
+  );
+});
+
+const MoreOptionsSheetLayer = React.memo(() => {
+  const { isMoreOptionOpen, minizeMoreOption } = usePlayerStore(
+    useShallow((s) => ({
+      isMoreOptionOpen: s.isMoreOptionOpen,
+      minizeMoreOption: s.minizeMoreOption,
+    })),
+  );
+
+  const moreSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = React.useMemo(() => ["50%"], []);
+
+  useEffect(() => {
+    if (isMoreOptionOpen) moreSheetRef.current?.snapToIndex(0);
+    else moreSheetRef.current?.close();
+  }, [isMoreOptionOpen]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
+
+  return (
+    <View
+      style={[styles.sheetContainer, { zIndex: isMoreOptionOpen ? 2000 : -1 }]}
+      pointerEvents={isMoreOptionOpen ? "auto" : "none"}
+    >
+      <BottomSheet
+        ref={moreSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        enableDynamicSizing={false}
+        animateOnMount={false}
+        onClose={minizeMoreOption}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.moreSheetBackground}
+        handleIndicatorStyle={{ backgroundColor: "#fff" }}
+        handleComponent={null}
+      >
+        <BottomSheetScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.moreSheetContent}
+        >
+          <MusicBottomSheet />
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </View>
+  );
+});
+
+const QueueSheetLayer = React.memo(() => {
+  const { isQueueOpen, minimizeQueue } = usePlayerStore(
+    useShallow((s) => ({
+      isQueueOpen: s.isQueueOpen,
+      minimizeQueue: s.minimizeQueue,
+    })),
+  );
+
+  const queueSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = React.useMemo(() => ["50%", "100%"], []);
+
+  useEffect(() => {
+    if (isQueueOpen) queueSheetRef.current?.snapToIndex(0);
+    else queueSheetRef.current?.close();
+  }, [isQueueOpen]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
+
+  return (
+    <View
+      style={[StyleSheet.absoluteFill, { zIndex: isQueueOpen ? 6000 : -1 }]}
+      pointerEvents="box-none"
+    >
+      <BottomSheet
+        ref={queueSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        enableDynamicSizing={false}
+        animateOnMount={false}
+        onClose={minimizeQueue}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.queueSheetBackground}
+        handleIndicatorStyle={{ backgroundColor: "#555" }}
+      >
+        <QueueSheet />
+      </BottomSheet>
+    </View>
+  );
+});
+
+export function PlayerWrapper({ children }: { children: React.ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const TABBAR_HEIGHT = 55 + insets.bottom;
+
+  return (
     <View style={styles.container}>
-      {isPlayerReady && <GlobalAudioPlayer />}
       {children}
-
-      {/* Layer 2: Mini Player */}
-      {shouldShowMiniPlayer && (
-        <Pressable
-          onPress={() => expandFullPlayer()}
-          className={`absolute w-full z-50 h-20 `}
-          style={[{ bottom: TABBAR_HEIGHT }]}
-        >
-          <MiniPlayer />
-        </Pressable>
-      )}
-
-      {/* Layer 3: Main Player Sheet */}
-      <View
-        style={[
-          styles.sheetContainer,
-          { zIndex: isFullPlayerOpen ? 1000 : -1 },
-        ]}
-        pointerEvents={isFullPlayerOpen ? "auto" : "none"}
-      >
-        <BottomSheet
-          ref={sheetRef}
-          index={-1}
-          snapPoints={snapPoints}
-          enablePanDownToClose={true}
-          enableDynamicSizing={false}
-          animateOnMount={false}
-          backdropComponent={renderBackdrop}
-          backgroundStyle={styles.fullPlayerBackground}
-          onClose={minimizeFullPlayer}
-          handleComponent={null}
-        >
-          <BottomSheetScrollView
-            style={{ flex: 1 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {currentTrack ? (
-              <FullPlayer
-                handleCloseSheet={handleCloseSheet}
-                handleCloseMoreSheet={handleCloseMoreSheet}
-              />
-            ) : (
-              <View style={{ flex: 1 }} />
-            )}
-          </BottomSheetScrollView>
-        </BottomSheet>
-      </View>
-
-      {/* Layer 4: More Options Sheet */}
-      <View
-        style={[
-          styles.sheetContainer,
-          { zIndex: isMoreOptionOpen ? 2000 : -1 },
-        ]}
-        pointerEvents={isMoreOptionOpen ? "auto" : "none"}
-      >
-        <BottomSheet
-          ref={moreSheetRef}
-          index={-1}
-          snapPoints={MoreSheetSnapPoint}
-          enablePanDownToClose={true}
-          enableDynamicSizing={false}
-          animateOnMount={false}
-          onClose={minizeMoreOption}
-          backdropComponent={renderBackdrop}
-          backgroundStyle={styles.moreSheetBackground}
-          handleIndicatorStyle={{ backgroundColor: "#fff" }}
-          handleComponent={null}
-        >
-          <BottomSheetScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.moreSheetContent}
-          >
-            <MusicBottomSheet />
-          </BottomSheetScrollView>
-        </BottomSheet>
-      </View>
-
-      {/* Layer 5: Queue Sheet */}
-      <View
-        style={[StyleSheet.absoluteFill, { zIndex: isQueueOpen ? 6000 : -1 }]}
-        pointerEvents="box-none"
-      >
-        <BottomSheet
-          ref={queueSheetRef}
-          index={-1}
-          snapPoints={snapPointQueue}
-          enablePanDownToClose={true}
-          enableDynamicSizing={false}
-          animateOnMount={false}
-          onClose={minimizeQueue}
-          backdropComponent={renderBackdrop}
-          backgroundStyle={styles.queueSheetBackground}
-          handleIndicatorStyle={{ backgroundColor: "#555" }}
-        >
-          <QueueSheet />
-        </BottomSheet>
-      </View>
+      <MiniPlayerLayer tabHeight={TABBAR_HEIGHT} />
+      <FullPlayerSheetLayer />
+      <MoreOptionsSheetLayer />
+      <QueueSheetLayer />
     </View>
   );
 }
@@ -223,7 +238,6 @@ const styles = StyleSheet.create({
   sheetContainer: {
     ...StyleSheet.absoluteFillObject,
   },
-
   fullPlayerBackground: {
     backgroundColor: "#1e1e1e",
     borderTopLeftRadius: 20,

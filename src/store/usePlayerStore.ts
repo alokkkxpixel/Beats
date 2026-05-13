@@ -500,9 +500,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   // Updates from audio engine
   updateProgress: (position, duration) => {
+    const state = get();
+    if (state.position === position && state.duration === duration) return;
     set({ position, duration });
   },
 
-  setPlaying: (isPlaying) => set({ isPlaying }),
-  setLoading: (isLoading) => set({ isLoading }),
+  setPlaying: (isPlaying) => {
+    if (get().isPlaying === isPlaying) return;
+    set({ isPlaying });
+  },
+  setLoading: (isLoading) => {
+    if (get().isLoading === isLoading) return;
+    set({ isLoading });
+  },
 }));

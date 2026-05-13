@@ -2,34 +2,50 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { TrackPlayer, useNowPlaying, useOnPlaybackProgressChange, useOnPlaybackStateChange } from 'react-native-nitro-player';
+import {
+  TrackPlayer,
+  useOnPlaybackProgressChange,
+} from "react-native-nitro-player";
+import { useShallow } from "zustand/shallow";
 
-export default function MiniPlayer() {
-  const nowPlaying = useNowPlaying();
-  const playbackState = useOnPlaybackStateChange();
-  
-  // Use specific selectors to minimize re-renders
-  const storeTrack = usePlayerStore((s) => s.currentTrack);
-  
-  const currentTrack = nowPlaying.currentTrack || storeTrack;
-  const originalSong = (currentTrack as any)?.extraPayload?.song || currentTrack;
-  
+const MiniPlayer = React.memo(function MiniPlayer() {
+  // FIX: Removed all native hooks (useNowPlaying, useOnPlaybackStateChange)
+  // These were likely triggering re-renders every second from the native side.
+  // We now rely solely on our stable Zustand store.
+  const { currentTrack, isPlaying } = usePlayerStore(
+    useShallow((s) => ({
+      currentTrack: s.currentTrack,
+      isPlaying: s.isPlaying,
+    })),
+  );
+
+  const originalSong =
+    (currentTrack as any)?.extraPayload?.song || currentTrack;
   const isLoaded = !!currentTrack;
-  const isPlaying = playbackState.state === 'playing';
 
   if (!isLoaded) return null;
-  
+
   const trackImage = isLoaded
-    ? (currentTrack as any).artwork || (originalSong as any)?.image?.[1]?.url || (originalSong as any)?.image?.[0]?.url
+    ? (currentTrack as any).image?.[1]?.url ||
+      (originalSong as any)?.image?.[1]?.url ||
+      (originalSong as any)?.image?.[0]?.url
     : "";
-    
+
   const artistName = isLoaded
-    ? (currentTrack as any).artist || (originalSong as any)?.primaryArtists || (originalSong as any)?.subtitle || "Unknown Artist"
+    ? (currentTrack as any)?.primaryArtists ||
+      (currentTrack as any)?.artists?.primary?.[0]?.name ||
+      (originalSong as any)?.primaryArtists ||
+      (originalSong as any)?.artists?.primary?.[0]?.name ||
+      (originalSong as any)?.subtitle ||
+      "Unknown Artist"
     : "";
-  
   const togglePlay = async () => {
     if (!isLoaded) return;
     if (isPlaying) {
@@ -38,12 +54,16 @@ export default function MiniPlayer() {
       await TrackPlayer.play();
     }
   };
-  
+
   return (
     <View style={styles.miniContainer}>
       <View style={styles.miniContent}>
         {trackImage ? (
-          <Image source={{ uri: trackImage }} style={styles.miniArt} contentFit="cover" />
+          <Image
+            source={{ uri: trackImage }}
+            style={styles.miniArt}
+            contentFit="cover"
+          />
         ) : (
           <View
             style={[
@@ -60,7 +80,9 @@ export default function MiniPlayer() {
         )}
         <View style={styles.miniTextContainer}>
           <Text style={styles.miniTitle} numberOfLines={1}>
-            {isLoaded ? ((currentTrack as any).title || (originalSong as any).name) : "Nothing to play"}
+            {isLoaded
+              ? (currentTrack as any).name || (originalSong as any).name
+              : "Nothing to play"}
           </Text>
           <Text style={styles.miniArtist} numberOfLines={1}>
             {artistName}
@@ -80,24 +102,22 @@ export default function MiniPlayer() {
           </Pressable>
         </View>
       </View>
-      {/* isolated Progress bar at the very top of the mini player */}
-      <MiniProgressBar 
-        isLoaded={isLoaded} 
-      />
+      <MiniProgressBar isLoaded={isLoaded} />
     </View>
   );
-}
+});
 
-// Fix #8: Self-contained — reads its own progress data so MiniPlayer parent doesn't re-render every second
 const MiniProgressBar = React.memo(({ isLoaded }: { isLoaded: boolean }) => {
   const progressData = useOnPlaybackProgressChange();
   const duration = usePlayerStore((s) => s.duration);
   const progressValue = useSharedValue(0);
-  
+
   React.useEffect(() => {
     if (isLoaded && duration > 0) {
       const currentPos = progressData?.position ?? 0;
-      progressValue.value = withTiming((currentPos / duration) * 100, { duration: 250 });
+      progressValue.value = withTiming((currentPos / duration) * 100, {
+        duration: 250,
+      });
     } else {
       progressValue.value = 0;
     }
@@ -162,3 +182,5 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
 });
+
+export default MiniPlayer;

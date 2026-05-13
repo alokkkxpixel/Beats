@@ -1,12 +1,12 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   useNowPlaying,
   useOnPlaybackProgressChange,
   useOnPlaybackStateChange,
 } from "react-native-nitro-player";
 
-export default function GlobalAudioPlayer() {
+const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
   // ── Stable action refs from Zustand (never cause re-renders) ────────────────
   const setPlaying = usePlayerStore((s) => s.setPlaying);
   const updateProgress = usePlayerStore((s) => s.updateProgress);
@@ -114,7 +114,8 @@ export default function GlobalAudioPlayer() {
   // The effect only needs to fire when the native player reports a new track.
 
   return null;
-}
+});
+export default GlobalAudioPlayer;
 
 /*
  * ── Store action to add (usePlayerStore.ts) ─────────────────────────────────
