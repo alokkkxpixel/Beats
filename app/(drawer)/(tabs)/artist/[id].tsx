@@ -2,7 +2,8 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Play, Search, Share } from "lucide-react-native";
-import React from "react";
+import { addToRecentActivity } from "@/src/lib/storage";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -78,6 +79,21 @@ export default function ArtistScreen() {
   const scrollY = useSharedValue(0);
 
   const { data: artist, isLoading } = useArtist(id, url);
+
+  useEffect(() => {
+    if (artist) {
+      addToRecentActivity({
+        id: artist.id || id,
+        title: artist.name,
+        image: artist.image,
+        type: "artist",
+        subtitle: `${formatPlayCount(
+          artist.fanCount || artist.followerCount || 0,
+        )} monthly listeners`,
+        timestamp: Date.now(),
+      });
+    }
+  }, [artist, id]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {

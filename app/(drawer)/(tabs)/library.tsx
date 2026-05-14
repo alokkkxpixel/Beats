@@ -1,8 +1,14 @@
 import Header from "@/components/Header";
+import { clearRecentActivity, getRecentActivity } from "@/src/lib/storage";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { useFocusEffect } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { FastForward, MoreVertical, ThumbsUp } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { MoreVertical, Trash2 } from "lucide-react-native";
+import { memo, useCallback, useState } from "react";
 import {
   StatusBar,
   StyleSheet,
@@ -21,154 +27,124 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// ... your other imports
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
-// const TypedFlashList = FlashList as any;
 
 interface LibraryItemData {
   id: string;
   title: string;
   subtitle: string;
   type: string;
-  image?: string;
-  gradient?: string[];
-  icon?: any;
+  image?: any;
 }
 
-const LIBRARY_DATA: LibraryItemData[] = [
-  {
-    id: "1",
-    title: "Liked Songs",
-    subtitle: "All your favourites in one place",
-    type: "playlist",
-    gradient: ["#4ade80", "#3b82f6"],
-    icon: ThumbsUp,
-  },
-  {
-    id: "2",
-    title: "2Pac",
-    subtitle: "Artist",
-    type: "artist",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmC-bgMEYLL5bqDyQ4LYqI3eVLaearVecZo3Ngzej7nF9nmLcAa3TDS09J3uy4-2kXrUrS9zZYhhD0NSF7HTkmoGMOhdxZfYBXbd-j6_M&s=10",
-  },
-  {
-    id: "3",
-    title: "Supermix",
-    subtitle: "Ed Sheeran, Rick Astley and more",
-    type: "playlist",
-    image:
-      "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=400&fit=crop",
-  },
-  {
-    id: "4",
-    title: "Rewind '23",
-    subtitle: "What you listened to in 2023",
-    type: "playlist",
-    gradient: ["#8b5cf6", "#ec4899"],
-    icon: FastForward,
-  },
-  {
-    id: "5",
-    title: "Following My Intuition",
-    subtitle: "Craig David",
-    type: "album",
-    image:
-      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop",
-  },
-  {
-    id: "6",
-    title: "90's Hip Hop",
-    subtitle: "Let's go back in time",
-    type: "playlist",
-    image:
-      "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop",
-  },
-  {
-    id: "7",
-    title: "Imagine Dragons",
-    subtitle: "Artist",
-    type: "artist",
-    image:
-      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&h=400&fit=crop",
-  },
-  {
-    id: "8",
-    title: "Imagine Dragons",
-    subtitle: "Artist",
-    type: "artist",
-    image:
-      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&h=400&fit=crop",
-  },
-  {
-    id: "9",
-    title: "Rewind '23",
-    subtitle: "What you listened to in 2023",
-    type: "playlist",
-    gradient: ["#8b5cf6", "#ec4899"],
-    icon: FastForward,
-  },
-  {
-    id: "10",
-    title: "Supermix",
-    subtitle: "Ed Sheeran, Rick Astley and more",
-    type: "playlist",
-    image:
-      "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=400&fit=crop",
-  },
-];
+const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
+  const router = useRouter();
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
-const LibraryItem = ({ item }: { item: LibraryItemData }) => {
-  const Icon = item.icon;
+  const handlePress = async () => {
+    if (item.type === "song") {
+      try {
+        const response = await jioSaavnService.getSongByIdandLink(item.id, "");
+        if (response.success && response.data[0]) {
+          setCurrentTrack(response.data[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching song details from library:", error);
+      }
+    } else if (item.type === "album") {
+      router.push({
+        pathname: "/album-detail",
+        params: { albumId: item.id },
+      });
+    } else if (item.type === "playlist") {
+      router.push({
+        pathname: "/playlist-detail",
+        params: { playlistId: item.id },
+      });
+    } else if (item.type === "artist") {
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: item.id },
+      });
+    }
+  };
+
+  const getImageUri = (img: any): string => {
+    let url = "";
+    if (Array.isArray(img)) {
+      url = img[2]?.url || img[1]?.url || img[0]?.url || "";
+    } else if (typeof img === "string") {
+      url = img;
+    }
+
+    if (!url) return "";
+
+    if (url.includes("150x150")) {
+      url = url.replace("150x150", "500x500");
+    } else if (url.includes("50x50")) {
+      url = url.replace("50x50", "500x500");
+    }
+    return url;
+  };
+
+  const imageUri = getImageUri(item.image);
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      className="flex-row items-center px-4 py-2.5"
+      className="flex-row items-center px-4 py-3"
+      onPress={handlePress}
     >
       <View
-        className="w-16 h-16 mr-3.5 overflow-hidden bg-white/5"
-        style={{ borderRadius: item.type === "artist" ? 32 : 10 }}
+        className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
+        style={{ borderRadius: item.type === "artist" ? 32 : 12 }}
       >
-        {item.gradient ? (
-          <LinearGradient
-            colors={item.gradient as any}
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            {Icon && <Icon size={28} color="white" />}
-          </LinearGradient>
-        ) : (
-          <Image
-            source={{ uri: item.image }}
-            style={{ width: "100%", height: "100%" }}
-            contentFit="cover"
-            transition={300}
-          />
-        )}
+        <Image
+          source={{ uri: imageUri }}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+          transition={400}
+        />
       </View>
 
       <View className="flex-1 justify-center">
         <Text
-          className="text-white text-[17px] font-semibold tracking-tight"
+          className="text-white text-[17px] font-bold tracking-tight"
           numberOfLines={1}
         >
           {item.title}
         </Text>
-        {item.subtitle && item.type !== "artist" && (
-          <Text className="text-[#9ca3af] text-[13px] mt-0.5" numberOfLines={1}>
-            {item.subtitle}
-          </Text>
-        )}
+        <Text
+          className="text-gray-400 text-[13px] mt-1 capitalize"
+          numberOfLines={1}
+        >
+          {item.subtitle || item.type}
+        </Text>
       </View>
 
-      <TouchableOpacity className="p-2 ml-1">
-        <MoreVertical size={20} color="#9ca3af" />
+      <TouchableOpacity className="p-2 opacity-60">
+        <MoreVertical size={20} color="white" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
-};
+});
 
 export default function LibraryScreen() {
+  const [recentActivity, setRecentActivity] = useState<LibraryItemData[]>([]);
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      const activity = getRecentActivity();
+      setRecentActivity(activity);
+    }, []),
+  );
+
+  const handleClear = () => {
+    clearRecentActivity();
+    setRecentActivity([]);
+  };
+
   const HEADER_HEIGHT = 54;
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
 
@@ -203,26 +179,31 @@ export default function LibraryScreen() {
     const backgroundColor = interpolateColor(
       scrollY.value,
       [0, 50],
-      ["transparent", "#000000"],
+      ["transparent", "rgba(0,0,0,0.9)"],
     );
 
     return {
       transform: [{ translateY: translateY.value }],
       backgroundColor: backgroundColor,
-      opacity: interpolate(
-        translateY.value,
-        [-TOTAL_HEADER_HEIGHT, 0],
-        [0, 1],
-        Extrapolation.CLAMP,
-      ),
     };
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: "#000" }]}>
+    <View className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
-      {/* Wrap glows in Animated.View to fade them out */}
+
+      {/* Premium Glows */}
       <Animated.View style={[StyleSheet.absoluteFill, glowAnimatedStyle]}>
+        <LinearGradient
+          colors={["rgba(59, 130, 246, 0.15)", "transparent"]}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 400,
+          }}
+        />
         <View style={styles.backgroundGlowTop} />
         <View style={styles.backgroundGlowCenter} />
       </Animated.View>
@@ -231,44 +212,63 @@ export default function LibraryScreen() {
         style={[
           styles.headerWrapper,
           headerAnimatedStyle,
-          { height: HEADER_HEIGHT, paddingTop: insets.top },
+          { height: TOTAL_HEADER_HEIGHT, paddingTop: insets.top },
         ]}
       >
         <Header title="Library" />
       </Animated.View>
+
       <AnimatedFlashList
-        data={LIBRARY_DATA}
+        data={recentActivity}
         renderItem={({ item }: any) => <LibraryItem item={item} />}
-        estimatedItemSize={84}
+        estimatedItemSize={88}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={{
-          paddingTop: TOTAL_HEADER_HEIGHT + 20,
-          paddingBottom: 180,
+          paddingTop: TOTAL_HEADER_HEIGHT + 10,
+          paddingBottom: 150,
         }}
-        // ListHeaderComponent={
-        //   <View className="px-4 pt-0 pb-2">
-        //     <View className="flex-row items-center justify-between mt-2">
-        //       <View className="flex-row items-center">
-        //         <TouchableOpacity className="p-2 mr-1">
-        //           <List size={26} color="white" strokeWidth={2.5} />
-        //         </TouchableOpacity>
-        //         <TouchableOpacity className="p-2">
-        //           <LayoutGrid size={24} color="white" strokeWidth={2.5} />
-        //         </TouchableOpacity>
-        //       </View>
-        //     </View>
-        //   </View>
-        // }
+        ListHeaderComponent={
+          <View className="px-4 pb-6 flex-row items-center justify-between mt-4">
+            <View>
+              <Text className="text-white text-3xl font-extrabold tracking-tighter">
+                Recent Activity
+              </Text>
+              <Text className="text-gray-500 text-sm font-medium mt-1">
+                Your history across sessions
+              </Text>
+            </View>
+            {recentActivity.length > 0 && (
+              <TouchableOpacity
+                onPress={handleClear}
+                className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
+              >
+                <Trash2 size={16} color="#ef4444" />
+                <Text className="text-[#ef4444] text-xs font-bold ml-2">
+                  Clear
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        }
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center pt-32 px-12">
+            <View className="w-20 h-20 bg-white/5 rounded-full items-center justify-center mb-6"></View>
+            <Text className="text-white text-xl font-bold mb-2">
+              Nothing here yet
+            </Text>
+            <Text className="text-gray-500 text-center text-base leading-6">
+              Songs, albums, and artists you interact with will appear here
+              automatically.
+            </Text>
+          </View>
+        }
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   headerWrapper: {
     position: "absolute",
     top: 0,
@@ -276,24 +276,27 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 100,
     justifyContent: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(255,255,255,0.1)",
   },
-  // ... your existing glow styles remain the same
   backgroundGlowTop: {
     position: "absolute",
-    top: -120,
-    right: -40,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    // backgroundColor: "rgba(165, 42, 42, 0.45)",
-  },
+    top: -100,
+    right: -50,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
+    filter: "blur(80px)",
+  } as any,
   backgroundGlowCenter: {
     position: "absolute",
-    top: 120,
-    left: 140,
-    width: 140,
-    height: 320,
-    borderRadius: 80,
-    // backgroundColor: "rgba(255, 166, 77, 0.12)",
-  },
+    top: 200,
+    left: -50,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: "rgba(139, 92, 246, 0.08)",
+    filter: "blur(60px)",
+  } as any,
 });

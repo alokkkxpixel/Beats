@@ -53,3 +53,29 @@ export const getSearchHistory = (): any[] => {
 export const setSearchHistory = (history: any[]) => {
   storage.set(SEARCH_HISTORY_KEY, JSON.stringify(history));
 };
+
+const RECENT_ACTIVITY_KEY = "recent-activity";
+
+export const getRecentActivity = (): any[] => {
+  const activity = storage.getString(RECENT_ACTIVITY_KEY);
+  if (!activity) return [];
+  try {
+    return JSON.parse(activity);
+  } catch (e) {
+    return [];
+  }
+};
+
+export const addToRecentActivity = (item: any) => {
+  const current = getRecentActivity();
+  // Filter out duplicates based on id and type
+  const filtered = current.filter(
+    (i) => !(i.id === item.id && i.type === item.type),
+  );
+  const updated = [item, ...filtered].slice(0, 50); // Keep last 50
+  storage.set(RECENT_ACTIVITY_KEY, JSON.stringify(updated));
+};
+
+export const clearRecentActivity = () => {
+  storage.remove(RECENT_ACTIVITY_KEY);
+};

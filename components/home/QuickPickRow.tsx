@@ -8,6 +8,7 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
 import { QuickPick } from "./types";
 
+import { addToRecentActivity } from "@/src/lib/storage";
 import { useRouter } from "expo-router";
 
 type QuickPickRowProps = {
@@ -26,7 +27,16 @@ function QuickPickRow({
   const handlePlay = async (id: string, link?: string) => {
     const response = await jioSaavnService.getSongByIdandLink(id, link);
     if (response.success && response.data[0]) {
-      setCurrentTrack(response.data[0]);
+      const song = response.data[0];
+      addToRecentActivity({
+        id: song.id,
+        title: song.name,
+        image: song.image,
+        type: "song",
+        subtitle: song.artists?.primary?.[0]?.name || song.subtitle,
+        timestamp: Date.now(),
+      });
+      setCurrentTrack(song);
     }
   };
 

@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { addToRecentActivity } from "@/src/lib/storage";
 import { TopPlaylists } from "@/types/jiosaavn";
 interface TrendingSectionProps {
   title?: string;
@@ -178,7 +179,16 @@ export default function TrendingSection({
       if (itemType === "song") {
         const response = await jioSaavnService.getSongByIdandLink(id, url);
         if (response.success && response.data[0]) {
-          setCurrentTrack(response.data[0]);
+          const song = response.data[0];
+          addToRecentActivity({
+            id: song.id,
+            title: song.name,
+            image: song.image,
+            type: "song",
+            subtitle: song.artists?.primary?.[0]?.name || song.subtitle,
+            timestamp: Date.now(),
+          });
+          setCurrentTrack(song);
         }
       } else {
         if (route === "artist/[id]") {

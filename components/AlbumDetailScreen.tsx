@@ -1,5 +1,6 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
+import { addToRecentActivity } from "@/src/lib/storage";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
@@ -13,7 +14,7 @@ import {
   Search,
   Share2,
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -98,6 +99,21 @@ const AlbumDetailScreen = ({
   isMoreLoading,
 }: AlbumDetailProps) => {
   const { album } = route.params;
+
+  useEffect(() => {
+    if (album) {
+      const artist = album.artists?.primary?.[0]?.name || "Various Artists";
+      const yearText = album.year ? ` • ${album.year}` : "";
+      addToRecentActivity({
+        id: album.id,
+        title: album.name || (album as any).title,
+        image: album.image,
+        type: album.type || "album",
+        subtitle: `${artist}${yearText}`,
+        timestamp: Date.now(),
+      });
+    }
+  }, [album]);
 
   // Calculate total duration
   const totalDurationSeconds = React.useMemo(() => {

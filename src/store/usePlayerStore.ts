@@ -1,5 +1,6 @@
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
+import { addToRecentActivity } from "@/src/lib/storage";
 // ===== COMMENTED OUT: RNTP imports =====
 // import TrackPlayer, { State } from "react-native-track-player";
 
@@ -179,6 +180,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: null,
       });
 
+
       const trackItems = [track].map(mapToTrackItem);
 
       // 3. Create and load playlist in native player
@@ -226,6 +228,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isShuffleEnabled: false,
         originalQueue: null,
       });
+
 
       const trackItems = tracks.map(mapToTrackItem);
 

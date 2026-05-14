@@ -2,7 +2,11 @@ import { useGlobalSearch, useSearchSuggestions } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
-import { getSearchHistory, setSearchHistory } from "@/src/lib/storage";
+import {
+  getSearchHistory,
+  setSearchHistory,
+  addToRecentActivity,
+} from "@/src/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -106,21 +110,33 @@ export default function SearchScreen() {
         console.error("Failed to fetch full song details:", error);
         setCurrentTrack(item);
       }
-    } else if (item.type === "album") {
-      router.push({
-        pathname: "/album-detail",
-        params: { albumId: item.id, albumUrl: item.url },
+    } else {
+      // For non-song items (albums, artists, playlists), track them here
+      addToRecentActivity({
+        id: item.id,
+        title: item.title || item.name,
+        image: item.image?.[1]?.url || item.image?.[0]?.url || item.image,
+        type: item.type,
+        subtitle: item.subtitle || item.description || item.type,
+        timestamp: Date.now(),
       });
-    } else if (item.type === "playlist") {
-      router.push({
-        pathname: "/playlist-detail",
-        params: { playlistId: item.id, playlistUrl: item.url },
-      });
-    } else if (item.type === "artist") {
-      router.push({
-        pathname: "/artist/[id]",
-        params: { id: item.id, url: item.url },
-      });
+
+      if (item.type === "album") {
+        router.push({
+          pathname: "/album-detail",
+          params: { albumId: item.id, albumUrl: item.url },
+        });
+      } else if (item.type === "playlist") {
+        router.push({
+          pathname: "/playlist-detail",
+          params: { playlistId: item.id, playlistUrl: item.url },
+        });
+      } else if (item.type === "artist") {
+        router.push({
+          pathname: "/artist/[id]",
+          params: { id: item.id, url: item.url },
+        });
+      }
     }
   };
 
