@@ -7,51 +7,7 @@ export const useSetupPlayer = () => {
   useEffect(() => {
     async function setup() {
       try {
-        // ===== COMMENTED OUT: Old RNTP setup code =====
-        // try {
-        //   await TrackPlayer.setupPlayer();
-        // } catch (e: any) {
-        //   if (!e?.message?.includes('already been initialized')) {
-        //     throw e;
-        //   }
-        //   console.log('TrackPlayer already initialized, skipping setupPlayer');
-        // }
-        //
-        // await TrackPlayer.updateOptions({
-        //   android: {
-        //     appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-        //   },
-        //   capabilities: [
-        //     Capability.Play,
-        //     Capability.Pause,
-        //     Capability.SkipToNext,
-        //     Capability.SkipToPrevious,
-        //     Capability.SeekTo,
-        //     Capability.Stop,
-        //   ],
-        //   compactCapabilities: [
-        //     Capability.Play,
-        //     Capability.Pause,
-        //     Capability.SkipToNext,
-        //   ],
-        //   notificationCapabilities: [
-        //     Capability.Play,
-        //     Capability.Pause,
-        //     Capability.SkipToNext,
-        //     Capability.SkipToPrevious,
-        //   ],
-        // });
-        //
-        // await TrackPlayer.reset();
-        // await TrackPlayer.add({
-        //   id: '1',
-        //   url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        //   title: 'Test Track',
-        //   artist: 'Test',
-        // });
-        // await TrackPlayer.play();
-        // ==========================================
-
+        
         // ===== NEW: Nitro Player Setup =====
         console.log('🎵 Setting up Nitro Player...');
 

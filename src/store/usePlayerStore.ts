@@ -40,7 +40,11 @@ const reorderQueueInPlaylist = async (
 ) => {
   const workingQueue = [...currentQueue];
 
-  for (let targetIndex = 0; targetIndex < targetQueue.length; targetIndex += 1) {
+  for (
+    let targetIndex = 0;
+    targetIndex < targetQueue.length;
+    targetIndex += 1
+  ) {
     const desiredTrackId = targetQueue[targetIndex]?.id;
     const currentIndex = workingQueue.findIndex(
       (track) => track.id === desiredTrackId,
@@ -159,7 +163,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       }
 
-      console.log(`Single-Track Play: ${track.name}. Playback starting...`);
+      // console.log(`Single-Track Play: ${track.name}. Playback starting...`);
 
       // 2. Update store metadata IMMEDIATELY with just the selected track
       set({
@@ -205,9 +209,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     try {
       const selectedTrack = tracks[startIndex];
-      console.log(
-        `Setting Queue: ${tracks.length} tracks, starting at index ${startIndex}`,
-      );
+      // console.log(
+      //   `Setting Queue: ${tracks.length} tracks, starting at index ${startIndex}`,
+      // );
 
       // 1. Update store metadata IMMEDIATELY
       set({
@@ -254,7 +258,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const { queue, activePlaylistId, isFetchingSuggestions } = get();
       if (!activePlaylistId || isFetchingSuggestions) return;
 
-      console.log("🔄 Fetching more suggestions for autoplay...");
+      // console.log("🔄 Fetching more suggestions for autoplay...");
       set({ isFetchingSuggestions: true });
 
       const response = await jioSaavnService.getSuggestedSongs(trackId, 10);
@@ -282,7 +286,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // Add to native player queue
       const trackItems = newSongs.map(mapToTrackItem);
       await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
-      console.log(`✅ Appended ${newSongs.length} new songs to queue`);
+      // console.log(`✅ Appended ${newSongs.length} new songs to queue`);
       set({ isFetchingSuggestions: false });
     } catch (error) {
       console.error("Error fetching more suggestions:", error);
@@ -421,7 +425,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     try {
-      await PlayerQueue.addTrackToPlaylist(activePlaylistId, mapToTrackItem(track));
+      await PlayerQueue.addTrackToPlaylist(
+        activePlaylistId,
+        mapToTrackItem(track),
+      );
 
       set({
         originalQueue: originalQueue ? [...originalQueue, track] : null,
@@ -441,14 +448,19 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       return;
     }
 
-    const existingIndex = queue.findIndex((queuedTrack) => queuedTrack.id === track.id);
+    const existingIndex = queue.findIndex(
+      (queuedTrack) => queuedTrack.id === track.id,
+    );
     const insertIndex = Math.min(currentIndex + 1, queue.length);
 
     try {
       let nextQueue = [...queue];
 
       if (existingIndex === -1) {
-        await PlayerQueue.addTrackToPlaylist(activePlaylistId, mapToTrackItem(track));
+        await PlayerQueue.addTrackToPlaylist(
+          activePlaylistId,
+          mapToTrackItem(track),
+        );
         await PlayerQueue.reorderTrackInPlaylist(
           activePlaylistId,
           track.id,
@@ -474,7 +486,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           (queuedTrack) => queuedTrack.id === track.id,
         );
         if (originalExistingIndex !== -1) {
-          const [existingTrack] = nextOriginalQueue.splice(originalExistingIndex, 1);
+          const [existingTrack] = nextOriginalQueue.splice(
+            originalExistingIndex,
+            1,
+          );
           nextOriginalQueue.splice(
             Math.min(currentIndex + 1, nextOriginalQueue.length),
             0,
