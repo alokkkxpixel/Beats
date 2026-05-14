@@ -8,7 +8,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { BackHandler, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
@@ -218,6 +218,34 @@ const QueueSheetLayer = React.memo(() => {
 export function PlayerWrapper({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const TABBAR_HEIGHT = 55 + insets.bottom;
+
+  useEffect(() => {
+    const backAction = () => {
+      const state = usePlayerStore.getState();
+
+      // Close in reverse order of z-index/priority
+      if (state.isQueueOpen) {
+        state.minimizeQueue();
+        return true;
+      }
+      if (state.isMoreOptionOpen) {
+        state.minizeMoreOption();
+        return true;
+      }
+      if (state.isFullPlayerOpen) {
+        state.minimizeFullPlayer();
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <View style={styles.container}>
