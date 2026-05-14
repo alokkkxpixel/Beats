@@ -1,13 +1,13 @@
+import ChevronIcon from "@/assets/app-icons/chevron-left.svg";
 import Categories from "@/components/explore/Categories";
+import Header from "@/components/Header";
 import { useHomePreviews } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { NewRelease } from "@/types/jiosaavn";
-import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -27,7 +27,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Header from "@/components/Header";
 
 const { width } = Dimensions.get("window");
 
@@ -237,7 +236,12 @@ export default function ExploreScreen() {
         {/* New Albums Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>New albums and singles</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <ChevronIcon
+            width={20}
+            height={20}
+            fill="#999"
+            style={{ transform: [{ rotate: "180deg" }] }}
+          />
         </View>
 
         <View style={{ height: 280, marginBottom: 10 }}>
@@ -263,7 +267,12 @@ export default function ExploreScreen() {
               </Text>
             )}
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <ChevronIcon
+            width={20}
+            height={20}
+            fill="#999"
+            style={{ transform: [{ rotate: "180deg" }] }}
+          />
         </View>
 
         <View style={{ height: 280, marginBottom: 20 }}>
@@ -275,7 +284,8 @@ export default function ExploreScreen() {
                     (data?.["promo:vx:data:76"]?.data?.length || 0) / 3,
                   ),
                 },
-                (_, i) => data?.["promo:vx:data:76"]?.data?.slice(i * 3, i * 3 + 3),
+                (_, i) =>
+                  data?.["promo:vx:data:76"]?.data?.slice(i * 3, i * 3 + 3),
               ) || []
             }
             horizontal

@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -54,7 +53,6 @@ const CategoriesDetailsPage = ({
     isSquare: boolean = true,
   ) => {
     if (!dataList || dataList.length === 0) return null;
-
     const chunkedData = Array.from(
       { length: Math.ceil(dataList.length / 2) },
       (_, i) => dataList.slice(i * 2, i * 2 + 2),
@@ -215,7 +213,7 @@ const CategoriesDetailsPage = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 160 }}
           >
-            {renderHorizontalGrid(moodsData, "Moods & Genres")}
+            {renderHorizontalGrid(moodsData as any[], "Moods & Genres")}
           </ScrollView>
         );
       case "4": // Cricket Fever
@@ -225,11 +223,11 @@ const CategoriesDetailsPage = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 160 }}
           >
-            {renderSimpleSongsList(cricketData.slice(0, 8), "Featured")}
+            {/* {renderSimpleSongsList(cricketData.slice(0, 8), "Featured")}
             {renderHorizontalGrid(
-              cricketData.slice(8),
+              // cricketData.slice(8) ,
               "All Cricket Playlists",
-            )}
+            )} */}
           </ScrollView>
         );
       default:

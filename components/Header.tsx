@@ -1,9 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Extrapolation,
@@ -13,6 +11,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+// Import SVGs
+import SearchIcon from "@/assets/app-icons/search.svg";
 
 const HEADER_HEIGHT = 40;
 
@@ -73,7 +74,7 @@ export default function App({ title }: { title: string }) {
 
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>
-              <Ionicons name="search" size={20} color="white" />
+              <SearchIcon width={28} height={28} fill="white" />
             </Pressable>
             <Pressable onPress={() => navigation.openDrawer()}>
               <View className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/20">

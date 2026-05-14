@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useCallback } from "react";
 import {
@@ -19,6 +18,12 @@ import { useShallow } from "zustand/shallow";
 import BlurredBackground from "./BlurredBackground";
 import PlayerControls from "./PlayerControls";
 import ProgressSection from "./ProgressSection";
+
+// Import SVGs
+import Statminus from "@/assets/app-icons/stat-minus.svg";
+
+import LikeUnfill from "@/assets/app-icons/like-unfill.svg";
+import MoreIcon from "@/assets/app-icons/more.svg";
 
 const { width } = Dimensions.get("window");
 
@@ -125,7 +130,7 @@ const FullPlayer = React.memo(
               style={styles.headerIconButton}
               hitSlop={20}
             >
-              <Ionicons name="chevron-down" size={28} color="white" />
+              <Statminus width={28} height={28} fill="white" />
             </Pressable>
 
             <Text
@@ -146,7 +151,7 @@ const FullPlayer = React.memo(
               }}
               hitSlop={20}
             >
-              <Ionicons name="ellipsis-horizontal" size={24} color="white" />
+              <MoreIcon width={24} height={24} fill="white" />
             </Pressable>
           </View>
 
@@ -171,7 +176,7 @@ const FullPlayer = React.memo(
                 </Text>
               </Pressable>
             </View>
-            <Ionicons name="heart-outline" size={28} color="white" />
+            <LikeUnfill width={28} height={28} fill="white" />
           </View>
 
           <ProgressSection />

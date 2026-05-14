@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -14,6 +13,11 @@ import {
   useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 import { useShallow } from "zustand/shallow";
+
+// Import SVGs
+import MusicIcon from "@/assets/app-icons/album.svg";
+import PauseIcon from "@/assets/app-icons/pause.svg";
+import PlayIcon from "@/assets/app-icons/play.svg";
 
 const MiniPlayer = React.memo(function MiniPlayer() {
   // FIX: Removed all native hooks (useNowPlaying, useOnPlaybackStateChange)
@@ -75,7 +79,7 @@ const MiniPlayer = React.memo(function MiniPlayer() {
               },
             ]}
           >
-            <Ionicons name="musical-note" size={24} color="#666" />
+            <MusicIcon width={24} height={24} fill="#666" />
           </View>
         )}
         <View style={styles.miniTextContainer}>
@@ -94,11 +98,19 @@ const MiniPlayer = React.memo(function MiniPlayer() {
             onPress={togglePlay}
             disabled={!isLoaded}
           >
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={30}
-              color={isLoaded ? "white" : "#444"}
-            />
+            {isPlaying ? (
+              <PauseIcon
+                width={30}
+                height={30}
+                fill={isLoaded ? "white" : "#444"}
+              />
+            ) : (
+              <PlayIcon
+                width={30}
+                height={30}
+                fill={isLoaded ? "white" : "#444"}
+              />
+            )}
           </Pressable>
         </View>
       </View>

@@ -1,40 +1,38 @@
-import { View, Text, StyleSheet } from "react-native";
-import React from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable } from "react-native";
-import { Dimensions } from "react-native";
 import { useRouter } from "expo-router";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+
+// Import SVGs
+import MoodsIcon from "@/assets/app-icons/album.svg"; // Fallback
+import PodcastIcon from "@/assets/app-icons/artist.svg"; // Fallback
+import ExploreIcon from "@/assets/app-icons/explore-fill.svg";
+import ChartsIcon from "@/assets/app-icons/history.svg"; // Fallback
+
 const { width } = Dimensions.get("window");
 const Categories = () => {
   const CATEGORIES = [
     {
       id: "1",
       title: "New releases",
-      icon: "sparkles",
+      icon: ExploreIcon,
       color: "#2A2A2A",
-      iconType: "Ionicons",
     },
     {
       id: "2",
       title: "Charts",
-      icon: "trending-up",
+      icon: ChartsIcon,
       color: "#2A2A2A",
-      iconType: "MaterialCommunityIcons",
     },
     {
       id: "3",
       title: "Moods and genres",
-      icon: "emoticon-happy-outline",
+      icon: MoodsIcon,
       color: "#2A2A2A",
-      iconType: "MaterialCommunityIcons",
     },
     {
       id: "4",
       title: "Cricket Fever",
-      icon: "podcast",
+      icon: PodcastIcon,
       color: "#2A2A2A",
-      iconType: "MaterialCommunityIcons",
     },
   ];
   const router = useRouter();
@@ -53,15 +51,7 @@ const Categories = () => {
           }}
         >
           <View style={styles.iconContainer}>
-            {cat.iconType === "Ionicons" ? (
-              <Ionicons name={cat.icon as any} size={24} color="white" />
-            ) : (
-              <MaterialCommunityIcons
-                name={cat.icon as any}
-                size={24}
-                color="white"
-              />
-            )}
+            <cat.icon width={24} height={24} fill="white" />
           </View>
           <Text style={styles.categoryTitle}>{cat.title}</Text>
         </Pressable>

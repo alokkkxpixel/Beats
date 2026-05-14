@@ -1,19 +1,10 @@
+import { addToRecentActivity } from "@/src/lib/storage";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
-import { addToRecentActivity } from "@/src/lib/storage";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  ArrowDownCircle,
-  ChevronLeft,
-  MoreVertical,
-  Play,
-  PlusSquare,
-  Search,
-  Share2,
-} from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
@@ -23,6 +14,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Import SVGs
+import AddLibraryIcon from "@/assets/app-icons/add-library.svg";
+import ChevronLeftIcon from "@/assets/app-icons/chevron-left.svg";
+import DownloadIcon from "@/assets/app-icons/download.svg";
+import MoreIcon from "@/assets/app-icons/more.svg";
+import PlayIcon from "@/assets/app-icons/play.svg";
+import SearchIcon from "@/assets/app-icons/search.svg";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
 
 interface AlbumDetailProps {
   route: {
@@ -54,6 +54,23 @@ const TrackItem = React.memo(
     const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
     const artist = item.artists?.primary?.[0]?.name || artistName;
     const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
+    const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+    const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+    const setSelectedSongOption = usePlayerStore(
+      (s) => s.setSelectedSongOption,
+    );
+    const handleOption = async (item: any) => {
+      const response = await jioSaavnService.getSongByIdandLink(
+        item.id,
+        item.url,
+      );
+      if (response.success && response.data[0]) {
+        setSelectedSongOption(response.data[0]);
+      } else {
+        setSelectedSongOption(item);
+      }
+      expandMoreOption();
+    };
 
     return (
       <TouchableOpacity
@@ -84,8 +101,11 @@ const TrackItem = React.memo(
           </View>
         </View>
 
-        <TouchableOpacity style={styles.trackMore}>
-          <MoreVertical color="#9ca3af" size={20} />
+        <TouchableOpacity
+          onPress={() => handleOption(item)}
+          style={styles.trackMore}
+        >
+          <MoreIcon fill="#9ca3af" width={20} height={20} />
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -144,7 +164,22 @@ const AlbumDetailScreen = ({
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
   const highResCover = album.image?.[album.image?.length - 1]?.url || "";
+  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
 
+  const handleOption = async (item: any) => {
+    const response = await jioSaavnService.getSongByIdandLink(
+      item.id,
+      item.url,
+    );
+    if (response.success && response.data[0]) {
+      setSelectedSongOption(response.data[0]);
+    } else {
+      setSelectedSongOption(item);
+    }
+    expandMoreOption();
+  };
   const renderHeader = React.useMemo(
     () => (
       <View style={styles.listHeader}>
@@ -171,29 +206,28 @@ const AlbumDetailScreen = ({
 
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionCircleBtn}>
-            <ArrowDownCircle color="white" size={24} strokeWidth={1.2} />
+            <DownloadIcon fill="white" width={24} height={24} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCircleBtn}>
-            <PlusSquare color="white" size={24} strokeWidth={1.2} />
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.mainPlayBtn}
             onPress={() => setQueue(album.songs)}
           >
-            <Play color="black" size={28} fill="black" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCircleBtn}>
-            <Share2 color="white" size={24} strokeWidth={1.2} />
+            <PlayIcon fill="white" width={50} height={50} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCircleBtn}>
-            <MoreVertical color="white" size={24} strokeWidth={1.2} />
+            <AddLibraryIcon fill="white" width={24} height={24} />
           </TouchableOpacity>
         </View>
       </View>
     ),
-    [highResCover, album.name, album.title, album.description, album.songs, setQueue],
+    [
+      highResCover,
+      album.name,
+      album.title,
+      album.description,
+      album.songs,
+      setQueue,
+    ],
   );
 
   const renderFooter = React.useMemo(
@@ -246,7 +280,7 @@ const AlbumDetailScreen = ({
         {/* HEADER */}
         <View style={styles.headerNav}>
           <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-            <ChevronLeft color="white" size={28} />
+            <ChevronLeftIcon fill="white" width={28} height={28} />
           </TouchableOpacity>
 
           <View style={styles.headerTitleContainer}>
@@ -265,7 +299,7 @@ const AlbumDetailScreen = ({
           </View>
 
           <TouchableOpacity className="p-2">
-            <Search color="white" size={24} />
+            <SearchIcon fill="white" width={24} height={24} />
           </TouchableOpacity>
         </View>
 
@@ -374,7 +408,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     marginTop: 30,
-    paddingHorizontal: 10,
+    paddingHorizontal: 50,
   },
   actionCircleBtn: {
     width: 44,
@@ -387,8 +421,8 @@ const styles = StyleSheet.create({
   mainPlayBtn: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: "white",
+    // borderRadius: 32,
+    // backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

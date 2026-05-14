@@ -1,9 +1,18 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { usePlayerStore } from "../src/store/usePlayerStore";
+
+// Import SVGs
+import AddQueueIcon from "@/assets/app-icons/add-to-queue.svg";
+import AlbumIcon from "@/assets/app-icons/album.svg";
+import ArtistIcon from "@/assets/app-icons/artist.svg";
+import DownloadIcon from "@/assets/app-icons/download.svg";
+import ShareIcon from "@/assets/app-icons/more.svg";
+import SaveIcon from "@/assets/app-icons/playlist-add.svg";
+import PlayNextIcon from "@/assets/app-icons/playlist-next.svg";
+import RadioIcon from "@/assets/app-icons/radio.svg";
 
 export default function MusicBottomSheet() {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
@@ -26,7 +35,7 @@ export default function MusicBottomSheet() {
       if (typeof target === "string") return target;
       return target?.url || "";
     }
-    
+
     return "";
   };
 
@@ -77,29 +86,29 @@ export default function MusicBottomSheet() {
   };
 
   const menuItems = [
-    { icon: "radio-outline", label: "Start radio" },
-    { icon: "list-outline", label: "Add to queue", fnx: handleAddToQueue },
-    { icon: "download-outline", label: "Download" },
+    { icon: RadioIcon, label: "Start radio" },
+    { icon: AddQueueIcon, label: "Add to queue", fnx: handleAddToQueue },
+    { icon: DownloadIcon, label: "Download" },
     {
-      icon: "disc-outline",
+      icon: AlbumIcon,
       label: "Go to album",
       fnx: handleAlbumPress,
     },
     {
-      icon: "person-outline",
+      icon: ArtistIcon,
       label: "Go to artist",
       fnx: handleArtistPress,
     },
   ];
 
   const quickActions = [
-    { icon: "play-skip-forward", label: "Play next", fnx: handlePlayNext },
-    { icon: "add", label: "Save" },
-    { icon: "share-social", label: "Share" },
+    { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
+    { icon: SaveIcon, label: "Save" },
+    { icon: ShareIcon, label: "Share" },
   ];
 
   return (
-    <View className="flex-1 px-4 w-full  ">
+    <View className="flex-1 px-4  w-full  ">
       <View className="flex-row items-center gap-3 mb-4 ">
         <View className="w-12 h-12 bg-zinc-700 rounded-md overflow-hidden">
           <Image
@@ -131,7 +140,7 @@ export default function MusicBottomSheet() {
               className="bg-zinc-800 p-4 rounded-xl mb-2"
               onPress={item.fnx}
             >
-              <Ionicons name={item.icon} size={20} color="white" />
+              <item.icon width={20} height={20} color="white" />
             </Pressable>
             <Text className="text-white text-xs">{item.label}</Text>
           </View>
@@ -150,7 +159,7 @@ export default function MusicBottomSheet() {
           }}
           className="flex-row items-center py-3"
         >
-          <Ionicons name={item.icon} size={20} color="#ccc" />
+          <item.icon fill="white" width={22} height={22} />
           <Text className="text-white ml-4">{item.label}</Text>
         </Pressable>
       ))}

@@ -6,14 +6,6 @@ import {
   useDrawerStatus,
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
-import {
-  Download,
-  History,
-  Info,
-  Settings,
-  User,
-  X,
-} from "lucide-react-native";
 import { useEffect } from "react";
 import {
   Pressable,
@@ -23,6 +15,14 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Import SVGs
+import HistoryIcon from "@/assets/app-icons/history.svg";
+import DownloadIcon from "@/assets/app-icons/download.svg";
+import SettingsIcon from "@/assets/app-icons/settings.svg";
+import AboutIcon from "@/assets/app-icons/about.svg";
+import CloseIcon from "@/assets/app-icons/close.svg";
+import UserIcon from "@/assets/app-icons/artist.svg";
 
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const menuItems = [
     {
       label: "History",
-      icon: History,
+      icon: HistoryIcon,
       onPress: () => {
         props.navigation.closeDrawer();
         router.push("/library"); // Assuming history is part of library page !!!
@@ -46,7 +46,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     },
     {
       label: "Downloads",
-      icon: Download,
+      icon: DownloadIcon,
       onPress: () => {
         props.navigation.closeDrawer();
         // router.push("/downloads");
@@ -54,7 +54,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     },
     {
       label: "Settings",
-      icon: Settings,
+      icon: SettingsIcon,
       onPress: () => {
         // props.navigation.closeDrawer();
         router.push("/setting");
@@ -62,7 +62,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     },
     {
       label: "About",
-      icon: Info,
+      icon: AboutIcon,
       onPress: () => {
         props.navigation.closeDrawer();
         // router.push("/about");
@@ -78,9 +78,10 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
       >
         <View className="mb-10 px-2">
           <View className="flex flex-row items-center gap-5">
-            <X
-              size={27}
-              color={"#fff"}
+            <CloseIcon
+              width={27}
+              height={27}
+              fill={"#fff"}
               onPress={() => props.navigation.closeDrawer()}
             />
             <View className="flex-row items-center gap-3">
@@ -96,7 +97,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <User size={30} color="#fff" />
+              <UserIcon width={30} height={30} fill="#fff" />
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.userName} className="font-sans-bold">
@@ -126,7 +127,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
               className="flex flex-row mb-5 item-center"
               onPress={item.onPress}
             >
-              <item.icon size={22} color="#fff" style={styles.menuIcon} />
+              <item.icon width={22} height={22} fill="#fff" style={styles.menuIcon} />
               <Text style={styles.menuLabel} className="font-sans-medium">
                 {item.label}
               </Text>
@@ -144,6 +145,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
