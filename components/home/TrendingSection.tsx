@@ -185,7 +185,7 @@ export default function TrendingSection({
             title: song.name,
             image: song.image,
             type: "song",
-            subtitle: song.artists?.primary?.[0]?.name || song.subtitle,
+            subtitle: displaySubtitle,
             timestamp: Date.now(),
           });
           setCurrentTrack(song);

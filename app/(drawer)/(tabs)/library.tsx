@@ -7,7 +7,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { MoreVertical, Trash2 } from "lucide-react-native";
+import { Trash2 } from "lucide-react-native";
 import { memo, useCallback, useState } from "react";
 import {
   StatusBar,
@@ -40,7 +40,22 @@ interface LibraryItemData {
 const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
   const router = useRouter();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
-
+  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  // Fix #4: Only subscribe to whether THIS row is active, not the entire currentTrack object
+  const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
+  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
+  const handleOption = async (item: any) => {
+    const response = await jioSaavnService.getSongByIdandLink(
+      item.id,
+      item.url,
+    );
+    if (response.success && response.data[0]) {
+      setSelectedSongOption(response.data[0]);
+    } else {
+      setSelectedSongOption(item);
+    }
+    expandMoreOption();
+  };
   const handlePress = async () => {
     if (item.type === "song") {
       try {
@@ -86,7 +101,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
     }
     return url;
   };
-
+  console.log("item", item.subtitle, item.type);
   const imageUri = getImageUri(item.image);
 
   return (
@@ -121,10 +136,6 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
           {item.subtitle || item.type}
         </Text>
       </View>
-
-      <TouchableOpacity className="p-2 opacity-60">
-        <MoreVertical size={20} color="white" />
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 });

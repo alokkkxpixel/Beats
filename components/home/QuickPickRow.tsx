@@ -14,9 +14,7 @@ import { useRouter } from "expo-router";
 type QuickPickRowProps = {
   item: QuickPick;
 };
-function QuickPickRow({
-  item,
-}: QuickPickRowProps): React.JSX.Element {
+function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const router = useRouter();
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
@@ -33,7 +31,14 @@ function QuickPickRow({
         title: song.name,
         image: song.image,
         type: "song",
-        subtitle: song.artists?.primary?.[0]?.name || song.subtitle,
+        subtitle: decodeHtmlEntities(
+          item.playCount && Number(item.playCount || "") > 0
+            ? item.artist +
+                " • " +
+                formatPlayCount(Number(item.playCount || "")) +
+                " plays"
+            : item.artist,
+        ),
         timestamp: Date.now(),
       });
       setCurrentTrack(song);
