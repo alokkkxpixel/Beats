@@ -101,7 +101,6 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
     }
     return url;
   };
-  console.log("item", item.subtitle, item.type);
   const imageUri = getImageUri(item.image);
 
   return (

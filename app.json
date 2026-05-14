@@ -4,7 +4,7 @@
     "slug": "Beats",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icons/appstore.png",
     "scheme": "beats",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050505",
@@ -14,9 +14,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
+        "backgroundColor": "#050505",
+        "foregroundImage": "./assets/icons/playstore.png",
+        "backgroundImage": "./assets/icons/playstore.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -33,16 +33,23 @@
     "web": {
       "output": "static",
       "bundler": "metro",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/icons/playstore.png"
     },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#ffffff"
+        }
+      ],
       "expo-dev-client",
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/icons/appstore.png",
+          "imageWidth": 250,
           "resizeMode": "contain",
           "backgroundColor": "#050505",
           "dark": {

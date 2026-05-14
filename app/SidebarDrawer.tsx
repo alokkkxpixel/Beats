@@ -1,8 +1,10 @@
+import { Image } from "expo-image";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
+  useDrawerStatus,
 } from "@react-navigation/drawer";
-import { useDrawerStatus } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import {
   Download,
@@ -12,7 +14,7 @@ import {
   User,
   X,
 } from "lucide-react-native";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -21,7 +23,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePlayerStore } from "@/src/store/usePlayerStore";
 
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
       icon: History,
       onPress: () => {
         props.navigation.closeDrawer();
-        router.push("/search"); // Assuming history is part of search or a dedicated page
+        router.push("/library"); // Assuming history is part of library page !!!
       },
     },
     {
@@ -82,7 +83,13 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
               color={"#fff"}
               onPress={() => props.navigation.closeDrawer()}
             />
-            <Text className="text-white text-2xl font-medium">Account</Text>
+            <View className="flex-row items-center gap-3">
+              <Image
+                source={require("../assets/icons/playstore.png")}
+                style={{ width: 32, height: 32, borderRadius: 8 }}
+              />
+              <Text className="text-white text-2xl font-bold tracking-tight">Beats</Text>
+            </View>
           </View>
         </View>
         {/* User Profile Section */}
