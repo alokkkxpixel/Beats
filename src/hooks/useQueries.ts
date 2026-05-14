@@ -1,8 +1,9 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { getMusicLanguages } from "../lib/storage";
 import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 
 export const useHomePreviews = (
-  languages: string[] = ["english", "hindi", "punjabi"],
+  languages: string[] = getMusicLanguages(),
 ) => {
   return useQuery({
     // THE FIX: Adding languages to the key
@@ -16,7 +17,7 @@ export const useHomePreviews = (
 };
 
 export const useSpecialForYou = (
-  languages: string[] = ["english", "hindi", "punjabi"],
+  languages: string[] = getMusicLanguages(),
 ) => {
   return useQuery({
     // THE FIX: Adding languages to the key

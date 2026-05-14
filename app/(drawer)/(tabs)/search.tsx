@@ -2,6 +2,7 @@ import { useGlobalSearch, useSearchSuggestions } from "@/src/hooks/useQueries";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
+import { getSearchHistory, setSearchHistory } from "@/src/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -35,11 +36,12 @@ export default function SearchScreen() {
   const searchQuery = useSearchStore((state) => state.searchQuery);
   const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [history, setHistory] = useState<SearchHistoryItem[]>([
-    { id: "1", term: "The Weeknd" },
-    { id: "2", term: "Tum Hi Ho" },
-    { id: "3", term: "Starboy" },
-  ]);
+  const [history, setHistory] = useState<SearchHistoryItem[]>([]);
+
+  // Load history from MMKV on mount
+  useEffect(() => {
+    setHistory(getSearchHistory());
+  }, []);
 
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
@@ -70,8 +72,9 @@ export default function SearchScreen() {
     const newHistory = [
       { id: Date.now().toString(), term: term.trim() },
       ...history.filter((h) => h.term.toLowerCase() !== term.toLowerCase()),
-    ].slice(0, 5);
+    ].slice(0, 7); // Max 7 items as requested
     setHistory(newHistory);
+    setSearchHistory(newHistory);
   };
 
   const handleSearchSubmit = (query: string) => {
@@ -254,7 +257,7 @@ export default function SearchScreen() {
             <View>
               {/* Autocomplete Suggestions (Text only) */}
               {searchResults?.data?.topQuery?.results
-                ?.slice(0, 5)
+                ?.slice(0, 3)
                 .map((item: any) => (
                   <Pressable
                     key={`suggest-${item.id}`}

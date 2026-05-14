@@ -95,7 +95,7 @@ const FullPlayer = React.memo(
     }
 
     const trackImage =
-      originalSong?.image?.[2]?.url ||
+      originalSong?.image?.[3]?.url ||
       (currentTrack as any).image?.[2]?.url ||
       originalSong?.image?.[0]?.url;
 

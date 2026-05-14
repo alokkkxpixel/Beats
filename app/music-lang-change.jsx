@@ -1,9 +1,11 @@
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { MoveLeft } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { getMusicLanguages, setMusicLanguages } from "@/src/lib/storage";
 
 const LANGUAGES = [
   "Hindi",
@@ -20,6 +22,15 @@ const LANGUAGES = [
 
 export default function LanguageSelectionScreen() {
   const [selected, setSelected] = useState([]);
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  // Load initial selection from MMKV
+  useEffect(() => {
+    const savedLangs = getMusicLanguages();
+    const initial = savedLangs.map(l => l.charAt(0).toUpperCase() + l.slice(1));
+    setSelected(initial);
+  }, []);
 
   const toggleLanguage = (lang) => {
     setSelected((prev) => {
@@ -29,6 +40,18 @@ export default function LanguageSelectionScreen() {
         return [...prev, lang];
       }
     });
+  };
+
+  const handleDone = () => {
+    const langsToSave = selected.map((l) => l.toLowerCase());
+    setMusicLanguages(langsToSave);
+
+    // Invalidate queries to trigger a fresh fetch on the home screen
+    queryClient.invalidateQueries({ queryKey: ["home-previews"] });
+    queryClient.invalidateQueries({ queryKey: ["special-for-you"] });
+
+    // Navigate back to home
+    router.replace("/");
   };
 
   const isSelected = (lang) => selected.includes(lang);
@@ -67,9 +90,7 @@ export default function LanguageSelectionScreen() {
       {/* Done Button */}
       <Pressable
         disabled={selected.length === 0}
-        onPress={() => {
-          // console.log("Selected:", selected);
-        }}
+        onPress={handleDone}
         className={`absolute bottom-10 left-4 right-4 py-4 rounded-xl ${
           selected.length === 0 ? "bg-zinc-700" : "bg-green-500"
         }`}

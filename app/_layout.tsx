@@ -8,24 +8,23 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { persister, queryClient } from "@/src/lib/query-client";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import * as React from "react";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../global.css";
 
-console.log("App Starting... RootLayout rendered");
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      gcTime: 1000 * 60 * 60 * 24, // Keep in memory for 24 hours
-    },
-  },
-});
+// const queryClient = new QueryClient({
+//   defaultOptions: {
+//     queries: {
+//       gcTime: 1000 * 60 * 60 * 24, // Keep in memory for 24 hours
+//     },
+//   },
+// });
 
 // const asyncStoragePersister = createAsyncStoragePersister({
 //   storage: AsyncStorage,
@@ -52,7 +51,7 @@ export default function RootLayout() {
 
   console.log("Fonts loaded status:", fontsLoaded);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (fontsLoaded) {
       console.log("Hiding Splash Screen...");
       SplashScreen.hideAsync().catch((err) =>
@@ -74,7 +73,10 @@ export default function RootLayout() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
         <ThemeProvider
           value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
@@ -96,6 +98,6 @@ export default function RootLayout() {
           <StatusBar style="light" translucent={true} />
         </ThemeProvider>
       </GestureHandlerRootView>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

@@ -265,7 +265,7 @@ export default function Index() {
           if (item.type === "promo:vx:data:68") {
             return (
               <TrendingSection
-                key={item.id}
+                
                 title={item.title}
                 // subtitle={item.subtitle}
                 data={item.data}
@@ -276,7 +276,7 @@ export default function Index() {
 
           return (
             <TrendingSection
-              key={item.id}
+              
               title={item.title}
               data={item.data}
               type={item.type}

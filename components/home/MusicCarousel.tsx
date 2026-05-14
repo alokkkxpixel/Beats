@@ -3,7 +3,6 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { decodeHtmlEntities } from "@/src/utils/transform";
 import { Lists } from "@/types/jiosaavn";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -279,6 +278,6 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   tileOverlay: {
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
 });
