@@ -143,6 +143,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
     </TouchableOpacity>
   );
 });
+LibraryItem.displayName = "LibraryItem";
 
 export default function LibraryScreen() {
   const [recentActivity, setRecentActivity] = useState<LibraryItemData[]>([]);

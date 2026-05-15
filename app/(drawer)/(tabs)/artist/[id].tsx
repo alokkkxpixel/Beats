@@ -1,9 +1,13 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Play, Search, Share } from "lucide-react-native";
+
+import ArrowLeft from "@/assets/app-icons/back-arrow.svg";
+import PlayIcon from "@/assets/app-icons/play.svg";
+import { default as Search } from "@/assets/app-icons/search.svg";
+
 import { addToRecentActivity } from "@/src/lib/storage";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -159,7 +163,7 @@ export default function ArtistScreen() {
           onPress={() => router.back()}
           style={[styles.topBarIcon, { backgroundColor: "#333" }]}
         >
-          <ArrowLeft size={24} color="#fff" />
+          <ArrowLeft width={24} height={24} />
         </Pressable>
       </View>
     );
@@ -246,7 +250,7 @@ export default function ArtistScreen() {
               style={styles.playButtonCircle}
               onPress={() => openCatalog("songs")}
             >
-              <Play size={24} color="#000" fill="#000" />
+              <PlayIcon width={45} height={45} />
             </Pressable>
           </View>
         </View>
@@ -260,17 +264,14 @@ export default function ArtistScreen() {
 
       <View style={[styles.topBar, { top: insets.top }]}>
         <Pressable onPress={() => router.back()} style={styles.topBarIcon}>
-          <ArrowLeft size={24} color="#fff" />
+          <ArrowLeft width={22} height={22} />
         </Pressable>
         <View style={styles.topBarRight}>
-          <Pressable style={styles.topBarIcon}>
-            <Share size={22} color="#fff" />
-          </Pressable>
           <Pressable
             style={styles.topBarIcon}
             onPress={() => router.push("/search")}
           >
-            <Search size={22} color="#fff" />
+            <Search width={22} height={22} />
           </Pressable>
         </View>
       </View>
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
   },

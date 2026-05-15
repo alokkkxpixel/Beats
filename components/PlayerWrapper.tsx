@@ -42,6 +42,7 @@ const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
     </Pressable>
   );
 });
+MiniPlayerLayer.displayName = "MiniPlayerLayer";
 
 const FullPlayerSheetLayer = React.memo(() => {
   const { isFullPlayerOpen, minimizeFullPlayer, hasTrack } = usePlayerStore(
@@ -106,6 +107,7 @@ const FullPlayerSheetLayer = React.memo(() => {
     </View>
   );
 });
+FullPlayerSheetLayer.displayName = "FullPlayerSheetLayer";
 
 const MoreOptionsSheetLayer = React.memo(() => {
   const { isMoreOptionOpen, minizeMoreOption } = usePlayerStore(
@@ -163,6 +165,7 @@ const MoreOptionsSheetLayer = React.memo(() => {
     </View>
   );
 });
+MoreOptionsSheetLayer.displayName = "MoreOptionsSheetLayer";
 
 const QueueSheetLayer = React.memo(() => {
   const { isQueueOpen, minimizeQueue } = usePlayerStore(
@@ -214,6 +217,7 @@ const QueueSheetLayer = React.memo(() => {
     </View>
   );
 });
+QueueSheetLayer.displayName = "QueueSheetLayer";
 
 export function PlayerWrapper({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();

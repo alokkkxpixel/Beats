@@ -146,6 +146,7 @@ const MiniProgressBar = React.memo(({ isLoaded }: { isLoaded: boolean }) => {
     </View>
   );
 });
+MiniProgressBar.displayName = "MiniProgressBar";
 
 const styles = StyleSheet.create({
   miniContainer: {

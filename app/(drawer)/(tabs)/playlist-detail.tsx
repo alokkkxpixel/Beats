@@ -22,17 +22,31 @@ export default function PlayListDetailRoute() {
     isFetchingNextPage,
   } = usePlaylistInfinite(playlistId ?? null, playlistUrl ?? null);
 
-  // For DEbuging  ADD DEBUG HERE
-  // if (data?.pages?.length) {
-  //   console.log(
-  //     "Page:",
-  //     data.pages.length,
-  //     "Last songs:",
-  //     data.pages[data.pages.length - 1]?.songs?.length,
-  //   );
-  // }
+  const allSongs = React.useMemo(() => {
+    const seen = new Set<string>();
+    return (
+      data?.pages
+        ?.flatMap((page: any) => page?.songs || [])
+        .filter((song: any) => {
+          if (!song?.id) return false;
+          if (seen.has(song.id)) return false;
+          seen.add(song.id);
+          return true;
+        }) ?? []
+    );
+  }, [data]);
 
-  // ✅ Loading state
+  const playlistInfo = data?.pages?.[0];
+
+  const playlist = React.useMemo(() => {
+    if (!playlistInfo) return null;
+
+    return transformPlaylistToUI({
+      ...playlistInfo,
+      songs: allSongs,
+    });
+  }, [playlistInfo, allSongs]);
+
   if (isLoading) {
     return (
       <View
@@ -48,7 +62,6 @@ export default function PlayListDetailRoute() {
     );
   }
 
-  // ✅ Error state
   if (error || !data || !data.pages?.length) {
     return (
       <View
@@ -65,37 +78,7 @@ export default function PlayListDetailRoute() {
       </View>
     );
   }
-  // ✅ 🔥 Merge all songs from pages
-  // const allSongs = data?.pages?.flatMap((page: any) => page?.songs || []) ?? [];
-  const seen = new Set();
 
-  const allSongs =
-    data?.pages
-      ?.flatMap((page: any) => page?.songs || [])
-      .filter((song: any) => {
-        if (!song?.id) return false;
-
-        if (seen.has(song.id)) {
-          // console.log("Duplicate song found:", song.id, song.name);
-          return false; // ❌ duplicate
-        }
-
-        seen.add(song.id);
-        return true; // ✅ keep
-      }) ?? [];
-  // ✅ 🔥 Stable playlist info (first page only)
-  const playlistInfo = data?.pages[0];
-
-  // ✅ 🔥 Memoized transform (prevents re-renders/flicker)
-  const playlist = React.useMemo(() => {
-    if (!playlistInfo) return null;
-
-    return transformPlaylistToUI({
-      ...playlistInfo,
-      songs: allSongs,
-    });
-  }, [playlistInfo, allSongs]);
-  // ✅ Load more handler
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -108,8 +91,8 @@ export default function PlayListDetailRoute() {
     <AlbumDetailScreen
       route={{ params: { album: playlist } } as any}
       navigation={navigation}
-      onLoadMore={handleLoadMore} // 🔥 important
-      isMoreLoading={isFetchingNextPage} // 🔥 important
+      onLoadMore={handleLoadMore}
+      isMoreLoading={isFetchingNextPage}
     />
   );
 }

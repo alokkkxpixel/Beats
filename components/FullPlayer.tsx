@@ -269,6 +269,7 @@ const FullPlayer = React.memo(
     );
   },
 );
+FullPlayer.displayName = "FullPlayer";
 
 const styles = StyleSheet.create({
   container: {

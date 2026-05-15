@@ -40,5 +40,6 @@ const BlurredBackground = React.memo(
     );
   },
 );
+BlurredBackground.displayName = "BlurredBackground";
 
 export default BlurredBackground;

@@ -137,6 +137,7 @@ const TimeDisplay = React.memo(
     </View>
   ),
 );
+TimeDisplay.displayName = "TimeDisplay";
 
 const styles = StyleSheet.create({
   progressArea: {

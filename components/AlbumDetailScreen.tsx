@@ -1,4 +1,11 @@
+import AddLibraryIcon from "@/assets/app-icons/add-library.svg";
+import ChevronLeftIcon from "@/assets/app-icons/chevron-left.svg";
+import DownloadIcon from "@/assets/app-icons/download.svg";
+import MoreIcon from "@/assets/app-icons/more.svg";
+import PlayIcon from "@/assets/app-icons/play.svg";
+import SearchIcon from "@/assets/app-icons/search.svg";
 import { addToRecentActivity } from "@/src/lib/storage";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
@@ -15,15 +22,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Import SVGs
-import AddLibraryIcon from "@/assets/app-icons/add-library.svg";
-import ChevronLeftIcon from "@/assets/app-icons/chevron-left.svg";
-import DownloadIcon from "@/assets/app-icons/download.svg";
-import MoreIcon from "@/assets/app-icons/more.svg";
-import PlayIcon from "@/assets/app-icons/play.svg";
-import SearchIcon from "@/assets/app-icons/search.svg";
-import { jioSaavnService } from "@/src/services/jioSaavnService";
-
 interface AlbumDetailProps {
   route: {
     params: {
@@ -31,86 +29,82 @@ interface AlbumDetailProps {
     };
   };
   navigation: any;
-  onLoadMore?: () => void; // ✅ add
-  isMoreLoading?: boolean; // ✅ add
+  onLoadMore?: () => void;
+  isMoreLoading?: boolean;
 }
 
 const TypedFlashList = FlashList as any;
 
-const TrackItem = React.memo(
-  ({
-    item,
-    index,
-    artistName,
-    isCurrent,
-    onPress,
-  }: {
-    item: Song;
-    index: number;
-    artistName: string;
-    isCurrent: boolean;
-    onPress: () => void;
-  }) => {
-    const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
-    const artist = item.artists?.primary?.[0]?.name || artistName;
-    const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
-    const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
-    const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
-    const setSelectedSongOption = usePlayerStore(
-      (s) => s.setSelectedSongOption,
+const TrackItem = React.memo(function TrackItem({
+  item,
+  index,
+  artistName,
+  isCurrent,
+  onPress,
+}: {
+  item: Song;
+  index: number;
+  artistName: string;
+  isCurrent: boolean;
+  onPress: () => void;
+}) {
+  const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
+  const artist = item.artists?.primary?.[0]?.name || artistName;
+  const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
+  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
+
+  const handleOption = async (songItem: any) => {
+    const response = await jioSaavnService.getSongByIdandLink(
+      songItem.id,
+      songItem.url,
     );
-    const handleOption = async (item: any) => {
-      const response = await jioSaavnService.getSongByIdandLink(
-        item.id,
-        item.url,
-      );
-      if (response.success && response.data[0]) {
-        setSelectedSongOption(response.data[0]);
-      } else {
-        setSelectedSongOption(item);
-      }
-      expandMoreOption();
-    };
+    if (response.success && response.data[0]) {
+      setSelectedSongOption(response.data[0]);
+    } else {
+      setSelectedSongOption(songItem);
+    }
+    expandMoreOption();
+  };
 
-    return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        style={[styles.trackItem, isCurrent && styles.activeTrackItem]}
-        onPress={onPress}
-      >
-        <Image source={{ uri: imageUri }} style={styles.trackImage} />
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={[styles.trackItem, isCurrent && styles.activeTrackItem]}
+      onPress={onPress}
+    >
+      <Image source={{ uri: imageUri }} style={styles.trackImage} />
 
-        <View style={styles.trackInfo}>
-          <Text
-            style={[styles.trackTitle, isCurrent && styles.activeTrackTitle]}
-            numberOfLines={1}
-          >
-            {item.name}
-          </Text>
-
-          <View style={styles.trackSubRow}>
-            {!!item.explicitContent && (
-              <View style={styles.explicitBadge}>
-                <Text style={styles.explicitText}>E</Text>
-              </View>
-            )}
-
-            <Text style={styles.trackSub} numberOfLines={1}>
-              {artist} • {duration} • {formatPlayCount(item.playCount)}
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          onPress={() => handleOption(item)}
-          style={styles.trackMore}
+      <View style={styles.trackInfo}>
+        <Text
+          style={[styles.trackTitle, isCurrent && styles.activeTrackTitle]}
+          numberOfLines={1}
         >
-          <MoreIcon fill="#9ca3af" width={20} height={20} />
-        </TouchableOpacity>
+          {item.name}
+        </Text>
+
+        <View style={styles.trackSubRow}>
+          {!!item.explicitContent && (
+            <View style={styles.explicitBadge}>
+              <Text style={styles.explicitText}>E</Text>
+            </View>
+          )}
+
+          <Text style={styles.trackSub} numberOfLines={1}>
+            {artist} • {duration} • {formatPlayCount(item.playCount)}
+          </Text>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        onPress={() => handleOption(item)}
+        style={styles.trackMore}
+      >
+        <MoreIcon fill="#9ca3af" width={20} height={20} />
       </TouchableOpacity>
-    );
-  },
-);
+    </TouchableOpacity>
+  );
+});
 
 const AlbumDetailScreen = ({
   route,
@@ -119,26 +113,30 @@ const AlbumDetailScreen = ({
   isMoreLoading,
 }: AlbumDetailProps) => {
   const { album } = route.params;
+  const songs = album?.songs || [];
+  const artistName = album?.artists?.primary?.[0]?.name || "Various Artists";
+  const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
+  const setQueue = usePlayerStore((state) => state.setQueue);
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
 
   useEffect(() => {
-    if (album) {
-      const artist = album.artists?.primary?.[0]?.name || "Various Artists";
-      const yearText = album.year ? ` • ${album.year}` : "";
-      addToRecentActivity({
-        id: album.id,
-        title: album.name || (album as any).title,
-        image: album.image,
-        type: album.type || "album",
-        subtitle: `${artist}${yearText}`,
-        timestamp: Date.now(),
-      });
-    }
+    if (!album) return;
+    const artist = album.artists?.primary?.[0]?.name || "Various Artists";
+    const yearText = album.year ? ` • ${album.year}` : "";
+    addToRecentActivity({
+      id: album.id,
+      title: album.name || (album as any).title,
+      image: album.image,
+      type: album.type || "album",
+      subtitle: `${artist}${yearText}`,
+      timestamp: Date.now(),
+    });
   }, [album]);
 
-  // Calculate total duration
-  const totalDurationSeconds = React.useMemo(() => {
-    return album.songs.reduce((acc, song) => acc + (song.duration || 0), 0);
-  }, [album.songs]);
+  const totalDurationSeconds = React.useMemo(
+    () => songs.reduce((acc, song) => acc + (song.duration || 0), 0),
+    [songs],
+  );
 
   const formatTotalTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -146,6 +144,71 @@ const AlbumDetailScreen = ({
     if (hrs > 0) return `${hrs}h ${mins}m`;
     return `${mins}m`;
   };
+
+  const renderHeader = React.useMemo(
+    () => (
+      <View style={styles.listHeader}>
+        <Image
+          source={{ uri: highResCover }}
+          style={styles.mainCover}
+          contentFit="cover"
+          transition={500}
+        />
+
+        <Text style={styles.mainTitle}>{album?.name || album?.title}</Text>
+
+        <View style={styles.descriptionContainer}>
+          <Text
+            style={styles.descriptionText}
+            className=" text-center"
+            numberOfLines={2}
+          >
+            {album?.description
+              ? album.description.replace(/\s*\n\s*/g, "\n").trim()
+              : ""}
+          </Text>
+        </View>
+
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.actionCircleBtn}>
+            <DownloadIcon fill="white" width={24} height={24} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.mainPlayBtn}
+            onPress={() => setQueue(songs)}
+          >
+            <PlayIcon fill="white" width={50} height={50} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionCircleBtn}>
+            <AddLibraryIcon fill="white" width={24} height={24} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    ),
+    [highResCover, album, setQueue, songs],
+  );
+
+  const renderFooter = React.useMemo(
+    () => (
+      <>
+        <View style={styles.footerContainer}>
+          <Text style={styles.footerText}>
+            {songs.length} songs • {formatTotalTime(totalDurationSeconds)}
+          </Text>
+          {!!album?.playCount && (
+            <Text style={styles.footerSubText}>
+              {formatPlayCount(album.playCount)} plays
+            </Text>
+          )}
+        </View>
+
+        {isMoreLoading && (
+          <ActivityIndicator style={{ marginVertical: 20 }} color="white" />
+        )}
+      </>
+    ),
+    [songs.length, totalDurationSeconds, album?.playCount, isMoreLoading],
+  );
 
   if (!album) {
     return (
@@ -160,102 +223,8 @@ const AlbumDetailScreen = ({
     );
   }
 
-  const setQueue = usePlayerStore((state) => state.setQueue);
-  const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const artistName = album.artists?.primary?.[0]?.name || "Various Artists";
-  const highResCover = album.image?.[album.image?.length - 1]?.url || "";
-  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
-  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
-  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-
-  const handleOption = async (item: any) => {
-    const response = await jioSaavnService.getSongByIdandLink(
-      item.id,
-      item.url,
-    );
-    if (response.success && response.data[0]) {
-      setSelectedSongOption(response.data[0]);
-    } else {
-      setSelectedSongOption(item);
-    }
-    expandMoreOption();
-  };
-  const renderHeader = React.useMemo(
-    () => (
-      <View style={styles.listHeader}>
-        <Image
-          source={{ uri: highResCover }}
-          style={styles.mainCover}
-          contentFit="cover"
-          transition={500}
-        />
-
-        <Text style={styles.mainTitle}>{album.name || album.title}</Text>
-
-        <View style={styles.descriptionContainer}>
-          <Text
-            style={styles.descriptionText}
-            className=" text-center"
-            numberOfLines={2}
-          >
-            {album.description
-              ? album.description.replace(/\s*\n\s*/g, "\n").trim()
-              : ""}
-          </Text>
-        </View>
-
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionCircleBtn}>
-            <DownloadIcon fill="white" width={24} height={24} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.mainPlayBtn}
-            onPress={() => setQueue(album.songs)}
-          >
-            <PlayIcon fill="white" width={50} height={50} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCircleBtn}>
-            <AddLibraryIcon fill="white" width={24} height={24} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    ),
-    [
-      highResCover,
-      album.name,
-      album.title,
-      album.description,
-      album.songs,
-      setQueue,
-    ],
-  );
-
-  const renderFooter = React.useMemo(
-    () => (
-      <>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>
-            {album.songs.length} songs • {formatTotalTime(totalDurationSeconds)}
-          </Text>
-          {!!album.playCount && (
-            <Text style={styles.footerSubText}>
-              {formatPlayCount(album.playCount)} plays
-            </Text>
-          )}
-        </View>
-
-        {isMoreLoading && (
-          <ActivityIndicator style={{ marginVertical: 20 }} color="white" />
-        )}
-      </>
-    ),
-    [album.songs.length, totalDurationSeconds, album.playCount, isMoreLoading],
-  );
-
   return (
     <View style={styles.container}>
-      {/* Background Mood Gradient */}
-      {/* Top Blurred Backdrop */}
       <View
         style={{ height: 450, position: "absolute", top: 0, left: 0, right: 0 }}
       >
@@ -277,7 +246,6 @@ const AlbumDetailScreen = ({
       </View>
 
       <SafeAreaView style={{ flex: 1 }}>
-        {/* HEADER */}
         <View style={styles.headerNav}>
           <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
             <ChevronLeftIcon fill="white" width={28} height={28} />
@@ -299,12 +267,17 @@ const AlbumDetailScreen = ({
           </View>
 
           <TouchableOpacity className="p-2">
-            <SearchIcon fill="white" width={24} height={24} />
+            <SearchIcon
+              onPress={() => navigation.navigate("search")}
+              fill="white"
+              width={24}
+              height={24}
+            />
           </TouchableOpacity>
         </View>
 
         <TypedFlashList
-          data={album.songs}
+          data={songs}
           renderItem={({ item, index }: any) => {
             const isCurrent = currentTrack?.id === item.id;
             return (
@@ -313,7 +286,7 @@ const AlbumDetailScreen = ({
                 index={index}
                 artistName={artistName}
                 isCurrent={isCurrent}
-                onPress={() => setQueue(album.songs, index)}
+                onPress={() => setQueue(songs, index)}
               />
             );
           }}
@@ -332,6 +305,8 @@ const AlbumDetailScreen = ({
     </View>
   );
 };
+
+export default AlbumDetailScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -421,8 +396,6 @@ const styles = StyleSheet.create({
   mainPlayBtn: {
     width: 64,
     height: 64,
-    // borderRadius: 32,
-    // backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -497,5 +470,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-
-export default AlbumDetailScreen;

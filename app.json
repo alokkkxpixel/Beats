@@ -10,7 +10,7 @@
     "backgroundColor": "#050505",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Beats"
+      "bundleIdentifier": "com.alokkkxpixel.beats"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +28,7 @@
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.WAKE_LOCK"
       ],
-      "package": "com.anonymous.Beats"
+      "package": "com.alokkkxpixel.beats"
     },
     "web": {
       "output": "static",

@@ -126,6 +126,7 @@ const PlayerControls = React.memo(() => {
     </>
   );
 });
+PlayerControls.displayName = "PlayerControls";
 
 export default PlayerControls;
 
