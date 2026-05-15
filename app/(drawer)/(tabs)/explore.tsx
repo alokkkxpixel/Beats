@@ -102,6 +102,7 @@ export default function ExploreScreen() {
 
   const router = useRouter();
   const { data, isLoading } = useHomePreviews();
+  const moodsAndGenres = data?.["promo:vx:data:76"] || [];
 
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
@@ -280,12 +281,9 @@ export default function ExploreScreen() {
             data={
               Array.from(
                 {
-                  length: Math.ceil(
-                    (data?.["promo:vx:data:76"]?.data?.length || 0) / 3,
-                  ),
+                  length: Math.ceil(moodsAndGenres.length / 3),
                 },
-                (_, i) =>
-                  data?.["promo:vx:data:76"]?.data?.slice(i * 3, i * 3 + 3),
+                (_, i) => moodsAndGenres.slice(i * 3, i * 3 + 3),
               ) || []
             }
             horizontal

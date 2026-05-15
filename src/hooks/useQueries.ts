@@ -2,9 +2,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { getMusicLanguages } from "../lib/storage";
 import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 
-export const useHomePreviews = (
-  languages: string[] = getMusicLanguages(),
-) => {
+export const useHomePreviews = (languages: string[] = getMusicLanguages()) => {
   return useQuery({
     // THE FIX: Adding languages to the key
     queryKey: ["home-previews", languages.join(",")],
@@ -16,9 +14,7 @@ export const useHomePreviews = (
   });
 };
 
-export const useSpecialForYou = (
-  languages: string[] = getMusicLanguages(),
-) => {
+export const useSpecialForYou = (languages: string[] = getMusicLanguages()) => {
   return useQuery({
     // THE FIX: Adding languages to the key
     queryKey: ["special-for-you", languages.join(",")],
@@ -213,7 +209,15 @@ export const useArtist = (
   const sortOrder = options?.sortOrder ?? "desc";
 
   return useQuery({
-    queryKey: ["artist", artistKey, page, songCount, albumCount, sortBy, sortOrder],
+    queryKey: [
+      "artist",
+      artistKey,
+      page,
+      songCount,
+      albumCount,
+      sortBy,
+      sortOrder,
+    ],
     queryFn: () =>
       jioSaavnService.getArtistDetails(
         artistId,
@@ -252,14 +256,7 @@ export const useArtistInfinite = (
   const sortOrder = options?.sortOrder ?? "desc";
 
   return useInfiniteQuery({
-    queryKey: [
-      "artist-infinite",
-      artistKey,
-      tab,
-      pageSize,
-      sortBy,
-      sortOrder,
-    ],
+    queryKey: ["artist-infinite", artistKey, tab, pageSize, sortBy, sortOrder],
     queryFn: ({ pageParam = 0 }) =>
       jioSaavnService.getArtistDetails(
         artistId,
@@ -274,7 +271,9 @@ export const useArtistInfinite = (
     initialPageParam: 0,
     getNextPageParam: (lastPage: any, allPages: any[]) => {
       const currentItems =
-        tab === "songs" ? lastPage?.topSongs ?? [] : lastPage?.topAlbums ?? [];
+        tab === "songs"
+          ? (lastPage?.topSongs ?? [])
+          : (lastPage?.topAlbums ?? []);
 
       if (!currentItems.length || currentItems.length < pageSize) {
         return undefined;
@@ -284,8 +283,8 @@ export const useArtistInfinite = (
         const previousPage = allPages[allPages.length - 2];
         const previousItems =
           tab === "songs"
-            ? previousPage?.topSongs ?? []
-            : previousPage?.topAlbums ?? [];
+            ? (previousPage?.topSongs ?? [])
+            : (previousPage?.topAlbums ?? []);
 
         const previousIds = previousItems.map((item: any) => item.id).join(",");
         const currentIds = currentItems.map((item: any) => item.id).join(",");

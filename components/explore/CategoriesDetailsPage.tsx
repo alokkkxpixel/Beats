@@ -216,18 +216,18 @@ const CategoriesDetailsPage = ({
             {renderHorizontalGrid(moodsData as any[], "Moods & Genres")}
           </ScrollView>
         );
-      case "4": // Cricket Fever
-        const cricketData = data?.["promo:vx:data:209"] || [];
+      case "4": // Podcasts
+        const podcastData = data?.["promo:vx:data:107"]?.data || [];
         return (
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 160 }}
           >
-            {/* {renderSimpleSongsList(cricketData.slice(0, 8), "Featured")}
+            {renderSimpleSongsList(podcastData.slice(0, 8), "Featured Podcasts")}
             {renderHorizontalGrid(
-              // cricketData.slice(8) ,
-              "All Cricket Playlists",
-            )} */}
+              podcastData.slice(8),
+              "More Podcasts",
+            )}
           </ScrollView>
         );
       default:

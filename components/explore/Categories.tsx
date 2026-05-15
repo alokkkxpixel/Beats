@@ -30,7 +30,7 @@ const Categories = () => {
     },
     {
       id: "4",
-      title: "Cricket Fever",
+      title: "Podcasts",
       icon: PodcastIcon,
       color: "#2A2A2A",
     },

@@ -291,7 +291,7 @@ export const SaavnService = {
       newreleases: [],
       raw_new_releases: [],
       quick_picks: [],
-      "promo:vx:data:76": { title: "", subtitle: "", data: [] },
+      "promo:vx:data:76": [],
       "promo:vx:data:68": { title: "", subtitle: "", data: [] },
       "promo:vx:data:69": { title: "", subtitle: "", data: [] },
       "promo:vx:data:185": { title: "", subtitle: "", data: [] },

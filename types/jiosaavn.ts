@@ -641,11 +641,7 @@ export interface RootResponse {
     subtitle: string;
     data: TopPlaylists[];
   };
-  "promo:vx:data:76": {
-    title: string;
-    subtitle: string;
-    data: TopPlaylists[];
-  };
+  "promo:vx:data:76": TopPlaylists[];
   "promo:vx:data:185": {
     title: string;
     subtitle: string;
