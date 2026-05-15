@@ -1,10 +1,10 @@
-import { Image } from "expo-image";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
   useDrawerStatus,
 } from "@react-navigation/drawer";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
@@ -17,12 +17,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Import SVGs
-import HistoryIcon from "@/assets/app-icons/history.svg";
-import DownloadIcon from "@/assets/app-icons/download.svg";
-import SettingsIcon from "@/assets/app-icons/settings.svg";
-import AboutIcon from "@/assets/app-icons/about.svg";
-import CloseIcon from "@/assets/app-icons/close.svg";
 import UserIcon from "@/assets/app-icons/artist.svg";
+import CloseIcon from "@/assets/app-icons/close.svg";
+import HistoryIcon from "@/assets/app-icons/history.svg";
+import SettingsIcon from "@/assets/app-icons/settings.svg";
 
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
@@ -35,37 +33,26 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     setDrawerOpen(status === "open");
   }, [status, setDrawerOpen]);
 
+  const navigateFromDrawer = (path: "/library" | "/setting" | "/about") => {
+    props.navigation.closeDrawer();
+    setTimeout(() => {
+      router.push(path);
+    }, 120);
+  };
+
   const menuItems = [
     {
       label: "History",
       icon: HistoryIcon,
       onPress: () => {
-        props.navigation.closeDrawer();
-        router.push("/library"); // Assuming history is part of library page !!!
-      },
-    },
-    {
-      label: "Downloads",
-      icon: DownloadIcon,
-      onPress: () => {
-        props.navigation.closeDrawer();
-        // router.push("/downloads");
+        navigateFromDrawer("/library");
       },
     },
     {
       label: "Settings",
       icon: SettingsIcon,
       onPress: () => {
-        // props.navigation.closeDrawer();
-        router.push("/setting");
-      },
-    },
-    {
-      label: "About",
-      icon: AboutIcon,
-      onPress: () => {
-        props.navigation.closeDrawer();
-        // router.push("/about");
+        navigateFromDrawer("/setting");
       },
     },
   ];
@@ -89,7 +76,9 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
                 source={require("../assets/icons/playstore.png")}
                 style={{ width: 32, height: 32, borderRadius: 8 }}
               />
-              <Text className="text-white text-2xl font-bold tracking-tight">Beats</Text>
+              <Text className="text-white text-2xl font-bold tracking-tight">
+                Beats
+              </Text>
             </View>
           </View>
         </View>
@@ -127,7 +116,12 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
               className="flex flex-row mb-5 item-center"
               onPress={item.onPress}
             >
-              <item.icon width={22} height={22} fill="#fff" style={styles.menuIcon} />
+              <item.icon
+                width={22}
+                height={22}
+                fill="#fff"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuLabel} className="font-sans-medium">
                 {item.label}
               </Text>
@@ -145,7 +139,6 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

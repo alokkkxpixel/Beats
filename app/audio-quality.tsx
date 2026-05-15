@@ -1,3 +1,4 @@
+import BackIcon from "@/assets/app-icons/chevron-left.svg";
 import {
   AUDIO_QUALITY_OPTIONS,
   getAudioQualityLabel,
@@ -6,10 +7,8 @@ import { getAudioQualityPreference } from "@/src/lib/storage";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { MoveLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-
 export default function AudioQualityScreen() {
   const [selected, setSelected] = useState(getAudioQualityPreference());
   const router = useRouter();
@@ -38,7 +37,7 @@ export default function AudioQualityScreen() {
             onPress={() => navigation.goBack()}
             className="w-10 h-10 items-center justify-center rounded-full bg-zinc-800"
           >
-            <MoveLeft size={22} color="#fff" />
+            <BackIcon width={22} height={22} fill="#fff" />
           </Pressable>
 
           <Text className="text-white text-xl font-bold ml-4">
@@ -47,8 +46,7 @@ export default function AudioQualityScreen() {
         </View>
 
         <Text className="text-zinc-400 text-center mt-4 px-6">
-          Pick your preferred streaming quality. Changes apply without reloading
-          the app.
+          Pick your preferred streaming quality.
         </Text>
       </View>
 

@@ -1,11 +1,15 @@
+import PauseIcon from "@/assets/app-icons/pause.svg";
+import PlayIcon from "@/assets/app-icons/play.svg";
+import ShuffleIcon from "@/assets/app-icons/shuffle.svg";
+
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { SongDetail } from "@/types/jiosaavn";
-import { FlashList } from "@shopify/flash-list";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useBottomSheetScrollableCreator } from "@gorhom/bottom-sheet";
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -98,11 +102,11 @@ const QueueSheet = () => {
 
         {isCurrent ? (
           <Pressable onPress={togglePlay} style={styles.playBtn}>
-            <Ionicons
-              name={isPlaying ? "pause-circle" : "play-circle"}
-              size={32}
-              color="white"
-            />
+            {isPlaying ? (
+              <PauseIcon width={24} height={24} fill="white" />
+            ) : (
+              <PlayIcon width={24} height={24} fill="white" />
+            )}
           </Pressable>
         ) : (
           <MaterialIcons name="drag-handle" size={24} color="#555" />
@@ -154,10 +158,11 @@ const QueueSheet = () => {
 
       <View style={styles.footer}>
         <Pressable style={styles.footerBtn} onPress={toggleShuffle}>
-          <Ionicons
-            name="shuffle"
-            size={24}
-            color={isShuffleEnabled ? "#1DB954" : "white"}
+          <ShuffleIcon
+            width={24}
+            height={24}
+            fill={isShuffleEnabled ? "#1DB954" : "white"}
+            stroke={isShuffleEnabled ? "#1DB954" : "white"}
           />
           <Text
             style={[

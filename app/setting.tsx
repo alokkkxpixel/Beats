@@ -1,6 +1,8 @@
-import { View, Text, Pressable } from "react-native";
+import ForwardArrow from "@/assets/app-icons/chevron-forward.svg";
+import BackIcon from "@/assets/app-icons/chevron-left.svg";
+
 import { useRouter } from "expo-router";
-import { MoveLeft, ChevronRight, LogOut } from "lucide-react-native";
+import { Pressable, Text, View } from "react-native";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -18,11 +20,16 @@ export default function SettingsScreen() {
         router.push("/music-lang-change");
       },
     },
+    {
+      label: "About",
+      onPress: () => {
+        router.push("/about");
+      },
+    },
   ];
 
   return (
     <View className="flex-1 bg-black pt-16 px-4">
-      
       {/* Header */}
       <View className="flex-row items-center mb-6">
         <Pressable
@@ -31,12 +38,10 @@ export default function SettingsScreen() {
           }
           className="w-10 h-10 items-center justify-center rounded-full bg-zinc-800"
         >
-          <MoveLeft size={22} color="#fff" />
+          <BackIcon width={22} height={22} fill="#fff" />
         </Pressable>
 
-        <Text className="text-white text-xl font-bold ml-4">
-          Settings
-        </Text>
+        <Text className="text-white text-xl font-bold ml-4">Settings</Text>
       </View>
 
       {/* Options */}
@@ -48,23 +53,10 @@ export default function SettingsScreen() {
             className="flex-row items-center justify-between py-4 border-b border-zinc-800"
           >
             <Text className="text-white text-base">{item.label}</Text>
-            <ChevronRight size={20} color="#aaa" />
+            <ForwardArrow width={20} height={20} fill="#fff" />
           </Pressable>
         ))}
       </View>
-
-      {/* Logout */}
-      <Pressable
-        onPress={() => {
-          console.log("Logout pressed");
-        }}
-        className="mt-10 flex-row items-center gap-3"
-      >
-        <LogOut size={20} color="red" />
-        <Text className="text-red-500 text-base font-semibold">
-          Log Out
-        </Text>
-      </Pressable>
     </View>
   );
 }
