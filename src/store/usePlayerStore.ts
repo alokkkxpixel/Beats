@@ -1,6 +1,12 @@
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
-import { addToRecentActivity } from "@/src/lib/storage";
+import {
+  AudioQualityPreference,
+  addToRecentActivity,
+  getAudioQualityPreference,
+  setAudioQualityPreference,
+} from "@/src/lib/storage";
+import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 // ===== COMMENTED OUT: RNTP imports =====
 // import TrackPlayer, { State } from "react-native-track-player";
 
@@ -8,7 +14,10 @@ import { addToRecentActivity } from "@/src/lib/storage";
 import { PlayerQueue, TrackItem, TrackPlayer } from "react-native-nitro-player";
 import { create } from "zustand";
 
-const mapToTrackItem = (song: SongDetail): TrackItem => ({
+const mapToTrackItem = (
+  song: SongDetail,
+  audioQuality: AudioQualityPreference = getAudioQualityPreference(),
+): TrackItem => ({
   id: song.id,
   title: song.name,
   artist:
@@ -18,7 +27,7 @@ const mapToTrackItem = (song: SongDetail): TrackItem => ({
       ? song.album
       : song.album?.name || "Unknown Album",
   duration: song.duration || 0,
-  url: song.downloadUrl?.[song.downloadUrl.length - 1]?.url || song.url,
+  url: getPreferredTrackUrl(song, audioQuality),
   artwork: song.image?.[song.image.length - 1]?.url || "",
   extraPayload: { song: song as any }, // Store the full original song data
 });
@@ -69,6 +78,7 @@ const reorderQueueInPlaylist = async (
 interface PlayerState {
   // --- Data ---
   currentTrack: SongDetail | null;
+  audioQuality: AudioQualityPreference;
   queue: SongDetail[];
   currentIndex: number;
   activePlaylistId: string | null;
@@ -92,6 +102,7 @@ interface PlayerState {
 
   // --- Actions ---
   setCurrentTrack: (track: SongDetail, contextQueue?: SongDetail[]) => void;
+  setAudioQuality: (quality: AudioQualityPreference) => Promise<void>;
 
   setQueue: (tracks: SongDetail[], startIndex?: number) => void;
   fetchAndAppendSuggestions: (trackId: string) => Promise<void>;
@@ -126,6 +137,7 @@ interface PlayerState {
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   // Initial State
   currentTrack: null,
+  audioQuality: getAudioQualityPreference(),
   queue: [],
   currentIndex: -1,
   activePlaylistId: null,
@@ -148,6 +160,51 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   // set individual track info
   setSelectedSongOption: (track) => set({ selectedSongOption: track }),
   setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
+  setAudioQuality: async (quality) => {
+    const {
+      activePlaylistId,
+      audioQuality,
+      currentIndex,
+      isPlaying,
+      position,
+      queue,
+    } = get();
+
+    setAudioQualityPreference(quality);
+
+    if (audioQuality === quality) {
+      set({ audioQuality: quality });
+      return;
+    }
+
+    set({ audioQuality: quality });
+
+    if (!activePlaylistId || queue.length === 0) {
+      return;
+    }
+
+    try {
+      const updatedTrackItems = queue.map((track) => mapToTrackItem(track, quality));
+      const playlistId = await PlayerQueue.createPlaylist(
+        `Queue_${Date.now()}`,
+        "Playback Queue",
+      );
+
+      await PlayerQueue.addTracksToPlaylist(playlistId, updatedTrackItems);
+      await PlayerQueue.loadPlaylist(playlistId, Math.max(currentIndex, 0));
+      await TrackPlayer.seek(position);
+
+      if (isPlaying) {
+        await TrackPlayer.play();
+      } else {
+        await TrackPlayer.pause();
+      }
+
+      set({ activePlaylistId: playlistId });
+    } catch (error) {
+      console.error("Error applying audio quality:", error);
+    }
+  },
 
   // Set individual track and start playing
   setCurrentTrack: async (track, contextQueue) => {
@@ -180,8 +237,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: null,
       });
 
-
-      const trackItems = [track].map(mapToTrackItem);
+      const trackItems = [track].map((item) => mapToTrackItem(item, get().audioQuality));
 
       // 3. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
@@ -229,8 +285,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: null,
       });
 
-
-      const trackItems = tracks.map(mapToTrackItem);
+      const trackItems = tracks.map((item) => mapToTrackItem(item, get().audioQuality));
 
       // 2. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
@@ -287,7 +342,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       set({ queue: updatedQueue });
 
       // Add to native player queue
-      const trackItems = newSongs.map(mapToTrackItem);
+      const trackItems = newSongs.map((item) => mapToTrackItem(item, get().audioQuality));
       await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
       // console.log(`✅ Appended ${newSongs.length} new songs to queue`);
       set({ isFetchingSuggestions: false });
@@ -430,7 +485,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     try {
       await PlayerQueue.addTrackToPlaylist(
         activePlaylistId,
-        mapToTrackItem(track),
+        mapToTrackItem(track, get().audioQuality),
       );
 
       set({
@@ -462,7 +517,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (existingIndex === -1) {
         await PlayerQueue.addTrackToPlaylist(
           activePlaylistId,
-          mapToTrackItem(track),
+          mapToTrackItem(track, get().audioQuality),
         );
         await PlayerQueue.reorderTrackInPlaylist(
           activePlaylistId,

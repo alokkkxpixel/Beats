@@ -23,6 +23,14 @@ export const clientStorage = {
 
 const MUSIC_LANG_KEY = "music-languages";
 const DEFAULT_LANGS = ["english", "hindi"];
+export type AudioQualityPreference =
+  | "very_low"
+  | "low"
+  | "medium"
+  | "high"
+  | "very_high";
+const AUDIO_QUALITY_KEY = "audio-quality";
+const DEFAULT_AUDIO_QUALITY: AudioQualityPreference = "high";
 
 export const getMusicLanguages = (): string[] => {
   const langs = storage.getString(MUSIC_LANG_KEY);
@@ -36,6 +44,26 @@ export const getMusicLanguages = (): string[] => {
 
 export const setMusicLanguages = (langs: string[]) => {
   storage.set(MUSIC_LANG_KEY, JSON.stringify(langs));
+};
+
+export const getAudioQualityPreference = (): AudioQualityPreference => {
+  const quality = storage.getString(AUDIO_QUALITY_KEY);
+  switch (quality) {
+    case "very_low":
+    case "low":
+    case "medium":
+    case "high":
+    case "very_high":
+      return quality;
+    default:
+      return DEFAULT_AUDIO_QUALITY;
+  }
+};
+
+export const setAudioQualityPreference = (
+  quality: AudioQualityPreference,
+) => {
+  storage.set(AUDIO_QUALITY_KEY, quality);
 };
 
 const SEARCH_HISTORY_KEY = "search-history";

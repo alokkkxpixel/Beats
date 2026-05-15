@@ -85,21 +85,26 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
   };
 
   const getImageUri = (img: any): string => {
-    let url = "";
+    let imageUrl = "";
+
     if (Array.isArray(img)) {
-      url = img[2]?.url || img[1]?.url || img[0]?.url || "";
+      imageUrl = img[2]?.url || img[1]?.url || img[0]?.url || "";
     } else if (typeof img === "string") {
-      url = img;
+      imageUrl = img;
     }
 
-    if (!url) return "";
-
-    if (url.includes("150x150")) {
-      url = url.replace("150x150", "500x500");
-    } else if (url.includes("50x50")) {
-      url = url.replace("50x50", "500x500");
+    if (imageUrl.includes("50x50")) {
+      imageUrl = imageUrl.replace("50x50", "50x50");
     }
-    return url;
+
+    if (
+      imageUrl === "https://static.saavncdn.com/_i/share-image-2.png" ||
+      !imageUrl
+    ) {
+      return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+    }
+
+    return imageUrl;
   };
   const imageUri = getImageUri(item.image);
 
@@ -233,6 +238,7 @@ export default function LibraryScreen() {
         renderItem={({ item }: any) => <LibraryItem item={item} />}
         estimatedItemSize={88}
         onScroll={scrollHandler}
+        showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: TOTAL_HEADER_HEIGHT + 10,

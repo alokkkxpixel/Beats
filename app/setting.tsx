@@ -9,7 +9,7 @@ export default function SettingsScreen() {
     {
       label: "Audio Quality",
       onPress: () => {
-        // router.push("/audio-quality");
+        router.push("/audio-quality");
       },
     },
     {

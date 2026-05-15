@@ -90,6 +90,7 @@ export default function RootLayout() {
               }}
             >
               <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+              <Stack.Screen name="audio-quality" />
               <Stack.Screen name="music-lang-change" />
               <Stack.Screen name="setting" />
             </Stack>
