@@ -7,10 +7,11 @@ import PlayIcon from "@/assets/app-icons/play.svg";
 import { default as Search } from "@/assets/app-icons/search.svg";
 
 import { addToRecentActivity } from "@/src/lib/storage";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   StatusBar,
   StyleSheet,
   Text,
@@ -31,6 +32,7 @@ import RecommendedArtist from "@/components/RecommendedArtist";
 import { useArtist } from "@/src/hooks/useQueries";
 import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
 import { FlashList } from "@shopify/flash-list";
+import { useQueryClient } from "@tanstack/react-query";
 const IMAGE_HEIGHT = 450;
 const AnimatedFlashList: any = Animated.createAnimatedComponent(
   FlashList as any,
@@ -78,11 +80,18 @@ const getImageUri = (img: any): string => {
 
 export default function ArtistScreen() {
   const { id, url } = useLocalSearchParams<{ id: string; url: string }>();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
-  const { data: artist, isLoading } = useArtist(id, url);
+  const artistKey = id || url;
+  const {
+    data: artist,
+    isLoading,
+    refetch: refetchArtist,
+  } = useArtist(id, url);
 
   useEffect(() => {
     if (artist) {
@@ -146,6 +155,19 @@ export default function ArtistScreen() {
       params: { id, url, tab },
     });
   };
+
+  const handleRefresh = React.useCallback(async () => {
+    if (!artistKey) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["artist", artistKey] });
+      await refetchArtist();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [artistKey, queryClient, refetchArtist]);
 
   if (isLoading) {
     return (
@@ -287,6 +309,16 @@ export default function ArtistScreen() {
         estimatedItemSize={260}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            progressViewOffset={insets.top + 60}
+            tintColor="#ffffff"
+            colors={["#ffffff"]}
+            progressBackgroundColor="#050505"
+          />
+        }
         ListHeaderComponent={renderHeader()}
         keyExtractor={(item: ArtistSection) => item.id}
         showsVerticalScrollIndicator={false}
