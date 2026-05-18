@@ -8,9 +8,9 @@ export const useHomePreviews = (languages: string[] = getMusicLanguages()) => {
     queryKey: ["home-previews", languages.join(",")],
     queryFn: () => SaavnService.getHomePreviews(languages),
 
-    // For debugging, keep these low or commented out
-    staleTime: 1000 * 60 * 15, // 15 minutes
-    gcTime: 1000 * 60 * 15, // 15 minutes
+    // Keep the last home feed available offline while still allowing refreshes.
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
   });
 };
 
@@ -20,9 +20,9 @@ export const useSpecialForYou = (languages: string[] = getMusicLanguages()) => {
     queryKey: ["special-for-you", languages.join(",")],
     queryFn: () => SaavnService.getSpecialForYou(languages),
 
-    // For debugging, keep these low or commented out
-    staleTime: 1000 * 60 * 15, // 15 minutes
-    gcTime: 1000 * 60 * 15, // 15 minutes
+    // Match home retention so reopening offline still has content to show.
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
   });
 };
 

@@ -6,11 +6,13 @@ import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
+import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   StatusBar,
   StyleSheet,
   View,
@@ -30,18 +32,23 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
 export default function Index() {
+  const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 54;
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
 
   // 1. Fetch Home Data using TanStack Query
-  const { data, isLoading } = useHomePreviews();
-  const { data: SpecialForYouData, isLoading: SpecialForYouLoading } =
-    useSpecialForYou();
+  const { data, isLoading, refetch: refetchHomePreviews } = useHomePreviews();
+  const {
+    data: SpecialForYouData,
+    isLoading: SpecialForYouLoading,
+    refetch: refetchSpecialForYou,
+  } = useSpecialForYou();
   // Time-based background logic
   const getBackgroundData = () => {
     const hour = new Date().getHours();
@@ -64,6 +71,21 @@ export default function Index() {
   };
 
   const { image: bgImage, greeting } = getBackgroundData();
+
+  const handleRefresh = React.useCallback(async () => {
+    setIsRefreshing(true);
+
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["home-previews"] }),
+        queryClient.invalidateQueries({ queryKey: ["special-for-you"] }),
+      ]);
+
+      await Promise.all([refetchHomePreviews(), refetchSpecialForYou()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryClient, refetchHomePreviews, refetchSpecialForYou]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -239,6 +261,16 @@ export default function Index() {
         estimatedItemSize={280}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            progressViewOffset={TOTAL_HEADER_HEIGHT}
+            tintColor="#ffffff"
+            colors={["#ffffff"]}
+            progressBackgroundColor="#050505"
+          />
+        }
         showsVerticalScrollIndicator={false}
         keyExtractor={(item: any) => item.id}
         getItemType={(item: any) => item.type}
@@ -268,7 +300,6 @@ export default function Index() {
           if (item.type === "promo:vx:data:68") {
             return (
               <TrendingSection
-                
                 title={item.title}
                 // subtitle={item.subtitle}
                 data={item.data}
@@ -279,7 +310,6 @@ export default function Index() {
 
           return (
             <TrendingSection
-              
               title={item.title}
               data={item.data}
               type={item.type}
