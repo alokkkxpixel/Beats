@@ -76,7 +76,12 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
                 source={require("../assets/icons/playstore.png")}
                 style={{ width: 32, height: 32, borderRadius: 8 }}
               />
-              <Text className="text-white text-2xl font-bold tracking-tight">
+              <Text
+                className="text-white text-2xl font-bold tracking-tight"
+                style={styles.brandText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 Beats
               </Text>
             </View>
@@ -112,8 +117,11 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
           {menuItems.map((item, index) => (
             <Pressable
               key={index}
-              style={({ pressed }) => [pressed && styles.menuItemPressed]}
-              className="flex flex-row mb-5 item-center"
+              style={({ pressed }) => [
+                styles.menuItemRow,
+                pressed && styles.menuItemPressed,
+              ]}
+              className="flex flex-row my-2"
               onPress={item.onPress}
             >
               <item.icon
@@ -122,7 +130,12 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
                 fill="#fff"
                 style={styles.menuIcon}
               />
-              <Text style={styles.menuLabel} className="font-sans-medium">
+              <Text
+                style={styles.menuLabel}
+                className="font-sans-medium"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {item.label}
               </Text>
             </Pressable>
@@ -166,14 +179,19 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     marginLeft: 15,
+    flexShrink: 1,
   },
   userName: {
     color: "#fff",
     fontSize: 18,
+    lineHeight: 24,
+    includeFontPadding: false,
   },
   userEmail: {
     color: "#888",
     fontSize: 14,
+    lineHeight: 20,
+    includeFontPadding: false,
   },
   manageAccountBtn: {
     marginTop: 5,
@@ -181,6 +199,8 @@ const styles = StyleSheet.create({
   manageAccountText: {
     color: "#3ea6ff",
     fontSize: 14,
+    lineHeight: 20,
+    includeFontPadding: false,
   },
   separator: {
     height: 1,
@@ -199,6 +219,13 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
   },
+  menuItemRow: {
+    // flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingRight: 12,
+    marginBottom: 20,
+  },
   menuItemPressed: {
     backgroundColor: "rgba(255,255,255,0.1)",
   },
@@ -206,8 +233,11 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   menuLabel: {
+    flexShrink: 1,
     color: "#fff",
     fontSize: 16,
+    lineHeight: 22,
+    includeFontPadding: false,
   },
   footer: {
     marginTop: "auto",
@@ -219,5 +249,11 @@ const styles = StyleSheet.create({
     color: "#555",
     fontSize: 12,
     textAlign: "center",
+    lineHeight: 16,
+    includeFontPadding: false,
+  },
+  brandText: {
+    lineHeight: 32,
+    includeFontPadding: false,
   },
 });

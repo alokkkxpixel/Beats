@@ -4,9 +4,9 @@ import { useNavigation } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { addToRecentActivity } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { addToRecentActivity } from "@/src/lib/storage";
 import { TopPlaylists } from "@/types/jiosaavn";
 interface TrendingSectionProps {
   title?: string;
@@ -259,6 +259,7 @@ export default function TrendingSection({
           style={styles.cardTitle}
           className="font-sans-medium text-white"
           numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {displayTitle}
         </Text>
@@ -266,6 +267,7 @@ export default function TrendingSection({
           style={styles.description}
           className="font-sans-light"
           numberOfLines={2}
+          ellipsizeMode="tail"
         >
           {displaySubtitle}
         </Text>
@@ -276,14 +278,14 @@ export default function TrendingSection({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title} className="font-sans-semibold text-white">
+        <Text
+          style={styles.title}
+          className="font-sans-semibold text-white"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {title}
         </Text>
-        <Pressable hitSlop={10} onPress={onMorePress}>
-          <Text style={styles.moreBtn} className="font-sans-medium">
-            More
-          </Text>
-        </Pressable>
       </View>
 
       <OriginalFlashList
@@ -307,18 +309,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingHorizontal: 20, // Matches your Header padding
     marginBottom: 16,
   },
   title: {
+    flex: 1,
+    flexShrink: 1,
     fontSize: 22,
+    lineHeight: 28,
+    marginRight: 12,
+    includeFontPadding: false,
     // letterSpacing: -0.5,
   },
   moreBtn: {
     color: "#AAAAAA",
     fontSize: 12,
     fontWeight: "600",
+    lineHeight: 16,
+    includeFontPadding: false,
     borderWidth: 1,
     borderColor: "#333",
     paddingHorizontal: 12,
@@ -352,11 +361,14 @@ const styles = StyleSheet.create({
     // color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
+    lineHeight: 18,
+    includeFontPadding: false,
     marginBottom: 2,
   },
   description: {
     color: "#AAAAAA",
     fontSize: 13,
     lineHeight: 18,
+    includeFontPadding: false,
   },
 });
