@@ -143,6 +143,7 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
 
       <Animated.ScrollView
         horizontal
+        removeClippedSubviews={true}
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={onScroll}

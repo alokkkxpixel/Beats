@@ -1,4 +1,3 @@
-import { FlashList as OriginalFlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
@@ -7,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
+import { FlatList } from "react-native";
 
 interface CityHotSectionProps {
   title: string;
@@ -23,6 +23,16 @@ export default function CityHotSection({
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
   if (!data || data.length === 0) return <></>;
+  const getImageUri = (img: any): string => {
+    if (Array.isArray(img)) {
+      return img[2] || img[1] || img[0] || "";
+    }
+    if (typeof img === "string" && img) {
+      const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
+      return `${base}-500x500.jpg`;
+    }
+    return "";
+  };
   const renderItem = ({ item }: { item: any }) => {
     const isArtist = item.type === "artist";
     const displayTitle = item.title || item.name;
@@ -31,17 +41,6 @@ export default function CityHotSection({
     const itemType = item.type;
     const id = item.id;
     const url = item.url || item.perma_url;
-
-    const getImageUri = (img: any): string => {
-      if (Array.isArray(img)) {
-        return img[2] || img[1] || img[0] || "";
-      }
-      if (typeof img === "string" && img) {
-        const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
-        return `${base}-500x500.jpg`;
-      }
-      return "";
-    };
 
     const handlePress = async () => {
       if (itemType === "song") {
@@ -69,7 +68,7 @@ export default function CityHotSection({
             source={{ uri: getImageUri(displayImage) }}
             style={styles.image}
             contentFit="cover"
-            transition={300}
+            transition={150}
           />
         </View>
         <Text
@@ -123,7 +122,7 @@ export default function CityHotSection({
         </Pressable>
       </View>
 
-      <OriginalFlashList
+      <FlatList
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -132,7 +131,11 @@ export default function CityHotSection({
           item.id || item.listid || item.albumid || index.toString()
         }
         renderItem={renderItem}
-        // estimatedItemSize={150}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={5}
+        updateCellsBatchingPeriod={100}
+        initialNumToRender={5}
+        windowSize={3}
       />
     </View>
   );

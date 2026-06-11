@@ -134,7 +134,6 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
                 style={styles.menuLabel}
                 className="font-sans-medium"
                 numberOfLines={1}
-                ellipsizeMode="tail"
               >
                 {item.label}
               </Text>

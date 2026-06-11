@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Dimensions,
+  FlatList,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -36,64 +37,6 @@ const getImageUri = (img: any): string => {
   if (typeof img === "string" && img) return img;
   return "";
 };
-
-const CATEGORIES = [
-  {
-    id: "1",
-    title: "New releases",
-    icon: "sparkles",
-    color: "#2A2A2A",
-    iconType: "Ionicons",
-  },
-  {
-    id: "2",
-    title: "Charts",
-    icon: "trending-up",
-    color: "#2A2A2A",
-    iconType: "MaterialCommunityIcons",
-  },
-  {
-    id: "3",
-    title: "Moods and genres",
-    icon: "emoticon-happy-outline",
-    color: "#2A2A2A",
-    iconType: "MaterialCommunityIcons",
-  },
-  {
-    id: "4",
-    title: "Podcasts",
-    icon: "podcast",
-    color: "#2A2A2A",
-    iconType: "MaterialCommunityIcons",
-  },
-];
-
-const ALBUMS = [
-  {
-    id: "1",
-    title: "SHE DID IT AGAIN (feat. Z...",
-    subtitle: "Single • Tyla",
-    image: "https://picsum.photos/400/400?10",
-  },
-  {
-    id: "2",
-    title: "PARIS",
-    subtitle: "Single • Guru Randhawa, Gurjit Gill & Verse",
-    image: "https://picsum.photos/400/400?11",
-  },
-  {
-    id: "3",
-    title: "Ballin",
-    subtitle: "Single • G-S",
-    image: "https://picsum.photos/400/400?12",
-  },
-];
-
-const MOODS = [
-  { id: "1", title: "Pop", color: "#E91E63" },
-  { id: "2", title: "Focus", color: "#607D8B" },
-  { id: "3", title: "Workout", color: "#FF9800" },
-];
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
@@ -246,13 +189,20 @@ export default function ExploreScreen() {
         </View>
 
         <View style={{ height: 280, marginBottom: 10 }}>
-          <FlashList
+          <FlatList
             data={data?.raw_new_releases || []}
             horizontal
-            // estimatedItemSize={width * 0.45}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 16 }}
+            keyExtractor={(item: any, index: number) =>
+              item.id || item.listid || item.albumid || index.toString()
+            }
             renderItem={renderAlbumItem}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={3}
+            updateCellsBatchingPeriod={100}
+            initialNumToRender={3}
+            windowSize={3}
           />
         </View>
 
