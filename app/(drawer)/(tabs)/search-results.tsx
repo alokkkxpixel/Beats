@@ -141,20 +141,10 @@ export default function SearchResultsScreen() {
     selectedCategory === "all" ? "songs" : (selectedCategory as any),
   );
 
-  const handleResultPress = async (item: any) => {
+  const handleResultPress = (item: any) => {
     const type = item.type || selectedCategory.slice(0, -1);
     if (type === "song") {
-      try {
-        const response = await jioSaavnService.getSongByIdandLink(
-          item.id,
-          item.url,
-        );
-        if (response.success && response.data?.[0]) {
-          setCurrentTrack(response.data[0]);
-        }
-      } catch (err) {
-        console.error("Failed to fetch full song:", err);
-      }
+      setCurrentTrack(item);
     } else if (type === "album") {
       router.push({
         pathname: "/album-detail",

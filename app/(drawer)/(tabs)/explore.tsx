@@ -120,13 +120,13 @@ export default function ExploreScreen() {
             params: { playlistId: item.id, playlistUrl: item.url },
           });
         } else if (item.type === "song") {
-          const response = await jioSaavnService.getSongByIdandLink(
-            item.id,
-            item.url,
-          );
-          if (response.success && response.data[0]) {
-            setCurrentTrack(response.data[0]);
-          }
+          setCurrentTrack({
+            id: item.id,
+            name: item.title,
+            image: item.image,
+            primaryArtists: item.subtitle || "",
+            url: item.url,
+          } as any);
         }
       }}
       style={styles.albumCard}

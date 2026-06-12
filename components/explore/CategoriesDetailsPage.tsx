@@ -79,12 +79,7 @@ const CategoriesDetailsPage = ({
                     style={styles.gridCard}
                     onPress={() => {
                       if (item.type === "song") {
-                        jioSaavnService
-                          .getSongByIdandLink(item.id, item.url)
-                          .then((res) => {
-                            if (res.success && res.data[0])
-                              setCurrentTrack(res.data[0]);
-                          });
+                        setCurrentTrack(item as any);
                       } else {
                         router.push({
                           pathname:
@@ -141,13 +136,9 @@ const CategoriesDetailsPage = ({
           renderItem={({ item }) => (
             <Pressable
               style={styles.simpleCard}
-              onPress={async () => {
+              onPress={() => {
                 if (item.type === "song") {
-                  const res = await jioSaavnService.getSongByIdandLink(
-                    item.id,
-                    item.url,
-                  );
-                  if (res.success && res.data[0]) setCurrentTrack(res.data[0]);
+                  setCurrentTrack(item as any);
                 } else {
                   router.push({
                     pathname:

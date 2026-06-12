@@ -17,7 +17,7 @@ import SearchIcon from "@/assets/app-icons/search.svg";
 
 const HEADER_HEIGHT = 40;
 
-export default function App({ title }: { title: string }) {
+export default function Header({ title }: { title: string }) {
   const router = useRouter();
   const navigation = useNavigation<DrawerNavigationProp<any>>();
   const translateY = useSharedValue(0);
@@ -68,7 +68,7 @@ export default function App({ title }: { title: string }) {
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
         <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
-          <Text className="text-white font-sans-semibold text-3xl">
+          <Text className="text-white font-sans-semibold text-3xl ">
             {title}
           </Text>
 

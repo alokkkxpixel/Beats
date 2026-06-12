@@ -42,12 +42,16 @@ export default function CityHotSection({
     const id = item.id;
     const url = item.url || item.perma_url;
 
-    const handlePress = async () => {
+    const handlePress = () => {
       if (itemType === "song") {
-        const response = await jioSaavnService.getSongByIdandLink(id, url);
-        if (response.success && response.data[0]) {
-          setCurrentTrack(response.data[0]);
-        }
+        const partialTrack = {
+          id: id,
+          name: displayTitle,
+          image: displayImage,
+          primaryArtists: displaySubtitle || "",
+          url: url,
+        };
+        setCurrentTrack(partialTrack as any);
       } else if (itemType === "artist" || url?.includes("/artist/")) {
         navigation.navigate("artist/[id]", { id: Number(id), url: url });
       } else {

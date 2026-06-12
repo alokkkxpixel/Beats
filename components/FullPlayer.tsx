@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React, { useCallback } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   Pressable,
   ScrollView,
@@ -38,12 +39,13 @@ const FullPlayer = React.memo(
     const { height } = useWindowDimensions();
 
     // FIX: Removed native hooks (useNowPlaying). Using stable store instead.
-    const { currentTrack, expandMoreOption, setSelectedSongOption } =
+    const { currentTrack, expandMoreOption, setSelectedSongOption, isLoading } =
       usePlayerStore(
         useShallow((s) => ({
           currentTrack: s.currentTrack,
           expandMoreOption: s.expandMoreOption,
           setSelectedSongOption: s.setSelectedSongOption,
+          isLoading: s.isLoading,
         })),
       );
 
@@ -157,11 +159,18 @@ const FullPlayer = React.memo(
 
           {/* --- Album Artwork --- */}
           <View style={styles.artWrapper}>
-            <Image
-              source={{ uri: trackImage }}
-              style={styles.mainArt}
-              contentFit="cover"
-            />
+            <View style={styles.artContainer}>
+              <Image
+                source={{ uri: trackImage }}
+                style={styles.mainArt}
+                contentFit="cover"
+              />
+              {isLoading && (
+                <View style={styles.imageLoaderContainer}>
+                  <ActivityIndicator size="large" color="white" />
+                </View>
+              )}
+            </View>
           </View>
 
           {/* --- Track Info --- */}
@@ -308,9 +317,23 @@ const styles = StyleSheet.create({
     marginTop: 50,
     marginBottom: 40,
   },
+  artContainer: {
+    position: "relative",
+  },
   mainArt: {
     width: width * 0.88,
     height: width * 0.88,
+    borderRadius: 8,
+  },
+  imageLoaderContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 8,
   },
   trackInfo: {

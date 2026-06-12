@@ -1,12 +1,11 @@
-import { jioSaavnService } from "@/src/services/jioSaavnService";
-import { SongDetail } from "@/types/jiosaavn";
+import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
   AudioQualityPreference,
-  addToRecentActivity,
   getAudioQualityPreference,
   setAudioQualityPreference,
 } from "@/src/lib/storage";
-import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
+import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { SongDetail } from "@/types/jiosaavn";
 // ===== COMMENTED OUT: RNTP imports =====
 // import TrackPlayer, { State } from "react-native-track-player";
 
@@ -28,7 +27,13 @@ const mapToTrackItem = (
       : song.album?.name || "Unknown Album",
   duration: song.duration || 0,
   url: getPreferredTrackUrl(song, audioQuality),
-  artwork: song.image?.[song.image.length - 1]?.url || "",
+  artwork: Array.isArray(song.image)
+    ? typeof song.image[song.image.length - 1] === "string"
+      ? song.image[song.image.length - 1]
+      : (song.image[song.image.length - 1] as any)?.url || ""
+    : typeof song.image === "string"
+      ? song.image
+      : "",
   extraPayload: { song: song as any }, // Store the full original song data
 });
 
@@ -184,7 +189,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     try {
-      const updatedTrackItems = queue.map((track) => mapToTrackItem(track, quality));
+      const updatedTrackItems = queue.map((track) =>
+        mapToTrackItem(track, quality),
+      );
       const playlistId = await PlayerQueue.createPlaylist(
         `Queue_${Date.now()}`,
         "Playback Queue",
@@ -209,27 +216,43 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   // Set individual track and start playing
   setCurrentTrack: async (track, contextQueue) => {
     try {
+      // Normalize the track first to handle both full SongDetail and partial listing/search items
+      const normalizedTrack = {
+        ...track,
+        id: track.id,
+        name: track.name || (track as any).title || "",
+        image: track.image,
+        primaryArtists:
+          track.primaryArtists ||
+          track.artists?.primary?.[0]?.name ||
+          (track as any).subtitle ||
+          (track as any).artist ||
+          "Unknown Artist",
+        album:
+          typeof track.album === "string"
+            ? track.album
+            : track.album?.name || (track as any).album || "",
+        url: track.url || (track as any).perma_url || "",
+      };
+
       // 1. If we have a context queue (like an album/playlist), use it instead of suggestions
       if (contextQueue && contextQueue.length > 0) {
-        const index = contextQueue.findIndex((t) => t.id === track.id);
+        const index = contextQueue.findIndex(
+          (t) => t.id === normalizedTrack.id,
+        );
         if (index !== -1) {
-          console.log(
-            `Context-aware play: Found ${track.name} in current collection. Using provided queue.`,
-          );
           get().setQueue(contextQueue, index);
           return;
         }
       }
 
-      // console.log(`Single-Track Play: ${track.name}. Playback starting...`);
-
-      // 2. Update store metadata IMMEDIATELY with just the selected track
+      // 2. Update store metadata IMMEDIATELY with the normalized track
       set({
-        currentTrack: track,
-        queue: [track],
+        currentTrack: normalizedTrack as any,
+        queue: [normalizedTrack] as any,
         currentIndex: 0,
         position: 0,
-        duration: track.duration || 0,
+        duration: normalizedTrack.duration || 0,
         isLoading: true,
         isFullPlayerOpen: true,
         isPlaying: true,
@@ -237,11 +260,36 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: null,
       });
 
-      const trackItems = [track].map((item) => mapToTrackItem(item, get().audioQuality));
+      let fullTrack = normalizedTrack as any;
+      const isPartial =
+        !normalizedTrack.downloadUrl ||
+        normalizedTrack.downloadUrl.length === 0;
+
+      if (isPartial) {
+        const response = await jioSaavnService.getSongByIdandLink(
+          normalizedTrack.id,
+          normalizedTrack.url,
+        );
+        if (response.success && response.data[0]) {
+          fullTrack = response.data[0];
+          // Update store with full details
+          set({
+            currentTrack: fullTrack,
+            queue: [fullTrack],
+            duration: fullTrack.duration || 0,
+          });
+        } else {
+          throw new Error("Failed to fetch song details");
+        }
+      }
+
+      const trackItems = [fullTrack].map((item) =>
+        mapToTrackItem(item, get().audioQuality),
+      );
 
       // 3. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
-        `Quick Play: ${track.name}`,
+        `Quick Play: ${fullTrack.name}`,
         "Auto Queue",
       );
 
@@ -267,17 +315,50 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     try {
       const selectedTrack = tracks[startIndex];
-      // console.log(
-      //   `Setting Queue: ${tracks.length} tracks, starting at index ${startIndex}`,
-      // );
+
+      const normalizedSelectedTrack = {
+        ...selectedTrack,
+        id: selectedTrack.id,
+        name: selectedTrack.name || (selectedTrack as any).title || "",
+        image: selectedTrack.image,
+        primaryArtists:
+          selectedTrack.primaryArtists ||
+          selectedTrack.artists?.primary?.[0]?.name ||
+          (selectedTrack as any).subtitle ||
+          (selectedTrack as any).artist ||
+          "Unknown Artist",
+        album:
+          typeof selectedTrack.album === "string"
+            ? selectedTrack.album
+            : selectedTrack.album?.name || (selectedTrack as any).album || "",
+        url: selectedTrack.url || (selectedTrack as any).perma_url || "",
+      };
+
+      const normalizedQueue = tracks.map((track) => ({
+        ...track,
+        id: track.id,
+        name: track.name || (track as any).title || "",
+        image: track.image,
+        primaryArtists:
+          track.primaryArtists ||
+          track.artists?.primary?.[0]?.name ||
+          (track as any).subtitle ||
+          (track as any).artist ||
+          "Unknown Artist",
+        album:
+          typeof track.album === "string"
+            ? track.album
+            : track.album?.name || (track as any).album || "",
+        url: track.url || (track as any).perma_url || "",
+      }));
 
       // 1. Update store metadata IMMEDIATELY
       set({
-        queue: tracks,
+        queue: normalizedQueue as any,
         currentIndex: startIndex,
-        currentTrack: selectedTrack,
+        currentTrack: normalizedSelectedTrack as any,
         position: 0,
-        duration: selectedTrack.duration || 0,
+        duration: normalizedSelectedTrack.duration || 0,
         isLoading: true,
         isFullPlayerOpen: true,
         isPlaying: true,
@@ -285,7 +366,35 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: null,
       });
 
-      const trackItems = tracks.map((item) => mapToTrackItem(item, get().audioQuality));
+      let fullTrack = normalizedSelectedTrack as any;
+      const isPartial =
+        !normalizedSelectedTrack.downloadUrl ||
+        normalizedSelectedTrack.downloadUrl.length === 0;
+
+      if (isPartial) {
+        const response = await jioSaavnService.getSongByIdandLink(
+          normalizedSelectedTrack.id,
+          normalizedSelectedTrack.url,
+        );
+        if (response.success && response.data[0]) {
+          fullTrack = response.data[0];
+
+          const updatedQueue = [...normalizedQueue];
+          updatedQueue[startIndex] = fullTrack;
+
+          set({
+            currentTrack: fullTrack,
+            queue: updatedQueue as any,
+            duration: fullTrack.duration || 0,
+          });
+        } else {
+          throw new Error("Failed to fetch song details");
+        }
+      }
+
+      const trackItems = get().queue.map((item) =>
+        mapToTrackItem(item, get().audioQuality),
+      );
 
       // 2. Create and load playlist in native player
       const playlistId = await PlayerQueue.createPlaylist(
@@ -342,7 +451,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       set({ queue: updatedQueue });
 
       // Add to native player queue
-      const trackItems = newSongs.map((item) => mapToTrackItem(item, get().audioQuality));
+      const trackItems = newSongs.map((item) =>
+        mapToTrackItem(item, get().audioQuality),
+      );
       await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
       // console.log(`✅ Appended ${newSongs.length} new songs to queue`);
       set({ isFetchingSuggestions: false });

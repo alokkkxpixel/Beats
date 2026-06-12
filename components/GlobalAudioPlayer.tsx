@@ -9,6 +9,7 @@ import {
 const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
   // ── Stable action refs from Zustand (never cause re-renders) ────────────────
   const setPlaying = usePlayerStore((s) => s.setPlaying);
+  const setLoading = usePlayerStore((s) => s.setLoading);
   const updateProgress = usePlayerStore((s) => s.updateProgress);
   const fetchAndAppendSuggestions = usePlayerStore(
     (s) => s.fetchAndAppendSuggestions,
@@ -27,10 +28,13 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
   // ── Ref: fire single-song suggestion fetch exactly once per track ────────────
   const hasFetchedSingleTrackSuggestions = useRef(false);
 
-  // Sync playing/paused state to store
+  // Sync playing/paused/loading state to store
   useEffect(() => {
-    setPlaying(playbackState.state === "playing");
-  }, [playbackState.state, setPlaying]);
+    const isPlaying = playbackState.state === "playing";
+    const isBuffering = playbackState.state === "buffering";
+    setPlaying(isPlaying);
+    setLoading(isBuffering);
+  }, [playbackState.state, setPlaying, setLoading]);
 
   // ── Progress sync + single-song suggestion trigger ───────────────────────────
   // All store reads are imperative (getState) — this effect does NOT subscribe
@@ -102,6 +106,7 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
       currentTrack: queue[newIndex],
       position: 0,
       duration: queue[newIndex].duration || 0,
+      isLoading: true,
     });
 
     // Infinite autoplay: approaching end of queue — fetch more tracks

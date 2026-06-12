@@ -88,22 +88,16 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
     },
   });
 
-  const handleItemPress = async (item: Lists) => {
+  const handleItemPress = (item: Lists) => {
     if (item.type === "song") {
-      try {
-        setLoading(true);
-        // Fetch full song details including download URLs
-        const response = await jioSaavnService.getSongByIdandLink(item.id);
-        const songData = response.data?.[0] || response[0];
-
-        if (songData) {
-          setCurrentTrack(songData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch song details:", error);
-      } finally {
-        setLoading(false);
-      }
+      const partialTrack = {
+        id: item.id,
+        name: item.title,
+        image: item.image,
+        primaryArtists: item.subtitle || "",
+        url: item.perma_url || item.url || "",
+      };
+      setCurrentTrack(partialTrack as any);
     } else if (item.type === "playlist") {
       router.push({
         pathname: "/playlist-detail",

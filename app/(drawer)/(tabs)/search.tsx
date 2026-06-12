@@ -91,25 +91,12 @@ export default function SearchScreen() {
     });
   };
 
-  const handleResultPress = async (item: any) => {
+  const handleResultPress = (item: any) => {
     Keyboard.dismiss();
     addToHistory(item.title || item.name);
 
     if (item.type === "song") {
-      try {
-        const response = await jioSaavnService.getSongByIdandLink(
-          item.id,
-          item.url,
-        );
-        if (response.success && response.data?.[0]) {
-          setCurrentTrack(response.data[0]);
-        } else {
-          setCurrentTrack(item);
-        }
-      } catch (error) {
-        console.error("Failed to fetch full song details:", error);
-        setCurrentTrack(item);
-      }
+      setCurrentTrack(item);
     } else {
       // For non-song items (albums, artists, playlists), track them here
       addToRecentActivity({

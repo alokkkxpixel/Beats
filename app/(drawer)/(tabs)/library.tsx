@@ -56,16 +56,9 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
     }
     expandMoreOption();
   };
-  const handlePress = async () => {
+  const handlePress = () => {
     if (item.type === "song") {
-      try {
-        const response = await jioSaavnService.getSongByIdandLink(item.id, "");
-        if (response.success && response.data[0]) {
-          setCurrentTrack(response.data[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching song details from library:", error);
-      }
+      setCurrentTrack(item as any);
     } else if (item.type === "album") {
       router.push({
         pathname: "/album-detail",

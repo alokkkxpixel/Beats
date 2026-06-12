@@ -1,8 +1,19 @@
-import React, { useCallback, useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useRef } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { RepeatMode, TrackPlayer } from "react-native-nitro-player";
+import {
+  AudioDevices,
+  RepeatMode,
+  TAudioDevice,
+  TrackPlayer,
+} from "react-native-nitro-player";
 import { useShallow } from "zustand/shallow";
 
 // Import SVGs
@@ -17,21 +28,24 @@ import ShuffleIcon from "@/assets/app-icons/shuffle.svg";
 import SkipNextIcon from "@/assets/app-icons/skip-next.svg";
 import SkipPreviousIcon from "@/assets/app-icons/skip-previous.svg";
 import SpeakerIcon from "@/assets/app-icons/speaker.svg";
+import { Headphones } from "lucide-react-native";
 
 const PlayerControls = React.memo(() => {
   // FIX: Removed native hooks (useOnPlaybackStateChange).
   // We now use the synced `isPlaying` state from the store.
-  const { expandQueue, isShuffleEnabled, toggleShuffle, isPlaying } =
+  const { expandQueue, isShuffleEnabled, toggleShuffle, isPlaying, isLoading } =
     usePlayerStore(
       useShallow((s) => ({
         expandQueue: s.expandQueue,
         isShuffleEnabled: s.isShuffleEnabled,
         toggleShuffle: s.toggleShuffle,
         isPlaying: s.isPlaying,
+        isLoading: s.isLoading,
       })),
     );
 
   const [repeatMode, setRepeatMode] = React.useState<RepeatMode>("off");
+  const [devices, setDevices] = React.useState<TAudioDevice[]>([]);
 
   useEffect(() => {
     // Initial fetch of repeat mode
@@ -42,16 +56,56 @@ const PlayerControls = React.memo(() => {
     fetchRepeatMode();
   }, []);
 
+  const prevActiveId = useRef<number | null>(null);
+
+  useEffect(() => {
+    const fetchDevices = () => {
+      const newDevices = AudioDevices?.getAudioDevices() ?? [];
+
+      setDevices((prev) => {
+        const hasChanged = JSON.stringify(prev) !== JSON.stringify(newDevices);
+
+        if (hasChanged) {
+          const activeDevice = newDevices.find((d) => d.isActive);
+
+          if (prevActiveId.current !== activeDevice?.id) {
+            // console.log(
+            //   "Audio output changed:",
+            //   activeDevice?.name ?? "Speaker",
+            // );
+
+            prevActiveId.current = activeDevice?.id ?? null;
+          }
+          // console.log("Audio output changed1:", activeDevice);
+          return newDevices;
+        }
+
+        return prev;
+      });
+    };
+    //
+    // Initial fetch
+    fetchDevices();
+
+    // Poll every second
+    const interval = setInterval(fetchDevices, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+  const activeDevice = devices.find((d) => d.isActive);
+
   const togglePlay = useCallback(async () => {
     if (isPlaying) await TrackPlayer.pause();
     else await TrackPlayer.play();
   }, [isPlaying]);
 
   const next = useCallback(async () => {
+    usePlayerStore.setState({ isLoading: true });
     await TrackPlayer.skipToNext();
   }, []);
 
   const previous = useCallback(async () => {
+    usePlayerStore.setState({ isLoading: true });
     await TrackPlayer.skipToPrevious();
   }, []);
 
@@ -88,8 +142,18 @@ const PlayerControls = React.memo(() => {
         <Pressable onPress={previous}>
           <SkipPreviousIcon width={50} height={50} fill="white" />
         </Pressable>
-        <Pressable style={styles.playButton} onPress={togglePlay}>
-          {isPlaying ? (
+        <Pressable
+          style={styles.playButton}
+          onPress={togglePlay}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator
+              size="large"
+              color="white"
+              style={{ width: 70, height: 70 }}
+            />
+          ) : isPlaying ? (
             <PauseIcon width={70} height={70} fill="white" />
           ) : (
             <PlayIcon width={70} height={70} fill="white" />
@@ -107,9 +171,15 @@ const PlayerControls = React.memo(() => {
         <View style={styles.deviceIndicator}>
           {/* Keep MaterialIcons for system-like icons if desired, or replace if SVG exists */}
           <View className="w-4 h-4 rounded-full items-center justify-center mr-2">
-            <SpeakerIcon width={18} height={18} fill="#1DB954" />
+            {activeDevice?.type === 3 ? (
+              <Headphones width={18} height={18} color="#1DB954" />
+            ) : (
+              <SpeakerIcon width={18} height={18} fill="#1DB954" />
+            )}
           </View>
-          <Text style={styles.deviceText}>SPEAKER</Text>
+          <Text style={styles.deviceText}>
+            {activeDevice?.name || "Speaker"}
+          </Text>
         </View>
         <View style={styles.footerRightIcons}>
           <ShareIcon
@@ -160,7 +230,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   deviceText: {
-    color: "#1DB954",
+    color: "white",
     fontSize: 10,
     fontWeight: "bold",
     marginLeft: 5,

@@ -22,27 +22,30 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
   const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
 
-  const handlePlay = async (id: string, link?: string) => {
-    const response = await jioSaavnService.getSongByIdandLink(id, link);
-    if (response.success && response.data[0]) {
-      const song = response.data[0];
-      addToRecentActivity({
-        id: song.id,
-        title: song.name,
-        image: song.image,
-        type: "song",
-        subtitle: decodeHtmlEntities(
-          item.playCount && Number(item.playCount || "") > 0
-            ? item.artist +
-                " • " +
-                formatPlayCount(Number(item.playCount || "")) +
-                " plays"
-            : item.artist,
-        ),
-        timestamp: Date.now(),
-      });
-      setCurrentTrack(song);
-    }
+  const handlePlay = (id: string, link?: string) => {
+    const partialTrack = {
+      id: id,
+      name: item.title,
+      image: item.cover,
+      primaryArtists: item.artist,
+      url: link || item.url,
+    };
+    setCurrentTrack(partialTrack as any);
+    addToRecentActivity({
+      id: id,
+      title: item.title,
+      image: item.cover,
+      type: "song",
+      subtitle: decodeHtmlEntities(
+        item.playCount && Number(item.playCount || "") > 0
+          ? item.artist +
+              " • " +
+              formatPlayCount(Number(item.playCount || "")) +
+              " plays"
+          : item.artist,
+      ),
+      timestamp: Date.now(),
+    });
   };
 
   const handleOption = async (item: any) => {

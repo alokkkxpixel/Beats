@@ -199,21 +199,24 @@ export default function TrendingSection({
         navParams = { playlistId: id, playlistUrl: url };
       }
 
-      const handlePress = async () => {
+      const handlePress = () => {
         if (itemType === "song") {
-          const response = await jioSaavnService.getSongByIdandLink(id, url);
-          if (response.success && response.data[0]) {
-            const song = response.data[0];
-            addToRecentActivity({
-              id: song.id,
-              title: song.name,
-              image: song.image,
-              type: "song",
-              subtitle: displaySubtitle,
-              timestamp: Date.now(),
-            });
-            setCurrentTrack(song);
-          }
+          const partialTrack = {
+            id: id,
+            name: displayTitle,
+            image: displayImage,
+            primaryArtists: artists || displaySubtitle,
+            url: url,
+          };
+          setCurrentTrack(partialTrack as any);
+          addToRecentActivity({
+            id: id,
+            title: displayTitle,
+            image: displayImage,
+            type: "song",
+            subtitle: displaySubtitle,
+            timestamp: Date.now(),
+          });
         } else {
           if (route === "artist/[id]") {
             navigation.navigate("artist/[id]", navParams);
