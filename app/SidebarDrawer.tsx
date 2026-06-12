@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   menuItemRow: {
-    // flexDirection: "row",
+    flexDirection: "row",
     alignItems: "center",
     width: "100%",
     paddingRight: 12,
@@ -236,7 +236,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     lineHeight: 22,
-    includeFontPadding: false,
   },
   footer: {
     marginTop: "auto",

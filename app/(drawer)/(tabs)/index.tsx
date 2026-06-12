@@ -1,4 +1,3 @@
-import Header from "@/components/Header";
 import CityHotSection from "@/components/home/CityHotSection";
 import SpeedDialGrid from "@/components/home/MusicCarousel";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
@@ -7,8 +6,6 @@ import RecommendedArtist from "@/components/RecommendedArtist";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   ActivityIndicator,
@@ -28,7 +25,10 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// ... your other imports
+import Header from "@/components/Header";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
 export default function Index() {
@@ -64,7 +64,9 @@ export default function Index() {
       };
     } else {
       return {
-        image: require("../../../assets/images/night_bg.jpg"),
+        // image: require("../../../assets/images/night_bg.jpg"),
+        image: require("../../../assets/images/morning_default_image.png"),
+
         greeting: "Good Night",
       };
     }
@@ -201,21 +203,7 @@ export default function Index() {
     [data, SpecialForYouData],
   );
 
-  // Loading State
-  if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "#000000ff",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="white" />
-      </View>
-    );
-  }
+  // Loading State is handled inline below to keep the header and background visible
 
   return (
     <View style={[styles.container, { backgroundColor: "#000" }]}>
@@ -256,67 +244,79 @@ export default function Index() {
         <Header title="Beats" />
       </Animated.View>
 
-      <AnimatedFlashList
-        data={sections}
-        estimatedItemSize={280}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            progressViewOffset={TOTAL_HEADER_HEIGHT}
-            tintColor="#ffffff"
-            colors={["#ffffff"]}
-            progressBackgroundColor="#050505"
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(item: any) => item.id}
-        getItemType={(item: any) => item.type}
-        drawDistance={400}
-        removeClippedSubviews={true}
-        contentContainerStyle={{
-          paddingTop: TOTAL_HEADER_HEIGHT,
-          paddingBottom: 250,
-        }}
-        renderItem={({ item }: any) => {
-          if (item.type === "quickPicks")
-            return <QuickPicksSection data={item.data} />;
-
-          if (item.type === "cityHot")
-            return (
-              <CityHotSection
-                title={item.title}
-                subtitle={item.subtitle}
-                data={item.data}
-              />
-            );
-          if (item.type === "foryou") return <SpeedDialGrid data={item.data} />;
-          if (item.type === "artistrecos") {
-            // console.log("artistrecos", item.title);
-            return <RecommendedArtist title={item.title} data={item.data} />;
+      {isLoading || !data ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingTop: TOTAL_HEADER_HEIGHT,
+          }}
+        >
+          <ActivityIndicator size="large" color="white" />
+        </View>
+      ) : (
+        <AnimatedFlashList
+          data={sections}
+          estimatedItemSize={280}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              progressViewOffset={TOTAL_HEADER_HEIGHT}
+              tintColor="#ffffff"
+              colors={["#ffffff"]}
+              progressBackgroundColor="#050505"
+            />
           }
-          if (item.type === "promo:vx:data:68") {
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item: any) => item.id}
+          getItemType={(item: any) => item.type}
+          drawDistance={400}
+          removeClippedSubviews={true}
+          contentContainerStyle={{
+            paddingTop: TOTAL_HEADER_HEIGHT,
+            paddingBottom: 250,
+          }}
+          renderItem={({ item }: any) => {
+            if (item.type === "quickPicks")
+              return <QuickPicksSection data={item.data} />;
+
+            if (item.type === "cityHot")
+              return (
+                <CityHotSection
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  data={item.data}
+                />
+              );
+            if (item.type === "foryou")
+              return <SpeedDialGrid data={item.data} />;
+            if (item.type === "artistrecos") {
+              return <RecommendedArtist title={item.title} data={item.data} />;
+            }
+            if (item.type === "promo:vx:data:68") {
+              return (
+                <TrendingSection
+                  title={item.title}
+                  data={item.data}
+                  type={item.type}
+                />
+              );
+            }
+
             return (
               <TrendingSection
                 title={item.title}
-                // subtitle={item.subtitle}
                 data={item.data}
                 type={item.type}
               />
             );
-          }
-
-          return (
-            <TrendingSection
-              title={item.title}
-              data={item.data}
-              type={item.type}
-            />
-          );
-        }}
-      />
+          }}
+        />
+      )}
     </View>
   );
 }

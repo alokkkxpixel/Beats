@@ -245,7 +245,7 @@ export default function TrendingSection({
           <Text
             style={styles.description}
             className="font-sans-light"
-            numberOfLines={2}
+            numberOfLines={1}
             ellipsizeMode="tail"
           >
             {displaySubtitle}
@@ -289,7 +289,7 @@ export default function TrendingSection({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 32,
+    marginTop: 28,
   },
 
   header: {

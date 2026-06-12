@@ -144,6 +144,7 @@ export default function CityHotSection({
 const styles = StyleSheet.create({
   container: {
     marginTop: 32,
+    paddingVertical: 10,
   },
   header: {
     flexDirection: "row",
