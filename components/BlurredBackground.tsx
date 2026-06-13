@@ -1,15 +1,15 @@
-import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
 interface BlurredBackgroundProps {
-  imageUri: string;
+  imageUri?: string;
   height: number;
+  accentColor?: string;
 }
-
 const BlurredBackground = React.memo(
-  ({ imageUri, height }: BlurredBackgroundProps) => {
+  ({ imageUri, height, accentColor = "#050505" }: BlurredBackgroundProps) => {
+    console.log("color", accentColor);
     return (
       <View
         style={{
@@ -20,19 +20,13 @@ const BlurredBackground = React.memo(
           right: 0,
         }}
       >
-        <Image
-          source={{ uri: imageUri }}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          blurRadius={50}
-          cachePolicy="memory-disk"
-        />
         <LinearGradient
           colors={[
-            "rgba(5,5,5,0.4)",
-            "rgba(5,5,5,0.7)",
-            "rgba(5,5,5,0.9)",
-            "#050505",
+            accentColor,
+            "rgba(5, 5, 5, 0.2)",
+            // "rgba(5, 5, 5, 0.5)",
+
+            "#0505058c",
           ]}
           style={StyleSheet.absoluteFill}
         />

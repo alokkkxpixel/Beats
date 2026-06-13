@@ -1,8 +1,11 @@
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { Image } from "expo-image";
-import React, { useCallback } from "react";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  NativeModules,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,14 +15,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-import { usePlayerStore } from "@/src/store/usePlayerStore";
-import { useRouter } from "expo-router";
 import { useShallow } from "zustand/shallow";
+import { extractAccentColor } from "../src/utils/extractAccentColor";
 import BlurredBackground from "./BlurredBackground";
 import PlayerControls from "./PlayerControls";
 import ProgressSection from "./ProgressSection";
-
 // Import SVGs
 import Statminus from "@/assets/app-icons/stat-minus.svg";
 
@@ -27,6 +27,34 @@ import LikeUnfill from "@/assets/app-icons/like-unfill.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 
 const { width } = Dimensions.get("window");
+const fallbackAccentColor = "#050505";
+
+type ImageColorsResult =
+  | {
+      platform: "ios";
+      background?: string;
+      primary?: string;
+    }
+  | {
+      platform: "android" | "web";
+      dominant?: string;
+      vibrant?: string;
+    };
+
+const getAccentColor = (colors: ImageColorsResult) => {
+  if (colors.platform === "ios") {
+    return colors.background || colors.primary || fallbackAccentColor;
+  }
+
+  return colors.dominant || colors.vibrant || fallbackAccentColor;
+};
+
+const hasImageColorsNativeModule = () => {
+  const expoModules = (globalThis as any).expo?.modules;
+  const legacyExpoModules = NativeModules.NativeUnimoduleProxy?.exportedMethods;
+
+  return Boolean(expoModules?.ImageColors || legacyExpoModules?.ImageColors);
+};
 
 const FullPlayer = React.memo(
   ({
@@ -37,7 +65,7 @@ const FullPlayer = React.memo(
     handleCloseMoreSheet: () => void;
   }) => {
     const { height } = useWindowDimensions();
-
+    const [accentColor, setAccentColor] = React.useState(fallbackAccentColor);
     // FIX: Removed native hooks (useNowPlaying). Using stable store instead.
     const { currentTrack, expandMoreOption, setSelectedSongOption, isLoading } =
       usePlayerStore(
@@ -56,9 +84,36 @@ const FullPlayer = React.memo(
       (currentTrack as any)?.artists?.primary?.[0]?.name ||
       originalSong?.subtitle ||
       "Unknown Artist";
+    const trackImage =
+      originalSong?.image?.[3]?.url ||
+      (currentTrack as any)?.image?.[2]?.url ||
+      originalSong?.image?.[0]?.url;
 
     const router = useRouter();
 
+    useEffect(() => {
+      let isMounted = true;
+
+      async function updateColor() {
+        const colorData = await extractAccentColor({
+          trackImage,
+          checkMounted: () => isMounted, // Passes the status to the utility
+        });
+
+        if (isMounted) {
+          // CHOOSE ONE: .dominant, .vibrant, .average, etc.
+          // .dominant is usually best for a full screen player background
+          const finalColor = colorData.dominant;
+
+          setAccentColor(finalColor);
+        }
+      }
+      updateColor();
+
+      return () => {
+        isMounted = false; // Cancels state setting if trackImage changes or component unmounts
+      };
+    }, [trackImage]);
     const navigateToArtist = useCallback(
       (artist: any) => {
         if (artist?.id) {
@@ -100,12 +155,6 @@ const FullPlayer = React.memo(
     if (!currentTrack) {
       return null;
     }
-
-    const trackImage =
-      originalSong?.image?.[3]?.url ||
-      (currentTrack as any).image?.[2]?.url ||
-      originalSong?.image?.[0]?.url;
-
     const label = originalSong?.label;
     const copyright = originalSong?.copyright;
     const aboutArtist =
@@ -118,7 +167,11 @@ const FullPlayer = React.memo(
 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <BlurredBackground imageUri={trackImage} height={height} />
+        <BlurredBackground
+          // imageUri={trackImage}
+          height={height}
+          accentColor={accentColor}
+        />
         <ScrollView
           style={[styles.container, { backgroundColor: "transparent" }]}
           bounces={true}

@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -18,11 +18,13 @@ import { useShallow } from "zustand/shallow";
 import MusicIcon from "@/assets/app-icons/album.svg";
 import PauseIcon from "@/assets/app-icons/pause.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
+import { extractAccentColor } from "@/src/utils/extractAccentColor";
 
 const MiniPlayer = React.memo(function MiniPlayer() {
   // FIX: Removed all native hooks (useNowPlaying, useOnPlaybackStateChange)
   // These were likely triggering re-renders every second from the native side.
   // We now rely solely on our stable Zustand store.
+  const [accentColor, setAccentColor] = useState("#dadada");
   const { currentTrack, isPlaying } = usePlayerStore(
     useShallow((s) => ({
       currentTrack: s.currentTrack,
@@ -58,9 +60,49 @@ const MiniPlayer = React.memo(function MiniPlayer() {
       await TrackPlayer.play();
     }
   };
+  useEffect(() => {
+    let isMounted = true;
 
+    async function updateColor() {
+      const colorData = await extractAccentColor({
+        trackImage,
+        checkMounted: () => isMounted,
+      });
+
+      console.log("colorData raw response:", colorData);
+
+      if (isMounted) {
+        let finalColor = "#dadada"; // Default ultimate fallback
+
+        // Check if colorData is an object and contains properties
+        if (colorData && typeof colorData === "object") {
+          // Fall back to average or any valid key if dominant is missing
+          finalColor = colorData.dominant || colorData.average || "#dadada";
+        } else if (typeof colorData === "string") {
+          // If it returned a plain hex string directly
+          finalColor = colorData;
+        }
+
+        console.log("Resolved finalcolor string:", finalColor);
+        setAccentColor(finalColor);
+      }
+    }
+
+    updateColor();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [trackImage]);
+  console.log("min color", accentColor);
   return (
-    <View style={styles.miniContainer}>
+    <View
+      style={[
+        styles.miniContainer,
+        { backgroundColor: accentColor && accentColor },
+      ]}
+    >
+      {/* <BlurredBackground height={12} accentColor={accentColor} /> */}
       <View style={styles.miniContent}>
         {trackImage ? (
           <Image
@@ -151,7 +193,7 @@ MiniProgressBar.displayName = "MiniProgressBar";
 const styles = StyleSheet.create({
   miniContainer: {
     height: 70,
-    backgroundColor: "#000000",
+    // backgroundColor: "#000000",
     borderBottomWidth: 1,
     borderBottomColor: "#333",
   },
