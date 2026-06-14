@@ -4,8 +4,8 @@ import MiniPlayer from "@/components/MiniPlayer";
 import MusicBottomSheet from "@/components/MusicBottomSheet";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import BottomSheet, {
-    BottomSheetBackdrop,
-    BottomSheetScrollView,
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
@@ -156,7 +156,7 @@ const MoreOptionsSheetLayer = React.memo(() => {
           // { backgroundColor: accentColor },
         ]}
         handleIndicatorStyle={{ backgroundColor: "#fff" }}
-        handleComponent={null}
+        // handleComponent={null}
       >
         <BottomSheetScrollView
           showsVerticalScrollIndicator={false}
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   moreSheetBackground: {
-    backgroundColor: "#000000ff",
+    backgroundColor: "#1d1d1dff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

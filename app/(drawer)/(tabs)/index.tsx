@@ -64,8 +64,8 @@ export default function Index() {
       };
     } else {
       return {
-        // image: require("../../../assets/images/night_bg.jpg"),
-        image: require("../../../assets/images/morning_default_image.png"),
+        image: require("../../../assets/images/night_bg.jpg"),
+        // image: require("../../../assets/images/morning_default_image.png"),
 
         greeting: "Good Night",
       };

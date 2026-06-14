@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Easing, Pressable, Text, View } from "react-native";
 
 import { usePlayerStore } from "../src/store/usePlayerStore";
 
@@ -13,6 +13,7 @@ import ShareIcon from "@/assets/app-icons/more.svg";
 import SaveIcon from "@/assets/app-icons/playlist-add.svg";
 import PlayNextIcon from "@/assets/app-icons/playlist-next.svg";
 import RadioIcon from "@/assets/app-icons/radio.svg";
+import TextTicker from "react-native-text-ticker";
 
 export default function MusicBottomSheet() {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
@@ -87,6 +88,7 @@ export default function MusicBottomSheet() {
 
   const menuItems = [
     { icon: RadioIcon, label: "Start radio" },
+    { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
     { icon: AddQueueIcon, label: "Add to queue", fnx: handleAddToQueue },
     { icon: DownloadIcon, label: "Download" },
     {
@@ -129,9 +131,10 @@ export default function MusicBottomSheet() {
   //   "Unknown Artist";
   const artistName = getArtistName(activeSong);
   return (
-    <View className="flex-1 px-4  w-full  ">
-      <View className="flex-row items-center gap-3 mb-4 ">
-        <View className="w-12 h-12 bg-zinc-700 rounded-md overflow-hidden">
+    <View className="flex-1 px-5 pt-2">
+      {/* Header */}
+      <View className="flex-row items-center pb-4 border-b border-zinc-300">
+        <View className="w-14 h-14 rounded-md overflow-hidden">
           <Image
             source={{
               uri: getImageUri(activeSong?.cover || activeSong?.image),
@@ -141,45 +144,50 @@ export default function MusicBottomSheet() {
           />
         </View>
 
-        <View className="flex-1">
-          <Text className="text-white font-semibold">
+        <View className="flex-1 ml-3">
+          <Text
+            numberOfLines={2}
+            className="text-white text-base font-semibold"
+          >
             {activeSong?.title || activeSong?.name}
           </Text>
 
-          <Text className="text-zinc-400 text-xs">{artistName}</Text>
+          <TextTicker
+            className="text-zinc-400 text-sm mt-1"
+            // style={styles.miniTitle}
+            duration={18000}
+            animationType="scroll"
+            loop
+            bounce={false}
+            repeatSpacer={40}
+            marqueeDelay={1500}
+            easing={Easing.linear}
+          >
+            {artistName}
+          </TextTicker>
         </View>
       </View>
 
-      <View className="flex-row justify-between mb-4">
-        {quickActions.map((item, i) => (
-          <View key={i} className="items-center flex-1">
-            <Pressable
-              className="bg-zinc-800 p-4 rounded-xl mb-2"
-              onPress={item.fnx}
-            >
-              <item.icon width={20} height={20} color="white" />
-            </Pressable>
-            <Text className="text-white text-xs">{item.label}</Text>
-          </View>
+      {/* Menu Items */}
+      <View className="mt-2">
+        {menuItems.map((item, i) => (
+          <Pressable
+            key={i}
+            onPress={() => {
+              if (item.fnx) {
+                item.fnx();
+              } else {
+                minizeMoreOption();
+              }
+            }}
+            className="flex-row items-center py-4"
+          >
+            <item.icon width={24} height={24} fill="white" />
+
+            <Text className="text-white text-[15px] ml-5">{item.label}</Text>
+          </Pressable>
         ))}
       </View>
-
-      {menuItems.map((item, i) => (
-        <Pressable
-          key={i}
-          onPress={() => {
-            if (item.fnx) {
-              item.fnx();
-            } else {
-              minizeMoreOption();
-            }
-          }}
-          className="flex-row items-center py-3"
-        >
-          <item.icon fill="white" width={22} height={22} />
-          <Text className="text-white ml-4">{item.label}</Text>
-        </Pressable>
-      ))}
     </View>
   );
 }
