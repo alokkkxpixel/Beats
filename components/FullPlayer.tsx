@@ -5,6 +5,7 @@ import React, { useCallback } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Easing,
   NativeModules,
   Pressable,
   ScrollView,
@@ -23,6 +24,7 @@ import Statminus from "@/assets/app-icons/stat-minus.svg";
 
 import LikeUnfill from "@/assets/app-icons/like-unfill.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
+import TextTicker from "react-native-text-ticker";
 
 const { width } = Dimensions.get("window");
 const fallbackAccentColor = "#050505";
@@ -79,9 +81,13 @@ const FullPlayer = React.memo(
 
     const originalSong =
       (currentTrack as any)?.extraPayload?.song || currentTrack;
+    const primaryArtists = (currentTrack as any)?.artists?.primary;
+
     const artistName =
       originalSong?.primaryArtists ||
-      (currentTrack as any)?.artists?.primary?.[0]?.name ||
+      (primaryArtists?.length
+        ? primaryArtists.map((artist: any) => artist.name).join(", ")
+        : null) ||
       originalSong?.subtitle ||
       "Unknown Artist";
     const trackImage =
@@ -210,9 +216,20 @@ const FullPlayer = React.memo(
           {/* --- Track Info --- */}
           <View style={styles.trackInfo}>
             <View style={styles.titleContainer}>
-              <Text style={styles.songTitle} numberOfLines={1}>
+              <TextTicker
+                style={styles.songTitle}
+                duration={15000}
+                loop
+                animationType="scroll"
+                easing={Easing.linear}
+                bounce={false}
+                repeatSpacer={20}
+                scrollSpeed={100}
+                marqueeDelay={1000}
+                shouldAnimateTreshold={20}
+              >
                 {currentTrack.name}
-              </Text>
+              </TextTicker>
               <Pressable onPress={handleArtistPress}>
                 <Text style={styles.songArtist} numberOfLines={1}>
                   {artistName}

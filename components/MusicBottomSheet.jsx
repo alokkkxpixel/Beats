@@ -107,6 +107,27 @@ export default function MusicBottomSheet() {
     { icon: ShareIcon, label: "Share" },
   ];
 
+  const primaryArtists = activeSong?.artists?.primary;
+  const getArtistName = (song) => {
+    return (
+      song?.primaryArtists ||
+      song?.artists?.primary
+        ?.map((artist) => artist?.name)
+        .filter(Boolean)
+        .join(", ") ||
+      song?.subtitle ||
+      "Unknown Artist"
+    );
+  };
+  // const artistName =
+  //   activeSong?.primaryArtists ||
+  //   activeSong?.artists?.primary
+  //     ?.map((artist) => artist?.name)
+  //     .filter(Boolean)
+  //     .join(", ") ||
+  //   activeSong?.subtitle ||
+  //   "Unknown Artist";
+  const artistName = getArtistName(activeSong);
   return (
     <View className="flex-1 px-4  w-full  ">
       <View className="flex-row items-center gap-3 mb-4 ">
@@ -125,11 +146,7 @@ export default function MusicBottomSheet() {
             {activeSong?.title || activeSong?.name}
           </Text>
 
-          <Text className="text-zinc-400 text-xs">
-            {activeSong?.artist ||
-              activeSong?.artists?.primary?.[0]?.name ||
-              ""}
-          </Text>
+          <Text className="text-zinc-400 text-xs">{artistName}</Text>
         </View>
       </View>
 

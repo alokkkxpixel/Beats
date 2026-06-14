@@ -1,10 +1,11 @@
 import FullPlayer from "@/components/FullPlayer";
 import MiniPlayer from "@/components/MiniPlayer";
+// import MusicBottomSheet from "./";
 import MusicBottomSheet from "@/components/MusicBottomSheet";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
+    BottomSheetBackdrop,
+    BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
@@ -12,7 +13,6 @@ import { BackHandler, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
-
 // --- Sub-components for better isolation ---
 
 const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {

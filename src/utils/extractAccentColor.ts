@@ -23,7 +23,7 @@ export async function extractAccentColor({
   trackImage,
   checkMounted,
 }: ExtractColorOptions): Promise<ExtractedColors> {
-  const fallbackAccentColor = "#dadada";
+  const fallbackAccentColor = "#111111";
 
   // A helper function to generate the default fallback object
   const createFallbackObject = (

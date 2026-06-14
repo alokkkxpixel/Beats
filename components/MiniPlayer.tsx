@@ -19,8 +19,8 @@ import MusicIcon from "@/assets/app-icons/album.svg";
 import PauseIcon from "@/assets/app-icons/pause.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
 
+import TextTicker from "react-native-text-ticker";
 import useTrackAccentColor from "../src/hooks/useTrackAccentColor";
-
 const MiniPlayer = React.memo(function MiniPlayer() {
   // FIX: Removed all native hooks (useNowPlaying, useOnPlaybackStateChange)
   // These were likely triggering re-renders every second from the native side.
@@ -44,13 +44,13 @@ const MiniPlayer = React.memo(function MiniPlayer() {
       (originalSong as any)?.image?.[1]?.url ||
       (originalSong as any)?.image?.[0]?.url
     : "";
-
+  const primaryArtists = (currentTrack as any)?.artists?.primary;
   const artistName = isLoaded
-    ? (currentTrack as any)?.primaryArtists ||
-      (currentTrack as any)?.artists?.primary?.[0]?.name ||
-      (originalSong as any)?.primaryArtists ||
-      (originalSong as any)?.artists?.primary?.[0]?.name ||
-      (originalSong as any)?.subtitle ||
+    ? originalSong?.primaryArtists ||
+      (primaryArtists?.length
+        ? primaryArtists.map((artist: any) => artist.name).join(", ")
+        : null) ||
+      originalSong?.subtitle ||
       "Unknown Artist"
     : "";
   const togglePlay = async () => {
@@ -95,12 +95,28 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           </View>
         )}
         <View style={styles.miniTextContainer}>
-          <Text style={styles.miniTitle} numberOfLines={1}>
-            {isLoaded
-              ? (currentTrack as any).name || (originalSong as any).name
-              : "Nothing to play"}
-          </Text>
-          <Text style={styles.miniArtist} numberOfLines={1}>
+          <View style={{ height: 18, justifyContent: "center" }}>
+            <TextTicker
+              style={styles.miniTitle}
+              duration={8000}
+              loop
+              bounce={false}
+              repeatSpacer={50}
+              scrollSpeed={100}
+              marqueeDelay={1000}
+              shouldAnimateTreshold={20}
+            >
+              {isLoaded
+                ? (currentTrack as any).name || (originalSong as any).name
+                : "Nothing to play"}
+            </TextTicker>
+          </View>
+
+          <Text
+            style={styles.miniArtist}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {artistName}
           </Text>
         </View>
@@ -112,14 +128,14 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           >
             {isPlaying ? (
               <PauseIcon
-                width={30}
-                height={30}
+                width={35}
+                height={35}
                 fill={isLoaded ? "white" : "#444"}
               />
             ) : (
               <PlayIcon
-                width={30}
-                height={30}
+                width={35}
+                height={35}
                 fill={isLoaded ? "white" : "#444"}
               />
             )}
@@ -179,6 +195,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
+    paddingVertical: 10,
     flex: 1,
   },
   miniArt: {
@@ -188,23 +205,33 @@ const styles = StyleSheet.create({
   },
   miniTextContainer: {
     flex: 1,
+    // backgroundColor: "red",
     marginLeft: 12,
+    marginRight: 8, // gap before play button
+    minWidth: 0, // important for ellipsis in flex layouts
   },
   miniTitle: {
     color: "white",
     fontSize: 14,
     fontWeight: "bold",
+    lineHeight: 16, // important
+    marginBottom: 0, // remove extra gap
   },
   miniArtist: {
     color: "#AAA",
     fontSize: 12,
+    flexShrink: 1,
+    marginTop: 0, // remove extra gap
   },
   miniControls: {
+    justifyContent: "center",
+    // backgroundColor: "blue",
+    // height: "100%",
     flexDirection: "row",
     alignItems: "center",
   },
   iconSpacing: {
-    marginRight: 15,
+    marginHorizontal: 6,
   },
 });
 
