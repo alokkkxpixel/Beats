@@ -12,11 +12,13 @@ import { Image } from "expo-image";
 import { useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
+  Easing,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import TextTicker from "react-native-text-ticker";
 
 // Helper function to calculate color brightness for text protection
 function getLuminance(hex: string): number {
@@ -157,12 +159,27 @@ const QueueSheet = () => {
           style={styles.trackArt}
         />
         <View style={styles.trackInfo}>
-          <Text
-            style={[styles.trackTitle, isCurrent && styles.currentTrackTitle]}
-            numberOfLines={1}
-          >
-            {item.name}
-          </Text>
+          {isCurrent ? (
+            <TextTicker
+              style={[styles.trackTitle, isCurrent && styles.currentTrackTitle]}
+              duration={15000}
+              animationType="scroll"
+              loop
+              bounce={false}
+              repeatSpacer={50}
+              marqueeDelay={1000}
+              easing={Easing.linear}
+            >
+              {item.name}
+            </TextTicker>
+          ) : (
+            <Text
+              style={[styles.trackTitle, isCurrent && styles.currentTrackTitle]}
+              numberOfLines={1}
+            >
+              {item.name}
+            </Text>
+          )}
           <Text style={styles.trackArtist} numberOfLines={1}>
             {artistName} {views ? `• ${views}` : ""}
           </Text>
@@ -207,9 +224,18 @@ const QueueSheet = () => {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.playingFrom}>Playing from</Text>
-            <Text style={styles.title} numberOfLines={1}>
+            <TextTicker
+              style={[styles.title]}
+              duration={15000}
+              animationType="scroll"
+              loop
+              bounce={false}
+              repeatSpacer={50}
+              marqueeDelay={1000}
+              easing={Easing.linear}
+            >
               {albumName.toUpperCase()}
-            </Text>
+            </TextTicker>
           </View>
         }
         ListFooterComponent={

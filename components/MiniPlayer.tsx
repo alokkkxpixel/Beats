@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -98,13 +98,15 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           <View style={{ height: 18, justifyContent: "center" }}>
             <TextTicker
               style={styles.miniTitle}
-              duration={8000}
+              duration={15000}
+              animationType="scroll"
               loop
               bounce={false}
               repeatSpacer={50}
               scrollSpeed={100}
               marqueeDelay={1000}
               shouldAnimateTreshold={20}
+              easing={Easing.linear}
             >
               {isLoaded
                 ? (currentTrack as any).name || (originalSong as any).name
