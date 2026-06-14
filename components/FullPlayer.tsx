@@ -1,7 +1,7 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -16,8 +16,6 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useShallow } from "zustand/shallow";
-import { extractAccentColor } from "../src/utils/extractAccentColor";
-import BlurredBackground from "./BlurredBackground";
 import PlayerControls from "./PlayerControls";
 import ProgressSection from "./ProgressSection";
 // Import SVGs
@@ -65,7 +63,9 @@ const FullPlayer = React.memo(
     handleCloseMoreSheet: () => void;
   }) => {
     const { height } = useWindowDimensions();
-    const [accentColor, setAccentColor] = React.useState(fallbackAccentColor);
+    // const [accentColor, setAccentColor] = React.useState(fallbackAccentColor);
+    const accentColor = usePlayerStore((state) => state.accentColor);
+
     // FIX: Removed native hooks (useNowPlaying). Using stable store instead.
     const { currentTrack, expandMoreOption, setSelectedSongOption, isLoading } =
       usePlayerStore(
@@ -91,29 +91,6 @@ const FullPlayer = React.memo(
 
     const router = useRouter();
 
-    useEffect(() => {
-      let isMounted = true;
-
-      async function updateColor() {
-        const colorData = await extractAccentColor({
-          trackImage,
-          checkMounted: () => isMounted, // Passes the status to the utility
-        });
-
-        if (isMounted) {
-          // CHOOSE ONE: .dominant, .vibrant, .average, etc.
-          // .dominant is usually best for a full screen player background
-          const finalColor = colorData.dominant;
-
-          setAccentColor(finalColor);
-        }
-      }
-      updateColor();
-
-      return () => {
-        isMounted = false; // Cancels state setting if trackImage changes or component unmounts
-      };
-    }, [trackImage]);
     const navigateToArtist = useCallback(
       (artist: any) => {
         if (artist?.id) {
@@ -166,14 +143,18 @@ const FullPlayer = React.memo(
       label || copyright || "No artist biography available.";
 
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BlurredBackground
-          // imageUri={trackImage}
-          height={height}
-          accentColor={accentColor}
-        />
+      <GestureHandlerRootView
+        style={[
+          { backgroundColor: accentColor && accentColor },
+          //   styles.container,
+          { flex: 1 },
+        ]}
+      >
         <ScrollView
-          style={[styles.container, { backgroundColor: "transparent" }]}
+          style={[
+            styles.container,
+            { backgroundColor: accentColor && accentColor },
+          ]}
           bounces={true}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -336,6 +317,9 @@ FullPlayer.displayName = "FullPlayer";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // backgroundColor: "#000000",
+    borderBottomWidth: 1,
+    borderBottomColor: "#333",
   },
   scrollContent: {
     paddingBottom: 40,

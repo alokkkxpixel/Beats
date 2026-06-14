@@ -26,7 +26,7 @@ const BlurredBackground = React.memo(
             "rgba(5, 5, 5, 0.2)",
             // "rgba(5, 5, 5, 0.5)",
 
-            "#0505058c",
+            // "#0505058c",
           ]}
           style={StyleSheet.absoluteFill}
         />

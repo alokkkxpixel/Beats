@@ -116,7 +116,7 @@ const MoreOptionsSheetLayer = React.memo(() => {
       minizeMoreOption: s.minizeMoreOption,
     })),
   );
-
+  const accentColor = usePlayerStore((state) => state.accentColor);
   const moreSheetRef = useRef<BottomSheet>(null);
   const snapPoints = React.useMemo(() => ["50%"], []);
 
@@ -151,7 +151,10 @@ const MoreOptionsSheetLayer = React.memo(() => {
         animateOnMount={false}
         onClose={minizeMoreOption}
         backdropComponent={renderBackdrop}
-        backgroundStyle={styles.moreSheetBackground}
+        backgroundStyle={[
+          styles.moreSheetBackground,
+          // { backgroundColor: accentColor },
+        ]}
         handleIndicatorStyle={{ backgroundColor: "#fff" }}
         handleComponent={null}
       >
@@ -182,6 +185,7 @@ const QueueSheetLayer = React.memo(() => {
     if (isQueueOpen) queueSheetRef.current?.snapToIndex(0);
     else queueSheetRef.current?.close();
   }, [isQueueOpen]);
+  const accentColor = usePlayerStore((state) => state.accentColor);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -209,8 +213,11 @@ const QueueSheetLayer = React.memo(() => {
         animateOnMount={false}
         onClose={minimizeQueue}
         backdropComponent={renderBackdrop}
-        backgroundStyle={styles.queueSheetBackground}
-        handleIndicatorStyle={{ backgroundColor: "#555" }}
+        backgroundStyle={[
+          styles.queueSheetBackground,
+          { backgroundColor: accentColor },
+        ]}
+        handleIndicatorStyle={{ backgroundColor: "#fff" }}
       >
         <QueueSheet />
       </BottomSheet>
@@ -276,12 +283,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   moreSheetBackground: {
-    backgroundColor: "#18181b",
+    backgroundColor: "#000000ff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   queueSheetBackground: {
-    backgroundColor: "#121212",
+    // backgroundColor: "#121212",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

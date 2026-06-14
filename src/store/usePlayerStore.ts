@@ -96,6 +96,8 @@ interface PlayerState {
   isMoreOptionOpen: boolean;
   isQueueOpen: boolean;
   isDrawerOpen: boolean;
+  accentColor: string;
+  setAccentColor: (color: string) => void;
   // --- Progress / Seekbar ---
   position: number;
   duration: number;
@@ -160,6 +162,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   selectedSongOption: "",
   isDragging: false,
   isFetchingSuggestions: false,
+  accentColor: "#222222ff",
+
+  setAccentColor: (color) =>
+    set({
+      accentColor: color,
+    }),
 
   setIsDragging: (isDragging) => set({ isDragging }),
   // set individual track info

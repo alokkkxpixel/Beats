@@ -9,7 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useBottomSheetScrollableCreator } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -17,6 +17,16 @@ import {
   Text,
   View,
 } from "react-native";
+
+// Helper function to calculate color brightness for text protection
+function getLuminance(hex: string): number {
+  const cleanHex = hex.replace("#", "");
+  if (cleanHex.length !== 6) return 0;
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
 
 const QueueSheet = () => {
   const queue = usePlayerStore((state) => state.queue);
@@ -35,6 +45,18 @@ const QueueSheet = () => {
   const toggleShuffle = usePlayerStore((state) => state.toggleShuffle);
   const flatListRef = useRef<any>(null);
   const renderScrollComponent = useBottomSheetScrollableCreator();
+
+  // const [accentColor, setAccentColor] = useState("#dbdbdbff");
+  const accentColor = usePlayerStore((state) => state.accentColor);
+  // FIX 1: Safely read the current active song image directly from currentTrack metadata
+  // This eliminates the need for the broken 'queueimage' state variable completely.
+  const originalSong =
+    (currentTrack as any)?.extraPayload?.song || currentTrack;
+  const currentTrackImage = currentTrack
+    ? (currentTrack as any).image?.[1]?.url ||
+      (originalSong as any)?.image?.[1]?.url ||
+      (originalSong as any)?.image?.[0]?.url
+    : "";
 
   // Auto-scroll to current track when opened
   useEffect(() => {
@@ -57,6 +79,50 @@ const QueueSheet = () => {
     }
   }, [isQueueOpen, currentTrack?.id]);
 
+  // FIX 2: Corrected color extraction using the active track image logic
+  // useEffect(() => {
+  //   let isMounted = true;
+
+  //   async function updateColor() {
+  //     if (!currentTrackImage) {
+  //       setAccentColor("#dadada");
+  //       return;
+  //     }
+
+  //     const colorData = await extractAccentColor({
+  //       trackImage: currentTrackImage,
+  //       checkMounted: () => isMounted,
+  //     });
+
+  //     if (isMounted) {
+  //       let finalColor = "#dadada";
+
+  //       if (colorData && typeof colorData === "object") {
+  //         // Fall back from dominant to average exactly like the mini player setup
+  //         finalColor = colorData.dominant || colorData.average || "#dadada";
+  //       } else if (typeof colorData === "string") {
+  //         finalColor = colorData;
+  //       }
+
+  //       setAccentColor(finalColor);
+  //     }
+  //   }
+
+  //   updateColor();
+
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, [currentTrackImage]);
+
+  // FIX 3: Safety shield overlay calculation for white/light album covers
+  const overlayColor = useMemo(() => {
+    const brightness = getLuminance(accentColor);
+    if (brightness > 0.8) return "rgba(0, 0, 0, 0.65)"; // Protects text on pure white covers
+    if (brightness > 0.5) return "rgba(0, 0, 0, 0.35)"; // Protects text on medium bright covers
+    return "transparent";
+  }, [accentColor]);
+
   // Fetch suggestions when queue is small and sheet is opened
   useEffect(() => {
     if (isQueueOpen && queue.length === 1 && currentTrack) {
@@ -78,6 +144,8 @@ const QueueSheet = () => {
       "Unknown Artist";
 
     const views = formatPlayCount(item.playCount);
+
+    // REMOVED: setQueueImage(item.image?.[1]?.url) state mutation is completely gone!
 
     return (
       <Pressable
@@ -109,7 +177,7 @@ const QueueSheet = () => {
             )}
           </Pressable>
         ) : (
-          <MaterialIcons name="drag-handle" size={24} color="#555" />
+          <MaterialIcons name="drag-handle" size={24} color="#888" />
         )}
       </Pressable>
     );
@@ -121,7 +189,15 @@ const QueueSheet = () => {
       : currentTrack?.album?.name || "Playback Queue";
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: accentColor }]}>
+      {/* Universal protection overlay for bright backgrounds */}
+      <View
+        style={[
+          StyleSheet.absoluteFillObject,
+          { backgroundColor: overlayColor, pointerEvents: "none" },
+        ]}
+      />
+
       <FlashList
         ref={flatListRef}
         data={queue}
@@ -145,7 +221,7 @@ const QueueSheet = () => {
                   color="#1DB954"
                   style={{ marginRight: 10 }}
                 />
-                <Text style={{ color: "#888", fontSize: 13 }}>
+                <Text style={{ color: "#eee", fontSize: 13 }}>
                   Fetching suggestions...
                 </Text>
               </View>
@@ -156,7 +232,16 @@ const QueueSheet = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      <View style={styles.footer}>
+      {/* Styled the bottom controller bar background to blend properly with the dynamic layout */}
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: accentColor,
+            borderTopColor: "rgba(255, 255, 255, 0.49)",
+          },
+        ]}
+      >
         <Pressable style={styles.footerBtn} onPress={toggleShuffle}>
           <ShuffleIcon
             width={24}
@@ -186,7 +271,7 @@ const QueueSheet = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    // backgroundColor: "#121212",
   },
   ListFooterComponent: {
     height: 120,
@@ -250,7 +335,7 @@ const styles = StyleSheet.create({
     color: "#1DB954",
   },
   trackArtist: {
-    color: "#888",
+    color: "#fdfdfdff",
     fontSize: 12,
     marginTop: 3,
     fontFamily: "sans-regular",
