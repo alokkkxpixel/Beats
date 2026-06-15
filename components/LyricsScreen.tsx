@@ -1,11 +1,15 @@
+import PauseIcon from "@/assets/app-icons/pause.svg";
+import PlayIcon from "@/assets/app-icons/play.svg";
 import Statminus from "@/assets/app-icons/stat-minus.svg";
 import { useLyrics } from "@/src/hooks/useQueries";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -18,6 +22,7 @@ import {
   useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 import { useShallow } from "zustand/shallow";
+import ProgressSection from "./ProgressSection";
 const LINE_HEIGHT = 70;
 
 export default function LyricsScreen() {
@@ -32,10 +37,12 @@ export default function LyricsScreen() {
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const userInteractionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { currentTrack, minimizeLyrics } = usePlayerStore(
+  const { currentTrack, minimizeLyrics, isPlaying, isLoading } = usePlayerStore(
     useShallow((s) => ({
       currentTrack: s.currentTrack,
       minimizeLyrics: s.minimizeLyrics,
+      isPlaying: s.isPlaying,
+      isLoading: s.isLoading,
     })),
   );
 
@@ -190,10 +197,14 @@ export default function LyricsScreen() {
   // Centering spacers
   const spacerHeight = lyricsHeight / 2 - LINE_HEIGHT / 2;
 
+  const togglePlay = useCallback(async () => {
+    if (isPlaying) await TrackPlayer.pause();
+    else await TrackPlayer.play();
+  }, [isPlaying]);
   return (
-    <View className="flex-1">
+    <View className="flex-1 justify-between">
       {/* Header */}
-      <View className="flex-row items-center px-6 pt-16 pb-4">
+      <View className="flex-row items-center px-6 pt-5 pb-4">
         <TouchableOpacity onPress={() => minimizeLyrics()} className="p-1">
           <Statminus height={24} width={24} />
         </TouchableOpacity>
@@ -208,7 +219,7 @@ export default function LyricsScreen() {
       </View>
 
       {/* Lyrics */}
-      <View className="flex-1 px-6">
+      <View className="flex-1 px-6 ">
         {loadingLyrics ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#ffffff" />
@@ -271,7 +282,48 @@ export default function LyricsScreen() {
       </View>
 
       {/* Bottom Controls Area */}
-      <View className="h-40 px-6 pt-4 border-t border-white/10" />
+      <View className="h-40 px-6 pt-2 mb-5 border-t border-white/10">
+        <ProgressSection />
+
+        {/* <PlayerControls /> */}
+        <Pressable
+          style={styles.playButton}
+          onPress={togglePlay}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator
+              size="large"
+              color="white"
+              style={{ width: 70, height: 70 }}
+            />
+          ) : isPlaying ? (
+            <PauseIcon width={70} height={70} fill="white" />
+          ) : (
+            <PlayIcon width={70} height={70} fill="white" />
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  mainControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 25,
+    marginVertical: 20,
+  },
+  playButton: {
+    // width: 75,
+    // height: 75,
+    // borderRadius: 38,
+    // backgroundColor: "white",
+    // borderWidth: 2,
+    // borderColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

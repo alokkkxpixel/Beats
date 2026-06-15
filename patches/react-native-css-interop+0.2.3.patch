@@ -1,0 +1,65 @@
+diff --git a/node_modules/react-native-css-interop/.cache/android.js b/node_modules/react-native-css-interop/.cache/android.js
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-css-interop/.cache/ios.js b/node_modules/react-native-css-interop/.cache/ios.js
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-css-interop/.cache/macos.js b/node_modules/react-native-css-interop/.cache/macos.js
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-css-interop/.cache/native.js b/node_modules/react-native-css-interop/.cache/native.js
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-css-interop/.cache/windows.js b/node_modules/react-native-css-interop/.cache/windows.js
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-css-interop/dist/metro/index.js b/node_modules/react-native-css-interop/dist/metro/index.js
+index c91ba6a..d892cfc 100644
+--- a/node_modules/react-native-css-interop/dist/metro/index.js
++++ b/node_modules/react-native-css-interop/dist/metro/index.js
+@@ -188,6 +188,20 @@ async function startCSSProcessor(filePath, platform, isDev, { input, getCSSForPl
+                         type: "change",
+                     },
+                 ],
++                changes: {
++                    addedFiles: new Map(),
++                    modifiedFiles: new Map([
++                        [
++                            filePath,
++                            {
++                                modifiedTime: Date.now(),
++                                isSymlink: false,
++                            },
++                        ],
++                    ]),
++                    removedFiles: new Map(),
++                },
++                rootDir: "",
+             });
+         }).then((css) => {
+             debug(`virtualStyles.initial ${platform}`);
+diff --git a/node_modules/react-native-css-interop/src/metro/index.ts b/node_modules/react-native-css-interop/src/metro/index.ts
+index fa58c7b..3e3b905 100644
+--- a/node_modules/react-native-css-interop/src/metro/index.ts
++++ b/node_modules/react-native-css-interop/src/metro/index.ts
+@@ -353,6 +353,20 @@ async function startCSSProcessor(
+               type: "change",
+             },
+           ],
++          changes: {
++            addedFiles: new Map(),
++            modifiedFiles: new Map([
++              [
++                filePath,
++                {
++                  modifiedTime: Date.now(),
++                  isSymlink: false,
++                },
++              ],
++            ]),
++            removedFiles: new Map(),
++          },
++          rootDir: "",
+         });
+       }).then((css) => {
+         debug(`virtualStyles.initial ${platform}`);

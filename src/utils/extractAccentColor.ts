@@ -56,17 +56,17 @@ export async function extractAccentColor({
       return createFallbackObject();
     }
 
-    console.log("🎨 Image Colors Result:", JSON.stringify(result, null, 2));
+    // console.log("🎨 Image Colors Result:", JSON.stringify(result, null, 2));
 
     if (result.platform === "android") {
-      console.log("🎨 Dominant:", result.dominant);
-      console.log("🎨 Average:", result.average);
-      console.log("🎨 Vibrant:", result.vibrant);
-      console.log("🎨 Dark Vibrant:", result.darkVibrant);
-      console.log("🎨 Light Vibrant:", result.lightVibrant);
-      console.log("🎨 Dark Muted:", result.darkMuted);
-      console.log("🎨 Light Muted:", result.lightMuted);
-      console.log("🎨 Muted:", result.muted);
+      // console.log("🎨 Dominant:", result.dominant);
+      // console.log("🎨 Average:", result.average);
+      // console.log("🎨 Vibrant:", result.vibrant);
+      // console.log("🎨 Dark Vibrant:", result.darkVibrant);
+      // console.log("🎨 Light Vibrant:", result.lightVibrant);
+      // console.log("🎨 Dark Muted:", result.darkMuted);
+      // console.log("🎨 Light Muted:", result.lightMuted);
+      // console.log("🎨 Muted:", result.muted);
 
       // FIXED: Directly returning the object without illegal const reassignment & fixed typos
       return {
