@@ -69,15 +69,21 @@ const FullPlayer = React.memo(
     const accentColor = usePlayerStore((state) => state.accentColor);
 
     // FIX: Removed native hooks (useNowPlaying). Using stable store instead.
-    const { currentTrack, expandMoreOption, setSelectedSongOption, isLoading } =
-      usePlayerStore(
-        useShallow((s) => ({
-          currentTrack: s.currentTrack,
-          expandMoreOption: s.expandMoreOption,
-          setSelectedSongOption: s.setSelectedSongOption,
-          isLoading: s.isLoading,
-        })),
-      );
+    const {
+      currentTrack,
+      expandMoreOption,
+      expandLyrics,
+      setSelectedSongOption,
+      isLoading,
+    } = usePlayerStore(
+      useShallow((s) => ({
+        currentTrack: s.currentTrack,
+        expandMoreOption: s.expandMoreOption,
+        expandLyrics: s.expandLyrics,
+        setSelectedSongOption: s.setSelectedSongOption,
+        isLoading: s.isLoading,
+      })),
+    );
 
     const originalSong =
       (currentTrack as any)?.extraPayload?.song || currentTrack;
@@ -242,6 +248,12 @@ const FullPlayer = React.memo(
           <ProgressSection />
           <PlayerControls />
 
+          <Pressable
+            className="items-center mb-2"
+            onPress={() => expandLyrics()}
+          >
+            <Text className="text-white">View Lyrics</Text>
+          </Pressable>
           {/* --- Artist Card --- */}
           <Pressable style={styles.artistCard} onPress={handleArtistPress}>
             <View style={styles.artistHeader}>

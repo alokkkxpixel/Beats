@@ -281,6 +281,30 @@ export const jioSaavnService = {
     const data = await response.json();
     return recursiveClean(data);
   },
+  getyrics: async (
+    trackName: string,
+    artistCandidates: any[],
+  ): Promise<any> => {
+    for (const artist of artistCandidates) {
+      try {
+        const response = await fetch(
+          `https://lrclib.net/api/search?track_name=${encodeURIComponent(
+            trackName as string,
+          )}&artist_name=${encodeURIComponent(artist as string)}`,
+        );
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          const lyric = data[0]?.syncedLyrics || data[0]?.plainLyrics;
+          if (lyric) return lyric;
+        }
+      } catch (error) {
+        console.log(`Failed for ${artist}`, error);
+      }
+    }
+    return null;
+  },
 };
 
 export const SaavnService = {

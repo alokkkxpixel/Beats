@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
 // --- Sub-components for better isolation ---
-
+import LyricsScreen from "./LyricsScreen";
 const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
   const { hasTrack, isDrawerOpen, expandFullPlayer } = usePlayerStore(
     useShallow((s) => ({
@@ -225,6 +225,97 @@ const QueueSheetLayer = React.memo(() => {
   );
 });
 QueueSheetLayer.displayName = "QueueSheetLayer";
+const LyricsSheetLayer = React.memo(() => {
+  const { isLyricsOpen, minimizeLyrics } = usePlayerStore(
+    useShallow((s) => ({
+      isLyricsOpen: s.isLyricsOpen,
+      minimizeLyrics: s.minimizeLyrics,
+    })),
+  );
+
+  const lyricsSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = React.useMemo(() => ["100%"], []);
+
+  useEffect(() => {
+    if (isLyricsOpen) lyricsSheetRef.current?.snapToIndex(0);
+    else lyricsSheetRef.current?.close();
+  }, [isLyricsOpen]);
+  const accentColor = usePlayerStore((state) => state.accentColor);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
+  const lrc = `
+[00:00.00]Dreamers 
+[00:04.43]Jungkook BTS
+[00:09.11]
+[00:09.61] ....
+[00:16.96]Look who we are, we are the dreamers
+[00:20.94]We’ll make it happen ’cause we believe it
+[00:24.68]Look who we are, we are the dreamers
+[00:29.18]We’ll make it happen ’cause we can see it
+[00:34.23]Here’s to the ones, that keep the passion
+[00:37.69]Respect, oh yeah
+[00:41.67]Here’s to the ones, that can imagine
+[00:46.20]Respect, oh yeah
+[01:07.19]Gather ’round now, look at me
+[01:11.71]Respect the love the only way
+[01:15.68]If you wanna come, come with me
+[01:20.21]The door is open now every day
+[01:23.67]This one plus two, rendezvous all at my day
+[01:28.19]This what we do, how we do
+[01:31.63]Look who we are, we are the dreamers
+[01:35.89]We’ll make it happen ’cause we believe it
+[01:39.62]Look who we are, we are the dreamers
+[01:43.87]We’ll make it happen ’cause we can see it
+[01:48.95]Here’s to the ones, that keep the passion
+[01:52.44]Respect, oh yeah
+[01:56.42]Here’s to the ones, that can imagine
+[02:00.67]Respect, oh yeah
+[02:22.26]Look who we are, we are the dreamers
+[02:25.98]We’ll make it happen ’cause we believe it
+[02:30.23]Look who we are, we are the dreamers
+[02:33.95]We’ll make it happen ’cause we can see it
+[02:38.99]Cause to the one that keep the passion
+[02:42.45]Respect, oh yeah
+[02:47.22]‘Cause to the one that got the magic
+[02:51.21]Respect, oh yeah
+
+`;
+  return (
+    <View
+      style={[StyleSheet.absoluteFill, { zIndex: isLyricsOpen ? 6000 : -1 }]}
+      pointerEvents="box-none"
+    >
+      <BottomSheet
+        ref={lyricsSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        // enablePanDownToClose={true}
+        enableDynamicSizing={false}
+        animateOnMount={false}
+        // onClose={minimizeLyrics}
+        // backdropComponent={renderBackdrop}
+        backgroundStyle={[
+          styles.queueSheetBackground,
+          { backgroundColor: accentColor },
+        ]}
+        handleIndicatorStyle={{ backgroundColor: "#fff" }}
+      >
+        <LyricsScreen />
+      </BottomSheet>
+    </View>
+  );
+});
+LyricsSheetLayer.displayName = "LyricsSheetLayer";
 
 export function PlayerWrapper({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
@@ -241,6 +332,10 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
       }
       if (state.isMoreOptionOpen) {
         state.minizeMoreOption();
+        return true;
+      }
+      if (state.isLyricsOpen) {
+        state.minimizeLyrics();
         return true;
       }
       if (state.isFullPlayerOpen) {
@@ -265,6 +360,7 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
       <FullPlayerSheetLayer />
       <MoreOptionsSheetLayer />
       <QueueSheetLayer />
+      <LyricsSheetLayer />
     </View>
   );
 }

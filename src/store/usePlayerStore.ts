@@ -95,7 +95,9 @@ interface PlayerState {
   selectedSongOption: SongDetail | null | string;
   isMoreOptionOpen: boolean;
   isQueueOpen: boolean;
+
   isDrawerOpen: boolean;
+  isLyricsOpen: boolean;
   accentColor: string;
   setAccentColor: (color: string) => void;
   // --- Progress / Seekbar ---
@@ -120,6 +122,8 @@ interface PlayerState {
   minizeMoreOption: () => void;
   expandQueue: () => void;
   minimizeQueue: () => void;
+  expandLyrics: () => void;
+  minimizeLyrics: () => void;
   setDrawerOpen: (isOpen: boolean) => void;
 
   // --- Playback Controls ---
@@ -158,6 +162,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   buffered: 0,
   isMoreOptionOpen: false,
   isQueueOpen: false,
+  isLyricsOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
   isDragging: false,
@@ -479,7 +484,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   expandQueue: () => set({ isQueueOpen: true }),
   minimizeQueue: () => set({ isQueueOpen: false }),
-
+  expandLyrics: () => set({ isLyricsOpen: true }),
+  minimizeLyrics: () => set({ isLyricsOpen: false }),
   // Playback Controls
   play: async () => {
     await TrackPlayer.play();

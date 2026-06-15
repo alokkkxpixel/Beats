@@ -133,7 +133,7 @@ export default function MusicBottomSheet() {
   return (
     <View className="flex-1 px-5 pt-2">
       {/* Header */}
-      <View className="flex-row items-center pb-4 border-b border-zinc-300">
+      <View className="flex-row items-center pb-4 border-b border-zinc-500">
         <View className="w-14 h-14 rounded-md overflow-hidden">
           <Image
             source={{
