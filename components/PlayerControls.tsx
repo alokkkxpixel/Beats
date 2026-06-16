@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 25,
-    marginVertical: 40,
+    marginVertical: 20,
   },
   deviceIndicator: {
     flexDirection: "row",
