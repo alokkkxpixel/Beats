@@ -89,7 +89,7 @@ export default function ProgressSection() {
           {/* HITBOX CONTAINER: Provides plenty of space so the knob never clips */}
           <View style={styles.sliderContainer}>
             {/* The actual background track */}
-            <View className="w-full h-1 rounded-full bg-white/30 relative">
+            <View className="w-full h-[2px] rounded-full bg-white/30 relative">
               {/* Active fill progress */}
               <Animated.View
                 style={animatedFillStyle}
