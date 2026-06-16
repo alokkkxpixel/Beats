@@ -85,6 +85,7 @@ const FullPlayer = React.memo(
       })),
     );
 
+    const isLoaded = !!currentTrack;
     const originalSong =
       (currentTrack as any)?.extraPayload?.song || currentTrack;
     const primaryArtists = (currentTrack as any)?.artists?.primary;
@@ -221,7 +222,24 @@ const FullPlayer = React.memo(
 
           {/* --- Track Info --- */}
           <View style={styles.trackInfo}>
+            {/* <View style={{ height: 18, justifyContent: "center" }}>
+              <TextTicker
+                style={styles.songTitle}
+                duration={15000}
+                animationType="scroll"
+                loop
+                bounce={false}
+                repeatSpacer={50}
+                scrollSpeed={100}
+                marqueeDelay={1000}
+                shouldAnimateTreshold={20}
+                easing={Easing.linear}
+              >
+                {isLoaded ? currentTrack.name : "Nothing to play"}
+              </TextTicker>
+            </View> */}
             <View style={styles.titleContainer}>
+              {/* <View style={{ height: 18, justifyContent: "center" }}> */}
               <TextTicker
                 style={styles.songTitle}
                 duration={15000}
@@ -234,8 +252,9 @@ const FullPlayer = React.memo(
                 marqueeDelay={1000}
                 shouldAnimateTreshold={20}
               >
-                {currentTrack.name}
+                {isLoaded ? currentTrack.name : "Nothing to play"}
               </TextTicker>
+              {/* </View> */}
               <Pressable onPress={handleArtistPress}>
                 <Text style={styles.songArtist} numberOfLines={1}>
                   {artistName}
@@ -403,10 +422,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   trackInfo: {
+    flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 25,
     alignItems: "center",
+    minWidth: 0, // important for ellipsis in flex layouts
   },
   titleContainer: {
     flex: 1,

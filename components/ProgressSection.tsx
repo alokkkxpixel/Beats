@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect } from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -19,15 +13,12 @@ import {
   useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 
-const { width } = Dimensions.get("window");
 export default function ProgressSection() {
-  const { height, width: windowWidth } = useWindowDimensions();
-  // ── Single subscription: native hook only ────────────────────────────────
+  const { width: windowWidth } = useWindowDimensions();
   const progressData = useOnPlaybackProgressChange();
   const position = progressData?.position ?? 0;
   const duration = progressData?.totalDuration ?? 0;
 
-  // Dragging state stays local — no reason to put it in Zustand
   const isDragging = useSharedValue(false);
   const [isDraggingJS, setIsDraggingJS] = React.useState(false);
   const [scrubPosition, setScrubPosition] = React.useState(0);
@@ -41,7 +32,8 @@ export default function ProgressSection() {
     }
   }, [position, duration, isDraggingJS]);
 
-  const TRACK_WIDTH = windowWidth - 40;
+  // Give padding to match px-8 (32 * 2 = 64)
+  const TRACK_WIDTH = windowWidth - 64;
 
   const seek = useCallback(async (pos: number) => {
     await TrackPlayer.seek(pos);
@@ -78,13 +70,12 @@ export default function ProgressSection() {
   const animatedKnobStyle = useAnimatedStyle(() => ({
     left: `${progress.value}%`,
     transform: [
+      // Centering offset: half of knob width (16px / 2 = 8)
       { translateX: -8 },
-      { scale: withSpring(isDragging.value ? 1.5 : 1) },
+      {
+        scale: withSpring(isDragging.value ? 1.3 : 1),
+      },
     ],
-  }));
-
-  const animatedTrackStyle = useAnimatedStyle(() => ({
-    height: withSpring(isDragging.value ? 6 : 4),
   }));
 
   const displayPosition = isDraggingJS
@@ -93,26 +84,37 @@ export default function ProgressSection() {
 
   return (
     <>
-      <View className="px-8 mt-5">
+      <View className="px-8 ">
         <GestureDetector gesture={gesture}>
-          <Animated.View
-            style={animatedTrackStyle}
-            className="w-full rounded-full bg-zinc-500 justify-center"
-          >
-            <Animated.View
-              style={animatedFillStyle}
-              className="h-full rounded-full bg-white"
-            />
-            <Animated.View
-              style={animatedKnobStyle}
-              className="absolute w-4 h-4 rounded-full bg-white"
-            />
-          </Animated.View>
+          {/* HITBOX CONTAINER: Provides plenty of space so the knob never clips */}
+          <View style={styles.sliderContainer}>
+            {/* The actual background track */}
+            <View className="w-full h-1 rounded-full bg-white/30 relative">
+              {/* Active fill progress */}
+              <Animated.View
+                style={animatedFillStyle}
+                className="h-full rounded-full bg-white absolute left-0 top-0"
+              />
+
+              {/* The Knob: Lifted to clear parents and self-centered vertically */}
+              <Animated.View
+                // style={animatedKnobStyle}
+                className="absolute w-3.5 h-3.5 rounded-full bg-white top-1/2 -mt-1.5 JSON-shadow-fix"
+                style={[
+                  {
+                    elevation: 2,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 2,
+                  },
+                  animatedKnobStyle,
+                ]}
+              />
+            </View>
+          </View>
         </GestureDetector>
       </View>
-      {/* FIX #5 cont: TimeDisplay is a separate memo'd child ────────────────
-            The time strings update every second but only this tiny component
-            re-renders — not the whole ProgressSection. */}
       <TimeDisplay position={displayPosition} duration={duration} />
     </>
   );
@@ -123,10 +125,7 @@ const formatTime = (secs: number) => {
   const s = Math.floor(secs % 60);
   return `${mins}:${s < 10 ? "0" : ""}${s}`;
 };
-// ─── FIX #5 cont: Isolated time display ──────────────────────────────────────
-// Receives pre-computed values as props so it only re-renders when they change.
-// Previously this lived inline inside ProgressSection (line 736-742) and also
-// had a broken duplicate at line 377-391 that caused a compile error.
+
 const TimeDisplay = React.memo(
   ({ position, duration }: { position: number; duration: number }) => (
     <View style={styles.progressArea}>
@@ -145,73 +144,16 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   sliderContainer: {
-    height: 40,
-    justifyContent: "center",
-  },
-  track: {
-    height: 4,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 2,
-    position: "relative",
-  },
-  fill: {
-    height: 4,
-    backgroundColor: "white",
-    borderRadius: 2,
-    position: "absolute",
-  },
-  knob: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "white",
-    position: "absolute",
-    marginLeft: -7,
-    top: -5,
+    height: 30, // Generous height for fingers to touch easily
+    justifyContent: "center", // Vertically aligns the track inside the 40px block
   },
   timeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+    // marginTop: 2,
   },
   timeText: {
     color: "rgba(255,255,255,0.5)",
     fontSize: 11,
-  },
-  mainControls: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 25,
-    marginVertical: 20,
-  },
-  playButton: {
-    width: 75,
-    height: 75,
-    borderRadius: 38,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  footerControls: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 25,
-    marginVertical: 40,
-  },
-  deviceIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  deviceText: {
-    color: "#1DB954",
-    fontSize: 10,
-    fontWeight: "bold",
-    marginLeft: 5,
-  },
-  footerRightIcons: {
-    flexDirection: "row",
-    alignItems: "center",
   },
 });
