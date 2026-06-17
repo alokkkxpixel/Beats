@@ -1,6 +1,7 @@
 import AlbumDetailScreen from "@/components/AlbumDetailScreen";
 import { useAlbum } from "@/src/hooks/useQueries";
 import { transformAlbumToUI } from "@/src/utils/transform";
+import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -12,11 +13,50 @@ export default function AlbumDetailRoute() {
   }>();
 
   const navigation = useNavigation();
+  const likedSongs = usePlayerStore((state) => state.likedSongs);
+
+  const isLikedPlaylist = albumId === "liked-songs";
 
   const { data, isLoading, error } = useAlbum(
-    albumId ?? null,
+    isLikedPlaylist ? null : (albumId ?? null),
     albumUrl ?? null,
   );
+
+  // ✅ Liked Songs Conditional Branch
+  if (isLikedPlaylist) {
+    const playlist = {
+      id: "liked-songs",
+      name: "Liked music",
+      title: "Liked music",
+      description: "Music that you like in any YouTube app will be shown here. You can change this in Settings.",
+      type: "Auto playlist",
+      year: "2026",
+      playCount: null,
+      language: "",
+      explicitContent: false,
+      url: "",
+      songCount: likedSongs.length,
+      artists: {
+        primary: [],
+        featured: [],
+        all: [],
+      },
+      image: [
+        {
+          quality: "500x500",
+          url: "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
+        },
+      ],
+      songs: likedSongs,
+    };
+
+    return (
+      <AlbumDetailScreen
+        route={{ params: { album: playlist } } as any}
+        navigation={navigation}
+      />
+    );
+  }
 
   // ✅ Loading
   if (isLoading) {
@@ -69,3 +109,4 @@ export default function AlbumDetailRoute() {
     />
   );
 }
+

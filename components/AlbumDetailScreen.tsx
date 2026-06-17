@@ -123,6 +123,9 @@ const AlbumDetailScreen = ({
     if (!album) return;
     const artist = album.artists?.primary?.[0]?.name || "Various Artists";
     const yearText = album.year ? ` • ${album.year}` : "";
+    if (album.id === "liked-songs") {
+      return;
+    }
     addToRecentActivity({
       id: album.id,
       title: album.name || (album as any).title,

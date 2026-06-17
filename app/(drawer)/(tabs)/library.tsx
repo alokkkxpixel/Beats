@@ -121,7 +121,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
 
       <View className="flex-1 justify-center">
         <Text
-          className="text-white text-[17px] font-bold tracking-tight"
+          className="text-white text-[17px] font-medium tracking-tight"
           numberOfLines={1}
         >
           {item.title}
@@ -139,6 +139,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
 LibraryItem.displayName = "LibraryItem";
 
 export default function LibraryScreen() {
+  const router = useRouter();
   const [recentActivity, setRecentActivity] = useState<LibraryItemData[]>([]);
   const insets = useSafeAreaInsets();
 
@@ -229,7 +230,11 @@ export default function LibraryScreen() {
 
       <AnimatedFlashList
         data={recentActivity}
-        renderItem={({ item }: any) => <LibraryItem item={item} />}
+        renderItem={({ item }: any) => (
+          <>
+            <LibraryItem item={item} />
+          </>
+        )}
         estimatedItemSize={88}
         onScroll={scrollHandler}
         showsVerticalScrollIndicator={false}
@@ -239,27 +244,63 @@ export default function LibraryScreen() {
           paddingBottom: 150,
         }}
         ListHeaderComponent={
-          <View className="px-4 pb-6 flex-row items-center justify-between mt-4">
-            <View>
-              <Text className="text-white text-3xl font-extrabold tracking-tighter">
-                Recent Activity
-              </Text>
-              <Text className="text-gray-500 text-sm font-medium mt-1">
-                Your history across sessions
-              </Text>
-            </View>
-            {recentActivity.length > 0 && (
-              <TouchableOpacity
-                onPress={handleClear}
-                className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
-              >
-                <Trash2 size={16} color="#ef4444" />
-                <Text className="text-[#ef4444] text-xs font-bold ml-2">
-                  Clear
+          <>
+            <View className="px-4 pb-6 flex-row items-center justify-between mt-4">
+              <View>
+                <Text className="text-white text-3xl font-extrabold tracking-tighter">
+                  Recent Activity
                 </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                <Text className="text-gray-500 text-sm font-medium mt-1">
+                  Your history across sessions
+                </Text>
+              </View>
+              {recentActivity.length > 0 && (
+                <TouchableOpacity
+                  onPress={handleClear}
+                  className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
+                >
+                  <Trash2 size={16} color="#ef4444" />
+                  <Text className="text-[#ef4444] text-xs font-bold ml-2">
+                    Clear
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              className="flex-row items-center px-4 py-3"
+              onPress={() => router.push({ pathname: "/album-detail", params: { albumId: "liked-songs" } })}
+            >
+              <View
+                className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
+                style={{ borderRadius: 12 }}
+              >
+                <Image
+                  source={{
+                    uri: "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
+                  }}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                  transition={400}
+                />
+              </View>
+
+              <View className="flex-1 justify-center">
+                <Text
+                  className="text-white text-[17px] font-medium tracking-tight"
+                  numberOfLines={1}
+                >
+                  {"Liked music"}
+                </Text>
+                <Text
+                  className="text-gray-400 text-[13px] mt-1 capitalize"
+                  numberOfLines={1}
+                >
+                  {"like by the user"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </>
         }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center pt-32 px-12">
@@ -310,3 +351,7 @@ const styles = StyleSheet.create({
     filter: "blur(60px)",
   } as any,
 });
+
+{
+  /* <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path d="M11.485 2.143 3.913 6.687A6 6 0 001 11.832v.338a6 6 0 002.913 5.144l7.572 4.543A1 1 0 0013 21V3a1.001 1.001 0 00-1.515-.857Zm6.88 2.079a1 1 0 00-.001 1.414 9 9 0 010 12.728 1 1 0 001.414 1.414 11 11 0 000-15.556 1 1 0 00-1.413 0ZM4.941 8.402l.001-.002L11 4.767v14.466l-6.058-3.635A4 4 0 013 12.168v-.337a4 4 0 011.941-3.429ZM15.535 7.05a1 1 0 000 1.415 5 5 0 010 7.07 1 1 0 001.415 1.415 6.999 6.999 0 000-9.9 1 1 0 00-1.415 0Z"></path></svg> */
+}

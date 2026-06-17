@@ -37,14 +37,16 @@ export default function LyricsScreen() {
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const userInteractionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { currentTrack, minimizeLyrics, isPlaying, isLoading } = usePlayerStore(
-    useShallow((s) => ({
-      currentTrack: s.currentTrack,
-      minimizeLyrics: s.minimizeLyrics,
-      isPlaying: s.isPlaying,
-      isLoading: s.isLoading,
-    })),
-  );
+  const { currentTrack, minimizeLyrics, isPlaying, isLoading, isLyricsOpen } =
+    usePlayerStore(
+      useShallow((s) => ({
+        currentTrack: s.currentTrack,
+        minimizeLyrics: s.minimizeLyrics,
+        isPlaying: s.isPlaying,
+        isLoading: s.isLoading,
+        isLyricsOpen: s.isLyricsOpen,
+      })),
+    );
 
   const playerData = nowPlaying;
   const track = playerData?.currentTrack || currentTrack;
@@ -75,6 +77,7 @@ export default function LyricsScreen() {
   const { data: lyrics, isLoading: loadingLyrics } = useLyrics(
     trackTitle,
     artistCandidates,
+    isLyricsOpen,
   );
   const lyricsNotFound = !loadingLyrics && !lyrics;
 

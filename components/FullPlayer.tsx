@@ -21,6 +21,7 @@ import ProgressSection from "./ProgressSection";
 // Import SVGs
 import Statminus from "@/assets/app-icons/stat-minus.svg";
 
+import LikeFill from "@/assets/app-icons/like-fill.svg";
 import LikeUnfill from "@/assets/app-icons/like-unfill.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 import TextTicker from "react-native-text-ticker";
@@ -76,6 +77,8 @@ const FullPlayer = React.memo(
       expandLyrics,
       setSelectedSongOption,
       isLoading,
+      likedSongs,
+      toggleLike,
     } = usePlayerStore(
       useShallow((s) => ({
         currentTrack: s.currentTrack,
@@ -83,8 +86,14 @@ const FullPlayer = React.memo(
         expandLyrics: s.expandLyrics,
         setSelectedSongOption: s.setSelectedSongOption,
         isLoading: s.isLoading,
+        likedSongs: s.likedSongs,
+        toggleLike: s.toggleLike,
       })),
     );
+
+    const isLiked = currentTrack
+      ? likedSongs.some((s) => s.id === currentTrack.id)
+      : false;
 
     const isLoaded = !!currentTrack;
     const originalSong =
@@ -262,7 +271,20 @@ const FullPlayer = React.memo(
                 </Text>
               </Pressable>
             </View>
-            <LikeUnfill width={28} height={28} fill="white" />
+            <Pressable
+              onPress={() => {
+                if (currentTrack) {
+                  toggleLike(currentTrack);
+                }
+              }}
+              hitSlop={20}
+            >
+              {isLiked ? (
+                <LikeFill width={28} height={28} fill="#ffffffff" />
+              ) : (
+                <LikeUnfill width={28} height={28} fill="white" />
+              )}
+            </Pressable>
           </View>
 
           <ProgressSection />

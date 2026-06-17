@@ -107,3 +107,20 @@ export const addToRecentActivity = (item: any) => {
 export const clearRecentActivity = () => {
   storage.remove(RECENT_ACTIVITY_KEY);
 };
+
+const LIKED_SONGS_KEY = "liked-songs";
+
+export const getLikedSongs = (): any[] => {
+  const songs = storage.getString(LIKED_SONGS_KEY);
+  if (!songs) return [];
+  try {
+    return JSON.parse(songs);
+  } catch {
+    return [];
+  }
+};
+
+export const saveLikedSongs = (songs: any[]) => {
+  storage.set(LIKED_SONGS_KEY, JSON.stringify(songs));
+};
+

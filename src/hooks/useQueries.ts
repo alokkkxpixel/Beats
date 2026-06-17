@@ -2,11 +2,11 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { getMusicLanguages } from "../lib/storage";
 import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 
-export const useLyrics = (trackName: string, artistCandidates: string[]) => {
+export const useLyrics = (trackName: string, artistCandidates: string[], isLyricsOpen: boolean = false) => {
   return useQuery({
     queryKey: ["lyrics", trackName, artistCandidates],
     queryFn: () => jioSaavnService.getLyrics(trackName, artistCandidates),
-    enabled: !!trackName && !!artistCandidates,
+    enabled: !!trackName && !!artistCandidates && isLyricsOpen,
     staleTime: 1000 * 60 * 15,
   });
 };

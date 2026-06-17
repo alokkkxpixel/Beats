@@ -3,6 +3,8 @@ import {
   AudioQualityPreference,
   getAudioQualityPreference,
   setAudioQualityPreference,
+  getLikedSongs,
+  saveLikedSongs,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
@@ -85,6 +87,7 @@ interface PlayerState {
   currentTrack: SongDetail | null;
   audioQuality: AudioQualityPreference;
   queue: SongDetail[];
+  likedSongs: SongDetail[];
   currentIndex: number;
   activePlaylistId: string | null;
   originalQueue: SongDetail[] | null;
@@ -125,6 +128,8 @@ interface PlayerState {
   expandLyrics: () => void;
   minimizeLyrics: () => void;
   setDrawerOpen: (isOpen: boolean) => void;
+  toggleLike: (song: SongDetail) => Promise<void>;
+  syncLikedPlaylist: () => Promise<void>;
 
   // --- Playback Controls ---
   play: () => Promise<void>;
@@ -150,6 +155,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentTrack: null,
   audioQuality: getAudioQualityPreference(),
   queue: [],
+  likedSongs: getLikedSongs(),
   currentIndex: -1,
   activePlaylistId: null,
   originalQueue: null,
@@ -178,6 +184,72 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   // set individual track info
   setSelectedSongOption: (track) => set({ selectedSongOption: track }),
   setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
+
+  toggleLike: async (song) => {
+    const { likedSongs } = get();
+    const isLiked = likedSongs.some((s) => s.id === song.id);
+    let updated: SongDetail[];
+    if (isLiked) {
+      updated = likedSongs.filter((s) => s.id !== song.id);
+    } else {
+      updated = [song, ...likedSongs];
+    }
+    saveLikedSongs(updated);
+    set({ likedSongs: updated });
+
+    // Sync with Nitro Player Queue Playlist
+    try {
+      const playlists = PlayerQueue.getAllPlaylists();
+      let likedPlaylist = playlists.find((p) => p.name === "Liked music");
+      let playlistId = likedPlaylist?.id;
+
+      if (!playlistId) {
+        playlistId = await PlayerQueue.createPlaylist(
+          "Liked music",
+          "like by the user",
+          "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png"
+        );
+      }
+
+      if (!isLiked) {
+        // Just got liked, so add it
+        const audioQuality = get().audioQuality;
+        const trackItem = mapToTrackItem(song, audioQuality);
+        const playlistObj = PlayerQueue.getPlaylist(playlistId);
+        const exists = playlistObj?.tracks.some((t) => t.id === song.id);
+        if (!exists) {
+          await PlayerQueue.addTrackToPlaylist(playlistId, trackItem);
+        }
+      } else {
+        // Just got unliked, so remove it
+        await PlayerQueue.removeTrackFromPlaylist(playlistId, song.id);
+      }
+    } catch (e) {
+      console.error("Error syncing liked songs with Nitro Player Queue", e);
+    }
+  },
+
+  syncLikedPlaylist: async () => {
+    const { likedSongs, audioQuality } = get();
+    try {
+      const playlists = PlayerQueue.getAllPlaylists();
+      let likedPlaylist = playlists.find((p) => p.name === "Liked music");
+      if (likedPlaylist) {
+        await PlayerQueue.deletePlaylist(likedPlaylist.id);
+      }
+      const playlistId = await PlayerQueue.createPlaylist(
+        "Liked music",
+        "like by the user",
+        "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png"
+      );
+      if (likedSongs.length > 0) {
+        const trackItems = likedSongs.map((s) => mapToTrackItem(s, audioQuality));
+        await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
+      }
+    } catch (error) {
+      console.error("Error syncing liked playlist to native:", error);
+    }
+  },
   setAudioQuality: async (quality) => {
     const {
       activePlaylistId,
