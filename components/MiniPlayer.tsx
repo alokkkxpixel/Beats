@@ -102,7 +102,7 @@ const MiniPlayer = React.memo(function MiniPlayer() {
               animationType="scroll"
               loop
               bounce={false}
-              repeatSpacer={50}
+              repeatSpacer={10}
               scrollSpeed={100}
               marqueeDelay={1000}
               shouldAnimateTreshold={20}

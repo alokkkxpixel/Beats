@@ -11,7 +11,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -25,6 +24,8 @@ import Statminus from "@/assets/app-icons/stat-minus.svg";
 import LikeUnfill from "@/assets/app-icons/like-unfill.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 import TextTicker from "react-native-text-ticker";
+// 🟢 CORRECT (For default exports)
+import CreditsSection from "./CreditsSection";
 
 const { width } = Dimensions.get("window");
 const fallbackAccentColor = "#050505";
@@ -290,7 +291,7 @@ const FullPlayer = React.memo(
           </Pressable>
 
           {/* --- Credits Section --- */}
-          <View style={styles.creditsCard}>
+          {/* <View style={styles.creditsCard}>
             <View>
               <Text style={styles.creditsTitle}>Credits</Text>
             </View>
@@ -354,7 +355,11 @@ const FullPlayer = React.memo(
                 ),
               )}
             </View>
-          </View>
+          </View> */}
+          <CreditsSection
+            originalSong={originalSong}
+            navigateToArtist={navigateToArtist}
+          />
         </ScrollView>
       </GestureHandlerRootView>
     );

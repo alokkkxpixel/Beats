@@ -2,15 +2,15 @@ import React, { useCallback, useEffect } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from "react-native-reanimated";
 
 import {
-  TrackPlayer,
-  useOnPlaybackProgressChange,
+    TrackPlayer,
+    useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 
 export default function ProgressSection() {
@@ -89,7 +89,7 @@ export default function ProgressSection() {
           {/* HITBOX CONTAINER: Provides plenty of space so the knob never clips */}
           <View style={styles.sliderContainer}>
             {/* The actual background track */}
-            <View className="w-full h-[2px] rounded-full bg-white/30 relative">
+            <View className="w-full h-[3px] rounded-full bg-white/30 relative">
               {/* Active fill progress */}
               <Animated.View
                 style={animatedFillStyle}

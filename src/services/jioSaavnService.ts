@@ -281,12 +281,14 @@ export const jioSaavnService = {
     const data = await response.json();
     return recursiveClean(data);
   },
-  getyrics: async (
+  getLyrics: async (
     trackName: string,
     artistCandidates: any[],
   ): Promise<any> => {
     for (const artist of artistCandidates) {
       try {
+        console.log("trackName:", JSON.stringify(trackName));
+        console.log("artist:", JSON.stringify(artist));
         const response = await fetch(
           `https://lrclib.net/api/search?track_name=${encodeURIComponent(
             trackName as string,
@@ -294,9 +296,10 @@ export const jioSaavnService = {
         );
 
         const data = await response.json();
-
+        // console.log("lyr data", JSON.stringify(data, null, 2));
         if (Array.isArray(data) && data.length > 0) {
           const lyric = data[0]?.syncedLyrics || data[0]?.plainLyrics;
+          // console.log("lyrics", lyric);
           if (lyric) return lyric;
         }
       } catch (error) {

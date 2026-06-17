@@ -5,7 +5,7 @@ import { jioSaavnService, SaavnService } from "../services/jioSaavnService";
 export const useLyrics = (trackName: string, artistCandidates: string[]) => {
   return useQuery({
     queryKey: ["lyrics", trackName, artistCandidates],
-    queryFn: () => jioSaavnService.getyrics(trackName, artistCandidates),
+    queryFn: () => jioSaavnService.getLyrics(trackName, artistCandidates),
     enabled: !!trackName && !!artistCandidates,
     staleTime: 1000 * 60 * 15,
   });
