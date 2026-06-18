@@ -10,6 +10,7 @@ import { QuickPick } from "./types";
 
 import { addToRecentActivity } from "@/src/lib/storage";
 import { useRouter } from "expo-router";
+import PlayingIndicator from "../PlayingIndicator";
 
 type QuickPickRowProps = {
   item: QuickPick;
@@ -21,7 +22,8 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
   // Fix #4: Only subscribe to whether THIS row is active, not the entire currentTrack object
   const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
+  const isCurrent = currentTrack?.id === item.id;
   const handlePlay = (id: string, link?: string) => {
     const partialTrack = {
       id: id,
@@ -86,7 +88,22 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
       //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
       onPress={() => handlePlay(item.id, item.url)}
     >
-      <Image source={{ uri: getImageUri(item.cover) }} style={styles.cover} />
+      <View style={styles.cover}>
+        <Image
+          source={{ uri: getImageUri(item.cover) }}
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 5,
+          }}
+        />
+
+        {isCurrent && (
+          <View style={styles.playingOverlay}>
+            <PlayingIndicator />
+          </View>
+        )}
+      </View>
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={1}>
           {decodeHtmlEntities(item.title)}
@@ -138,8 +155,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   activerow: {
-    borderRadius: 7,
-    backgroundColor: "rgba(83, 83, 90, 0.76)", // 0.6 = 60% opacity
+    // borderRadius: 7,
+    backgroundColor: "rgba(255, 255, 255, 0.15)", // 0.6 = 60% opacity
   },
   cover: {
     width: 53,
@@ -150,6 +167,29 @@ const styles = StyleSheet.create({
   },
   meta: {
     flex: 1,
+  },
+  imageContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  // trackImage: {
+  //   width: "100%",
+  //   height: "100%",
+  // },
+
+  playingOverlay: {
+    height: "100%",
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     color: "#FAFAFA",

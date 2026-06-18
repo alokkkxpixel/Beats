@@ -59,7 +59,7 @@ export default function Index() {
       };
     } else if (hour >= 16 && hour < 20) {
       return {
-        image: require("../../../assets/images/evening_bg.jpg"),
+        // image: require("../../../assets/images/evening_bg.jpg"),
         greeting: "Good Evening",
       };
     } else {

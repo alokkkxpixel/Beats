@@ -7,12 +7,13 @@ import SearchIcon from "@/assets/app-icons/search.svg";
 import { addToRecentActivity } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { extractAccentColor } from "@/src/utils/extractAccentColor";
 import { formatPlayCount } from "@/src/utils/transform";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -21,7 +22,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import PlayingIndicator from "./PlayingIndicator";
 interface AlbumDetailProps {
   route: {
     params: {
@@ -66,14 +67,23 @@ const TrackItem = React.memo(function TrackItem({
     }
     expandMoreOption();
   };
-
+  const accentColor = usePlayerStore((state) => state.accentColor);
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       style={[styles.trackItem, isCurrent && styles.activeTrackItem]}
       onPress={onPress}
     >
-      <Image source={{ uri: imageUri }} style={styles.trackImage} />
+      {/* Cover */}
+      <View style={styles.imageContainer}>
+        <Image source={{ uri: imageUri }} style={styles.trackImage} />
+
+        {isCurrent && (
+          <View style={styles.playingOverlay}>
+            <PlayingIndicator />
+          </View>
+        )}
+      </View>
 
       <View style={styles.trackInfo}>
         <Text
@@ -118,7 +128,24 @@ const AlbumDetailScreen = ({
   const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
   const setQueue = usePlayerStore((state) => state.setQueue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
-
+  const [albumBgColor, setAlbumBgColor] = useState("#000");
+  useEffect(() => {
+    let isMounted = true;
+    async function updateColor() {
+      const colorData = await extractAccentColor({
+        trackImage: highResCover,
+        checkMounted: () => isMounted,
+      });
+      let finalColor = "#1d1c1cff";
+      if (colorData && typeof colorData === "object") {
+        finalColor = colorData.average || colorData.darkMuted || "#1d1c1cff";
+      } else if (typeof colorData === "string") {
+        finalColor = colorData;
+      }
+      setAlbumBgColor(finalColor);
+    }
+    updateColor();
+  }, [highResCover]);
   useEffect(() => {
     if (!album) return;
     const artist = album.artists?.primary?.[0]?.name || "Various Artists";
@@ -231,16 +258,16 @@ const AlbumDetailScreen = ({
       <View
         style={{ height: 450, position: "absolute", top: 0, left: 0, right: 0 }}
       >
-        <Image
+        {/* <Image
           source={{ uri: highResCover }}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
           blurRadius={30}
-        />
+        /> */}
         <LinearGradient
           colors={[
-            "rgba(5,5,5,0.2)",
-            "rgba(5,5,5,0.5)",
+            albumBgColor,
+            // "rgba(5,5,5,0.9)",
             "rgba(5,5,5,0.8)",
             "#050505",
           ]}
@@ -345,7 +372,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   headerSubtitle: {
-    color: "#9ca3af",
+    color: "#e8e9ebff",
     fontSize: 10,
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -412,10 +439,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    // borderRadius: 12,
   },
   activeTrackItem: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: "rgba(49, 48, 48, 0.7)",
   },
   trackImage: {
     width: 48,
@@ -432,7 +459,30 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   activeTrackTitle: {
-    color: "#1DB954",
+    color: "#ffffffff",
+  },
+  imageContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  // trackImage: {
+  //   width: "100%",
+  //   height: "100%",
+  // },
+
+  playingOverlay: {
+    height: "100%",
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   trackSubRow: {
     flexDirection: "row",

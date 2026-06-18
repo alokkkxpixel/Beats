@@ -337,8 +337,8 @@ const styles = StyleSheet.create({
     height: 76,
   },
   currentTrackItem: {
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    // borderRadius: 8,
     paddingHorizontal: 10,
     marginHorizontal: -10,
   },

@@ -1,5 +1,4 @@
 import { addToRecentActivity } from "@/src/lib/storage";
-import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { TopPlaylists } from "@/types/jiosaavn";
 // FlatList is the right choice for small horizontal carousels (10-20 items).
@@ -8,6 +7,7 @@ import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import PlayingIndicator from "../PlayingIndicator";
 interface TrendingSectionProps {
   title?: string;
   data: TopPlaylists[];
@@ -46,7 +46,7 @@ export default function TrendingSection({
   const navigation = useNavigation<any>();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   if (!data || data.length === 0) return <></>;
-
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
   // ✅ Memoized — prevents recreation on every parent re-render (FlashList perf best practice)
   const renderItem = React.useCallback(
     ({ item }: { item: any }) => {
@@ -198,7 +198,7 @@ export default function TrendingSection({
       } else {
         navParams = { playlistId: id, playlistUrl: url };
       }
-
+      const isCurrent = currentTrack?.id === item.id;
       const handlePress = () => {
         if (itemType === "song") {
           const partialTrack = {
@@ -236,6 +236,11 @@ export default function TrendingSection({
               contentFit="cover"
               cachePolicy="memory-disk"
             />
+            {isCurrent && (
+              <View style={styles.playingOverlay}>
+                <PlayingIndicator />
+              </View>
+            )}
           </View>
           <Text
             style={styles.cardTitle}
@@ -342,6 +347,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+  playingOverlay: {
+    height: "100%",
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
     flex: 1,
