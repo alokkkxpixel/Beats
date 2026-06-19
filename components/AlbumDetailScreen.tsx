@@ -211,7 +211,9 @@ const AlbumDetailScreen = ({
     () => (
       <View style={styles.listHeader}>
         <Image
-          source={{ uri: highResCover }}
+          source={{
+            uri: highResCover ? highResCover : songs?.[0]?.image?.[2]?.url,
+          }}
           style={styles.mainCover}
           contentFit="cover"
           transition={500}
@@ -323,7 +325,9 @@ const AlbumDetailScreen = ({
           <View style={styles.headerTitleContainer}>
             <View style={styles.headerArtistRow}>
               <Image
-                source={{ uri: highResCover }}
+                source={{
+                  uri: highResCover,
+                }}
                 style={styles.headerAvatar}
               />
               <Text style={styles.headerArtist} numberOfLines={1}>

@@ -61,12 +61,12 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.container}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable style={styles.container} onPress={(e) => e.stopPropagation()}>
           <View style={styles.header}>
             <Text style={styles.title}>Add to playlist</Text>
             <Pressable onPress={onClose} hitSlop={20}>
@@ -171,8 +171,8 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
               </>
             )}
           </ScrollView>
-        </SafeAreaView>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
@@ -180,14 +180,16 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   container: {
     backgroundColor: "#121212",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "80%",
+    borderRadius: 16,
+    width: "85%",
+    maxHeight: "70%",
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",

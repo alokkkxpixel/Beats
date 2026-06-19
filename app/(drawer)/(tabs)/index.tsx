@@ -6,11 +6,11 @@ import RecommendedArtist from "@/components/RecommendedArtist";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
   ActivityIndicator,
   RefreshControl,
-  StatusBar,
   StyleSheet,
   View,
 } from "react-native";
@@ -65,7 +65,7 @@ export default function Index() {
     } else {
       return {
         // image: require("../../../assets/images/night_bg.jpg"),
-        // image: require("../../../assets/images/morning_default_image.png"),
+        image: require("../../../assets/images/morning_default_image.png"),
 
         greeting: "Good Night",
       };
@@ -119,14 +119,14 @@ export default function Index() {
     );
 
     return {
-      transform: [{ translateY: translateY.value }],
+      // transform: [{ translateY: translateY.value }],
       backgroundColor: backgroundColor,
-      opacity: interpolate(
-        translateY.value,
-        [-TOTAL_HEADER_HEIGHT, 0],
-        [0, 1],
-        Extrapolation.CLAMP,
-      ),
+      // opacity: interpolate(
+      //   translateY.value,
+      //   [-TOTAL_HEADER_HEIGHT, 0],
+      //   [0, 1],
+      //   Extrapolation.CLAMP,
+      // ),
     };
   });
 
@@ -206,8 +206,8 @@ export default function Index() {
   // Loading State is handled inline below to keep the header and background visible
 
   return (
-    <View style={[styles.container, { backgroundColor: "#000" }]}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.container, { backgroundColor: "" }]}>
+      <StatusBar style="light" />
 
       <Animated.View
         style={[
@@ -326,6 +326,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerWrapper: {
+    // backgroundColor: "#000",
     position: "absolute",
     top: 0,
     left: 0,

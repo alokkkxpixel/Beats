@@ -2,7 +2,6 @@ import ChevronIcon from "@/assets/app-icons/chevron-left.svg";
 import Categories from "@/components/explore/Categories";
 import Header from "@/components/Header";
 import { useHomePreviews } from "@/src/hooks/useQueries";
-import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { NewRelease } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
@@ -19,13 +18,11 @@ import {
   View,
 } from "react-native";
 import Animated, {
-  Extrapolation,
-  interpolate,
   interpolateColor,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
+  withTiming
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -77,14 +74,14 @@ export default function ExploreScreen() {
     );
 
     return {
-      transform: [{ translateY: translateY.value }],
+      // transform: [{ translateY: translateY.value }],
       backgroundColor: backgroundColor,
-      opacity: interpolate(
-        translateY.value,
-        [-TOTAL_HEADER_HEIGHT, 0],
-        [0, 1],
-        Extrapolation.CLAMP,
-      ),
+      // opacity: interpolate(
+      //   translateY.value,
+      //   [-TOTAL_HEADER_HEIGHT, 0],
+      //   [0, 1],
+      //   Extrapolation.CLAMP,
+      // ),
     };
   });
 
@@ -153,8 +150,6 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-
-      {/* Animated Header */}
       <Animated.View
         style={[
           styles.headerWrapper,

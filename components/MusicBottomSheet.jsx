@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Easing, Pressable, Text, View } from "react-native";
+import { useEffect } from "react";
+
+import { Alert, Easing, Pressable, Text, View } from "react-native";
 
 import { usePlayerStore } from "../src/store/usePlayerStore";
 
@@ -21,17 +23,47 @@ export default function MusicBottomSheet() {
   const selectedSongOption = usePlayerStore((s) => s.selectedSongOption);
   const minizeMoreOption = usePlayerStore((s) => s.minizeMoreOption);
   const minimizeFullPlayer = usePlayerStore((s) => s.minimizeFullPlayer);
+  const activeSong =
+    usePlayerStore((state) => state.activeSong) ||
+    selectedSongOption ||
+    currentTrack;
+  const router = useRouter();
   const addToQueue = usePlayerStore((s) => s.addToQueue);
   const playNext = usePlayerStore((s) => s.playNext);
 
   const openPlaylistModal = usePlaylistStore((s) => s.openPlaylistModal);
+  const playlists = usePlaylistStore((s) => s.playlists);
+  const removeSongFromPlaylist = usePlaylistStore(
+    (s) => s.removeSongFromPlaylist,
+  );
+  const isPlaylistModalOpen = usePlaylistStore((s) => s.isPlaylistModalOpen);
+  const createPlaylist = usePlaylistStore((s) => s.createPlaylist);
+  const addSongToPlaylist = usePlaylistStore((s) => s.addSongToPlaylist);
+  const loadPlaylists = usePlaylistStore((s) => s.loadPlaylists);
+  useEffect(() => {
+    loadPlaylists();
+  }, []);
+  if (!activeSong) return null;
 
-  const router = useRouter();
-  const activeSong = selectedSongOption || currentTrack;
   const hasPlayableSong =
     !!activeSong && typeof activeSong === "object" && !!activeSong.id;
 
-  if (!activeSong) return null;
+  // Determine if the current song already exists in any playlist (ignore null entries)
+  const inPlaylist = playlists.some((p) =>
+    p.songs?.some((s) => s && s.id === activeSong.id),
+  );
+
+  // Conditional rendering of removal option only when playlist modal is open
+  const removalOption =
+    inPlaylist && isPlaylistModalOpen
+      ? [
+          {
+            icon: SaveIcon,
+            label: "Remove from playlist",
+            fnx: handleRemoveFromPlaylist,
+          },
+        ]
+      : [];
 
   const getImageUri = (cover) => {
     if (Array.isArray(cover)) {
@@ -95,11 +127,59 @@ export default function MusicBottomSheet() {
     minizeMoreOption();
   };
 
+  // Remove song from first playlist where it exists
+  const handleRemoveFromPlaylist = () => {
+    if (!hasPlayableSong) return;
+    // Find playlist containing the song
+    const containing = playlists.find((p) =>
+      p.songs?.some((s) => s.id === activeSong.id),
+    );
+    if (containing) {
+      removeSongFromPlaylist(containing.id, activeSong.id);
+    }
+    minizeMoreOption();
+  };
+  const handleCreateNewPlaylist = () => {
+    if (!hasPlayableSong) return;
+    Alert.prompt(
+      "Create Playlist",
+      "Enter playlist name:",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Create",
+          onPress: (name) => {
+            if (!name) return;
+            const newPl = createPlaylist(name);
+            addSongToPlaylist(newPl.id, activeSong);
+            minizeMoreOption();
+          },
+        },
+      ],
+      "plain-text",
+    );
+  };
   const menuItems = [
     { icon: RadioIcon, label: "Start radio" },
     { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
     { icon: AddQueueIcon, label: "Add to queue", fnx: handleAddToQueue },
-    { icon: SaveIcon, label: "Save to playlist", fnx: handleSaveToPlaylist },
+    // Always allow adding to a (new) playlist
+    { icon: SaveIcon, label: "Add to playlist", fnx: handleSaveToPlaylist },
+    {
+      icon: SaveIcon,
+      label: "Create new playlist",
+      fnx: handleCreateNewPlaylist,
+    },
+    // Conditional removal option when song already in a playlist and modal open
+    ...(inPlaylist
+      ? [
+          {
+            icon: SaveIcon,
+            label: "Remove from playlist",
+            fnx: handleRemoveFromPlaylist,
+          },
+        ]
+      : []),
     { icon: DownloadIcon, label: "Download" },
     {
       icon: AlbumIcon,
@@ -115,7 +195,23 @@ export default function MusicBottomSheet() {
 
   const quickActions = [
     { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
-    { icon: SaveIcon, label: "Save to playlist", fnx: handleSaveToPlaylist },
+    // Always allow adding to a (new) playlist
+    { icon: SaveIcon, label: "Add to playlist", fnx: handleSaveToPlaylist },
+    {
+      icon: SaveIcon,
+      label: "Create new playlist",
+      fnx: handleCreateNewPlaylist,
+    },
+    // If already in a playlist, also provide removal option
+    ...(inPlaylist
+      ? [
+          {
+            icon: SaveIcon,
+            label: "Remove from playlist",
+            fnx: handleRemoveFromPlaylist,
+          },
+        ]
+      : []),
     { icon: ShareIcon, label: "Share" },
   ];
 

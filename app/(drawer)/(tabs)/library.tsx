@@ -240,7 +240,7 @@ export default function LibraryScreen() {
     );
 
     return {
-      transform: [{ translateY: translateY.value }],
+      // transform: [{ translateY: translateY.value }],
       backgroundColor: backgroundColor,
     };
   });
@@ -372,7 +372,7 @@ export default function LibraryScreen() {
 
             {/* Recent Activity Section */}
             {recentActivity.length > 0 && (
-              <View className="px-4 pb-6 flex-row items-center justify-between mt-6">
+              <View className="px-4 pb-2 flex-row items-center justify-between mt-6">
                 <View>
                   <Text className="text-white text-2xl font-medium tracking-tighter">
                     Recent Activity
@@ -396,18 +396,18 @@ export default function LibraryScreen() {
             )}
           </>
         }
-        ListEmptyComponent={
-          <View className="flex-1 items-center justify-center pt-32 px-12">
-            <View className="w-20 h-20 bg-white/5 rounded-full items-center justify-center mb-6"></View>
-            <Text className="text-white text-xl font-bold mb-2">
-              Nothing here yet
-            </Text>
-            <Text className="text-gray-500 text-center text-base leading-6">
-              Songs, albums, and artists you interact with will appear here
-              automatically.
-            </Text>
-          </View>
-        }
+        // ListEmptyComponent={
+        //   <View className="flex-1 items-center justify-center pt-32 px-12">
+        //     <View className="w-20 h-20 bg-white/5 rounded-full items-center justify-center mb-6"></View>
+        //     <Text className="text-white text-xl font-bold mb-2">
+        //       Nothing here yet
+        //     </Text>
+        //     <Text className="text-gray-500 text-center text-base leading-6">
+        //       Songs, albums, and artists you interact with will appear here
+        //       automatically.
+        //     </Text>
+        //   </View>
+        // }
       />
     </View>
   );

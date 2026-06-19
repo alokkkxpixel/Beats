@@ -284,8 +284,9 @@ const LyricsSheetLayer = React.memo(() => {
 LyricsSheetLayer.displayName = "LyricsSheetLayer";
 
 const PlaylistModalLayer = React.memo(() => {
-  const { isPlaylistModalOpen, closePlaylistModal, selectedSongForPlaylist } =
-    (usePlaylistStore as any)();
+  const { isPlaylistModalOpen, closePlaylistModal, selectedSongForPlaylist } = (
+    usePlaylistStore as any
+  )();
 
   return (
     <PlaylistModal
