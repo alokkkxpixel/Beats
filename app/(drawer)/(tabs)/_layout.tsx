@@ -130,6 +130,12 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="local-playlist-detail"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

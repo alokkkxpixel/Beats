@@ -13,6 +13,7 @@ import ShareIcon from "@/assets/app-icons/more.svg";
 import SaveIcon from "@/assets/app-icons/playlist-add.svg";
 import PlayNextIcon from "@/assets/app-icons/playlist-next.svg";
 import RadioIcon from "@/assets/app-icons/radio.svg";
+import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import TextTicker from "react-native-text-ticker";
 
 export default function MusicBottomSheet() {
@@ -22,6 +23,8 @@ export default function MusicBottomSheet() {
   const minimizeFullPlayer = usePlayerStore((s) => s.minimizeFullPlayer);
   const addToQueue = usePlayerStore((s) => s.addToQueue);
   const playNext = usePlayerStore((s) => s.playNext);
+
+  const openPlaylistModal = usePlaylistStore((s) => s.openPlaylistModal);
 
   const router = useRouter();
   const activeSong = selectedSongOption || currentTrack;
@@ -86,10 +89,17 @@ export default function MusicBottomSheet() {
     minizeMoreOption();
   };
 
+  const handleSaveToPlaylist = () => {
+    if (!hasPlayableSong) return;
+    openPlaylistModal(activeSong);
+    minizeMoreOption();
+  };
+
   const menuItems = [
     { icon: RadioIcon, label: "Start radio" },
     { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
     { icon: AddQueueIcon, label: "Add to queue", fnx: handleAddToQueue },
+    { icon: SaveIcon, label: "Save to playlist", fnx: handleSaveToPlaylist },
     { icon: DownloadIcon, label: "Download" },
     {
       icon: AlbumIcon,
@@ -105,7 +115,7 @@ export default function MusicBottomSheet() {
 
   const quickActions = [
     { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
-    { icon: SaveIcon, label: "Save" },
+    { icon: SaveIcon, label: "Save to playlist", fnx: handleSaveToPlaylist },
     { icon: ShareIcon, label: "Share" },
   ];
 

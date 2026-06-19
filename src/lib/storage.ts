@@ -124,3 +124,99 @@ export const saveLikedSongs = (songs: any[]) => {
   storage.set(LIKED_SONGS_KEY, JSON.stringify(songs));
 };
 
+const PLAYLISTS_KEY = "user-playlists";
+
+export const getPlaylists = (): any[] => {
+  const playlists = storage.getString(PLAYLISTS_KEY);
+  if (!playlists) return [];
+  try {
+    return JSON.parse(playlists);
+  } catch {
+    return [];
+  }
+};
+
+export const savePlaylists = (playlists: any[]) => {
+  storage.set(PLAYLISTS_KEY, JSON.stringify(playlists));
+};
+
+export const createPlaylist = (name: string, description?: string) => {
+  const playlists = getPlaylists();
+  const newPlaylist = {
+    id: `playlist-${Date.now()}`,
+    name,
+    description,
+    songs: [],
+    image: "",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  const updated = [newPlaylist, ...playlists];
+  savePlaylists(updated);
+  return newPlaylist;
+};
+
+export const addSongToPlaylist = (playlistId: string, song: any) => {
+  const playlists = getPlaylists();
+  const playlistIndex = playlists.findIndex((p) => p.id === playlistId);
+  if (playlistIndex === -1) return null;
+
+  const playlist = playlists[playlistIndex];
+  const songExists = playlist.songs.some((s: any) => s.id === song.id);
+  if (songExists) return playlist;
+
+  playlist.songs.push(song);
+  playlist.updatedAt = Date.now();
+  playlists[playlistIndex] = playlist;
+  savePlaylists(playlists);
+  return playlist;
+};
+
+export const removeSongFromPlaylist = (playlistId: string, songId: string) => {
+  const playlists = getPlaylists();
+  const playlistIndex = playlists.findIndex((p) => p.id === playlistId);
+  if (playlistIndex === -1) return null;
+
+  const playlist = playlists[playlistIndex];
+  playlist.songs = playlist.songs.filter((s: any) => s.id !== songId);
+  playlist.updatedAt = Date.now();
+  playlists[playlistIndex] = playlist;
+  savePlaylists(playlists);
+  return playlist;
+};
+
+export const deletePlaylist = (playlistId: string) => {
+  const playlists = getPlaylists();
+  const updated = playlists.filter((p) => p.id !== playlistId);
+  savePlaylists(updated);
+};
+
+export const updatePlaylist = (playlistId: string, updates: Partial<any>) => {
+  const playlists = getPlaylists();
+  const playlistIndex = playlists.findIndex((p) => p.id === playlistId);
+  if (playlistIndex === -1) return null;
+
+  playlists[playlistIndex] = {
+    ...playlists[playlistIndex],
+    ...updates,
+    updatedAt: Date.now(),
+  };
+  savePlaylists(playlists);
+  return playlists[playlistIndex];
+};
+
+const SAVED_ALBUMS_KEY = "saved-albums";
+
+export const getSavedAlbums = (): any[] => {
+  const albums = storage.getString(SAVED_ALBUMS_KEY);
+  if (!albums) return [];
+  try {
+    return JSON.parse(albums);
+  } catch {
+    return [];
+  }
+};
+
+export const saveSavedAlbums = (albums: any[]) => {
+  storage.set(SAVED_ALBUMS_KEY, JSON.stringify(albums));
+};

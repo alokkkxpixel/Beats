@@ -14,7 +14,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
 // --- Sub-components for better isolation ---
+import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import LyricsScreen from "./LyricsScreen";
+import PlaylistModal from "./PlaylistModal";
 const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
   const { hasTrack, isDrawerOpen, expandFullPlayer } = usePlayerStore(
     useShallow((s) => ({
@@ -118,7 +120,7 @@ const MoreOptionsSheetLayer = React.memo(() => {
   );
   const accentColor = usePlayerStore((state) => state.accentColor);
   const moreSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = React.useMemo(() => ["50%"], []);
+  const snapPoints = React.useMemo(() => ["70%"], []);
 
   useEffect(() => {
     if (isMoreOptionOpen) moreSheetRef.current?.snapToIndex(0);
@@ -281,6 +283,20 @@ const LyricsSheetLayer = React.memo(() => {
 });
 LyricsSheetLayer.displayName = "LyricsSheetLayer";
 
+const PlaylistModalLayer = React.memo(() => {
+  const { isPlaylistModalOpen, closePlaylistModal, selectedSongForPlaylist } =
+    (usePlaylistStore as any)();
+
+  return (
+    <PlaylistModal
+      visible={isPlaylistModalOpen}
+      onClose={closePlaylistModal}
+      song={selectedSongForPlaylist}
+    />
+  );
+});
+PlaylistModalLayer.displayName = "PlaylistModalLayer";
+
 export function PlayerWrapper({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const TABBAR_HEIGHT = 55 + insets.bottom;
@@ -325,6 +341,7 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
       <MoreOptionsSheetLayer />
       <QueueSheetLayer />
       <LyricsSheetLayer />
+      <PlaylistModalLayer />
     </View>
   );
 }

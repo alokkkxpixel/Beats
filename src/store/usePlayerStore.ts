@@ -1,10 +1,10 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
-  AudioQualityPreference,
-  getAudioQualityPreference,
-  setAudioQualityPreference,
-  getLikedSongs,
-  saveLikedSongs,
+    AudioQualityPreference,
+    getAudioQualityPreference,
+    getLikedSongs,
+    saveLikedSongs,
+    setAudioQualityPreference,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
@@ -205,9 +205,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       if (!playlistId) {
         playlistId = await PlayerQueue.createPlaylist(
-          "Liked music",
+          "📌 Liked music",
           "like by the user",
-          "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png"
+          "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
         );
       }
 
@@ -240,10 +240,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const playlistId = await PlayerQueue.createPlaylist(
         "Liked music",
         "like by the user",
-        "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png"
+        "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
       );
       if (likedSongs.length > 0) {
-        const trackItems = likedSongs.map((s) => mapToTrackItem(s, audioQuality));
+        const trackItems = likedSongs.map((s) =>
+          mapToTrackItem(s, audioQuality),
+        );
         await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
       }
     } catch (error) {

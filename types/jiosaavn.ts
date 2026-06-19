@@ -963,3 +963,14 @@ export interface Image {
   quality: string;
   url: string;
 }
+
+// Playlist types
+export interface Playlist {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  songs: SongDetail[];
+  createdAt: number;
+  updatedAt: number;
+}

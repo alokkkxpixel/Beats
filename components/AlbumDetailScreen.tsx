@@ -3,10 +3,12 @@ import ChevronLeftIcon from "@/assets/app-icons/chevron-left.svg";
 import DownloadIcon from "@/assets/app-icons/download.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
+import SaveToLibraryIcon from "@/assets/app-icons/savetolibrary.svg";
 import SearchIcon from "@/assets/app-icons/search.svg";
 import { addToRecentActivity } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import { extractAccentColor } from "@/src/utils/extractAccentColor";
 import { formatPlayCount } from "@/src/utils/transform";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
@@ -128,7 +130,20 @@ const AlbumDetailScreen = ({
   const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
   const setQueue = usePlayerStore((state) => state.setQueue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const {
+    savedAlbums,
+    addAlbumToLibrary,
+    removeAlbumFromLibrary,
+    loadSavedAlbums,
+  } = usePlaylistStore();
   const [albumBgColor, setAlbumBgColor] = useState("#000");
+
+  useEffect(() => {
+    loadSavedAlbums();
+  }, []);
+
+  const isSaved = savedAlbums.some((a) => a.id === album.id);
+
   useEffect(() => {
     let isMounted = true;
     async function updateColor() {
@@ -145,22 +160,31 @@ const AlbumDetailScreen = ({
       setAlbumBgColor(finalColor);
     }
     updateColor();
+    return () => {
+      isMounted = false;
+    };
   }, [highResCover]);
   useEffect(() => {
     if (!album) return;
-    const artist = album.artists?.primary?.[0]?.name || "Various Artists";
-    const yearText = album.year ? ` • ${album.year}` : "";
     if (album.id === "liked-songs") {
       return;
     }
-    addToRecentActivity({
-      id: album.id,
-      title: album.name || (album as any).title,
-      image: album.image,
-      type: album.type || "album",
-      subtitle: `${artist}${yearText}`,
-      timestamp: Date.now(),
-    });
+
+    const artist = album.artists?.primary?.[0]?.name || "Various Artists";
+    const yearText = album.year ? ` • ${album.year}` : "";
+
+    const timer = setTimeout(() => {
+      addToRecentActivity({
+        id: album.id,
+        title: album.name || (album as any).title,
+        image: album.image,
+        type: album.type || "album",
+        subtitle: `${artist}${yearText}`,
+        timestamp: Date.now(),
+      });
+    }, 15000);
+
+    return () => clearTimeout(timer);
   }, [album]);
 
   const totalDurationSeconds = React.useMemo(
@@ -173,6 +197,14 @@ const AlbumDetailScreen = ({
     const mins = Math.floor((seconds % 3600) / 60);
     if (hrs > 0) return `${hrs}h ${mins}m`;
     return `${mins}m`;
+  };
+
+  const handleSaveAlbum = () => {
+    if (isSaved) {
+      removeAlbumFromLibrary(album.id);
+    } else {
+      addAlbumToLibrary(album);
+    }
   };
 
   const renderHeader = React.useMemo(
@@ -209,13 +241,20 @@ const AlbumDetailScreen = ({
           >
             <PlayIcon fill="white" width={50} height={50} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCircleBtn}>
-            <AddLibraryIcon fill="white" width={24} height={24} />
+          <TouchableOpacity
+            style={styles.actionCircleBtn}
+            onPress={handleSaveAlbum}
+          >
+            {isSaved ? (
+              <SaveToLibraryIcon fill="white" width={24} height={24} />
+            ) : (
+              <AddLibraryIcon fill="white" width={24} height={24} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
     ),
-    [highResCover, album, setQueue, songs],
+    [highResCover, album, setQueue, songs, isSaved],
   );
 
   const renderFooter = React.useMemo(

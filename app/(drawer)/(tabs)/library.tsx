@@ -2,13 +2,13 @@ import Header from "@/components/Header";
 import { clearRecentActivity, getRecentActivity } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Trash2 } from "lucide-react-native";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   StatusBar,
   StyleSheet,
@@ -17,8 +17,6 @@ import {
   View,
 } from "react-native";
 import Animated, {
-  Extrapolation,
-  interpolate,
   interpolateColor,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -36,6 +34,29 @@ interface LibraryItemData {
   type: string;
   image?: any;
 }
+
+const getImageUri = (img: any): string => {
+  let imageUrl = "";
+
+  if (Array.isArray(img)) {
+    imageUrl = img[2]?.url || img[1]?.url || img[0]?.url || "";
+  } else if (typeof img === "string") {
+    imageUrl = img;
+  }
+
+  if (imageUrl.includes("50x50")) {
+    imageUrl = imageUrl.replace("50x50", "50x50");
+  }
+
+  if (
+    imageUrl === "https://static.saavncdn.com/_i/share-image-2.png" ||
+    !imageUrl
+  ) {
+    return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+  }
+
+  return imageUrl;
+};
 
 const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
   const router = useRouter();
@@ -77,28 +98,6 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
     }
   };
 
-  const getImageUri = (img: any): string => {
-    let imageUrl = "";
-
-    if (Array.isArray(img)) {
-      imageUrl = img[2]?.url || img[1]?.url || img[0]?.url || "";
-    } else if (typeof img === "string") {
-      imageUrl = img;
-    }
-
-    if (imageUrl.includes("50x50")) {
-      imageUrl = imageUrl.replace("50x50", "50x50");
-    }
-
-    if (
-      imageUrl === "https://static.saavncdn.com/_i/share-image-2.png" ||
-      !imageUrl
-    ) {
-      return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
-    }
-
-    return imageUrl;
-  };
   const imageUri = getImageUri(item.image);
 
   return (
@@ -142,13 +141,65 @@ export default function LibraryScreen() {
   const router = useRouter();
   const [recentActivity, setRecentActivity] = useState<LibraryItemData[]>([]);
   const insets = useSafeAreaInsets();
+  const playlists = usePlaylistStore((s) => s.playlists);
+  const loadPlaylists = usePlaylistStore((s) => s.loadPlaylists);
+  const savedAlbums = usePlaylistStore((s) => s.savedAlbums);
+  const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
 
   useFocusEffect(
     useCallback(() => {
       const activity = getRecentActivity();
       setRecentActivity(activity);
-    }, []),
+      loadPlaylists();
+      loadSavedAlbums();
+    }, [loadPlaylists, loadSavedAlbums]),
   );
+
+  const combinedPlaylistsAndAlbums = useMemo(() => {
+    const items: any[] = [];
+
+    // 1. Liked music (always at the very top)
+    items.push({
+      id: "liked-songs",
+      title: "Liked music",
+      subtitle: "like by the user",
+      type: "liked-songs",
+      image:
+        "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
+      updatedAt: Infinity,
+    });
+
+    // 2. Playlists
+    playlists.forEach((p) => {
+      items.push({
+        id: p.id,
+        title: p.name,
+        subtitle: `${p.songs?.length || 0} songs`,
+        type: "local-playlist",
+        image: p.image,
+        updatedAt: p.updatedAt || p.createdAt || 0,
+      });
+    });
+
+    // 3. Saved Albums
+    savedAlbums.forEach((a) => {
+      items.push({
+        id: a.id,
+        title: a.title,
+        subtitle: a.subtitle || "Album",
+        type: "album",
+        image: a.image,
+        updatedAt: a.createdAt || 0,
+      });
+    });
+
+    // Sort index 1+ by updatedAt desc, keeping Liked Songs at index 0
+    const liked = items[0];
+    const rest = items.slice(1);
+    rest.sort((a, b) => b.updatedAt - a.updatedAt);
+
+    return [liked, ...rest];
+  }, [playlists, savedAlbums]);
 
   const handleClear = () => {
     clearRecentActivity();
@@ -181,10 +232,6 @@ export default function LibraryScreen() {
     },
   });
 
-  const glowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, 50], [1, 0], Extrapolation.CLAMP),
-  }));
-
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       scrollY.value,
@@ -200,9 +247,9 @@ export default function LibraryScreen() {
 
   return (
     <View className="flex-1 bg-black">
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor={"#000"} />
 
-      {/* Premium Glows */}
+      {/* Premium Glows
       <Animated.View style={[StyleSheet.absoluteFill, glowAnimatedStyle]}>
         <LinearGradient
           colors={["rgba(59, 130, 246, 0.15)", "transparent"]}
@@ -216,7 +263,7 @@ export default function LibraryScreen() {
         />
         <View style={styles.backgroundGlowTop} />
         <View style={styles.backgroundGlowCenter} />
-      </Animated.View>
+      </Animated.View> */}
 
       <Animated.View
         style={[
@@ -245,61 +292,108 @@ export default function LibraryScreen() {
         }}
         ListHeaderComponent={
           <>
-            <View className="px-4 pb-6 flex-row items-center justify-between mt-4">
-              <View>
-                <Text className="text-white text-3xl font-extrabold tracking-tighter">
-                  Recent Activity
+            {/* User Playlists Section */}
+            {combinedPlaylistsAndAlbums.length > 0 && (
+              <View className="px-4 pb-6 mt-4">
+                <Text className="text-white text-3xl font-extrabold tracking-tighter mb-4">
+                  Your Playlists
                 </Text>
-                <Text className="text-gray-500 text-sm font-medium mt-1">
-                  Your history across sessions
-                </Text>
-              </View>
-              {recentActivity.length > 0 && (
-                <TouchableOpacity
-                  onPress={handleClear}
-                  className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
-                >
-                  <Trash2 size={16} color="#ef4444" />
-                  <Text className="text-[#ef4444] text-xs font-bold ml-2">
-                    Clear
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              className="flex-row items-center px-4 py-3"
-              onPress={() => router.push({ pathname: "/album-detail", params: { albumId: "liked-songs" } })}
-            >
-              <View
-                className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
-                style={{ borderRadius: 12 }}
-              >
-                <Image
-                  source={{
-                    uri: "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                  contentFit="cover"
-                  transition={400}
-                />
-              </View>
+                {combinedPlaylistsAndAlbums.map((item) => {
+                  const imageUri = getImageUri(item.image);
+                  const isLiked = item.id === "liked-songs";
+                  const isLocalPlaylist = item.type === "local-playlist";
+                  const isAlbum = item.type === "album";
 
-              <View className="flex-1 justify-center">
-                <Text
-                  className="text-white text-[17px] font-medium tracking-tight"
-                  numberOfLines={1}
-                >
-                  {"Liked music"}
-                </Text>
-                <Text
-                  className="text-gray-400 text-[13px] mt-1 capitalize"
-                  numberOfLines={1}
-                >
-                  {"like by the user"}
-                </Text>
+                  const handleItemPress = () => {
+                    if (isLiked) {
+                      router.push({
+                        pathname: "/album-detail",
+                        params: { albumId: "liked-songs" },
+                      });
+                    } else if (isLocalPlaylist) {
+                      router.push({
+                        pathname: "/local-playlist-detail",
+                        params: { playlistId: item.id },
+                      });
+                    } else if (isAlbum) {
+                      router.push({
+                        pathname: "/album-detail",
+                        params: { albumId: item.id },
+                      });
+                    }
+                  };
+
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      activeOpacity={0.7}
+                      className="flex-row items-center py-3"
+                      onPress={handleItemPress}
+                    >
+                      <View
+                        className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
+                        style={{ borderRadius: 12 }}
+                      >
+                        {item.image ? (
+                          <Image
+                            source={{ uri: imageUri }}
+                            style={{ width: "100%", height: "100%" }}
+                            contentFit="cover"
+                            transition={400}
+                          />
+                        ) : (
+                          <View className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 items-center justify-center">
+                            <Text className="text-white text-2xl font-bold">
+                              {item.title.charAt(0).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View className="flex-1 justify-center">
+                        <Text
+                          className="text-white text-[17px] font-medium tracking-tight"
+                          numberOfLines={1}
+                        >
+                          {item.title}
+                        </Text>
+                        <Text
+                          className="text-gray-400 text-[13px] mt-1 capitalize"
+                          numberOfLines={1}
+                        >
+                          {item.subtitle}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            </TouchableOpacity>
+            )}
+
+            {/* Recent Activity Section */}
+            {recentActivity.length > 0 && (
+              <View className="px-4 pb-6 flex-row items-center justify-between mt-6">
+                <View>
+                  <Text className="text-white text-2xl font-medium tracking-tighter">
+                    Recent Activity
+                  </Text>
+                  <Text className="text-gray-500 text-sm font-medium mt-1">
+                    Your history across sessions
+                  </Text>
+                </View>
+                {recentActivity.length > 0 && (
+                  <TouchableOpacity
+                    onPress={handleClear}
+                    className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
+                  >
+                    <Trash2 size={16} color="#ef4444" />
+                    <Text className="text-[#ef4444] text-xs font-bold ml-2">
+                      Clear
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </>
         }
         ListEmptyComponent={
