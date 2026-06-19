@@ -327,7 +327,7 @@ export interface AlbumResponse {
   explicitContent: boolean;
   url: string;
   songCount: number;
-
+  artistName?: string;
   artists?: ArtistGroup;
   image: Image[];
   songs: Song[];

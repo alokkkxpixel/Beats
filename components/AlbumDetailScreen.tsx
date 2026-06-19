@@ -28,12 +28,13 @@ import PlayingIndicator from "./PlayingIndicator";
 interface AlbumDetailProps {
   route: {
     params: {
-      album: AlbumResponse;
+      album?: AlbumResponse;
     };
   };
   navigation: any;
   onLoadMore?: () => void;
   isMoreLoading?: boolean;
+  isLoading?: boolean;
 }
 
 const TypedFlashList = FlashList as any;
@@ -123,26 +124,29 @@ const AlbumDetailScreen = ({
   navigation,
   onLoadMore,
   isMoreLoading,
+  isLoading,
 }: AlbumDetailProps) => {
   const { album } = route.params;
   const songs = album?.songs || [];
-  const artistName = album?.artists?.primary?.[0]?.name || "Various Artists";
+  const artistName =
+    album?.artists?.primary?.[0]?.name || album?.artistName || "";
   const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
   const setQueue = usePlayerStore((state) => state.setQueue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const {
-    savedAlbums,
-    addAlbumToLibrary,
-    removeAlbumFromLibrary,
-    loadSavedAlbums,
-  } = usePlaylistStore();
+
+  const savedAlbums = usePlaylistStore((s) => s.savedAlbums);
+  const addAlbumToLibrary = usePlaylistStore((s) => s.addAlbumToLibrary);
+  const removeAlbumFromLibrary = usePlaylistStore(
+    (s) => s.removeAlbumFromLibrary,
+  );
+  const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
   const [albumBgColor, setAlbumBgColor] = useState("#000");
 
   useEffect(() => {
     loadSavedAlbums();
   }, []);
 
-  const isSaved = savedAlbums.some((a) => a.id === album.id);
+  const isSaved = savedAlbums.some((a) => a.id === album?.id);
 
   useEffect(() => {
     let isMounted = true;
@@ -200,6 +204,7 @@ const AlbumDetailScreen = ({
   };
 
   const handleSaveAlbum = () => {
+    if (!album) return;
     if (isSaved) {
       removeAlbumFromLibrary(album.id);
     } else {
@@ -281,19 +286,6 @@ const AlbumDetailScreen = ({
     [songs.length, totalDurationSeconds, album?.playCount, isMoreLoading],
   );
 
-  if (!album) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <ActivityIndicator size="large" color="white" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View
@@ -335,7 +327,7 @@ const AlbumDetailScreen = ({
               </Text>
             </View>
             <Text style={styles.headerSubtitle}>
-              {album.type} • {album.year}
+              {album?.type} • {album?.year}
             </Text>
           </View>
 
@@ -349,31 +341,39 @@ const AlbumDetailScreen = ({
           </TouchableOpacity>
         </View>
 
-        <TypedFlashList
-          data={songs}
-          renderItem={({ item, index }: any) => {
-            const isCurrent = currentTrack?.id === item.id;
-            return (
-              <TrackItem
-                item={item}
-                index={index}
-                artistName={artistName}
-                isCurrent={isCurrent}
-                onPress={() => setQueue(songs, index)}
-              />
-            );
-          }}
-          estimatedItemSize={76}
-          drawDistance={300}
-          onEndReached={onLoadMore}
-          onEndReachedThreshold={0.1}
-          removeClippedSubviews={true}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item: Song) => item.id}
-          ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
-          contentContainerStyle={{ paddingBottom: 150 }}
-        />
+        {!album || isLoading ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <ActivityIndicator size="large" color="white" />
+          </View>
+        ) : (
+          <TypedFlashList
+            data={songs}
+            renderItem={({ item, index }: any) => {
+              const isCurrent = currentTrack?.id === item.id;
+              return (
+                <TrackItem
+                  item={item}
+                  index={index}
+                  artistName={artistName}
+                  isCurrent={isCurrent}
+                  onPress={() => setQueue(songs, index)}
+                />
+              );
+            }}
+            estimatedItemSize={76}
+            drawDistance={300}
+            onEndReached={onLoadMore}
+            onEndReachedThreshold={0.1}
+            removeClippedSubviews={true}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item: Song) => item.id}
+            ListHeaderComponent={renderHeader}
+            ListFooterComponent={renderFooter}
+            contentContainerStyle={{ paddingBottom: 150 }}
+          />
+        )}
       </SafeAreaView>
     </View>
   );

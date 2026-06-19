@@ -3,7 +3,7 @@ import { usePlaylistInfinite } from "@/src/hooks/useQueries";
 import { transformPlaylistToUI } from "@/src/utils/transform";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function PlayListDetailRoute() {
   const { playlistId, playlistUrl } = useLocalSearchParams<{
@@ -39,7 +39,7 @@ export default function PlayListDetailRoute() {
   const playlistInfo = data?.pages?.[0];
 
   const playlist = React.useMemo(() => {
-    if (!playlistInfo) return null;
+    if (!playlistInfo) return undefined;
 
     return transformPlaylistToUI({
       ...playlistInfo,
@@ -47,22 +47,8 @@ export default function PlayListDetailRoute() {
     });
   }, [playlistInfo, allSongs]);
 
-  if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "#050505",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="white" />
-      </View>
-    );
-  }
-
-  if (error || !data || !data.pages?.length) {
+  // ✅ Error (only when not loading)
+  if (!isLoading && (error || !data || !data.pages?.length)) {
     return (
       <View
         style={{
@@ -85,12 +71,11 @@ export default function PlayListDetailRoute() {
     }
   };
 
-  if (!playlist) return null;
-
   return (
     <AlbumDetailScreen
       route={{ params: { album: playlist } } as any}
       navigation={navigation}
+      isLoading={isLoading}
       onLoadMore={handleLoadMore}
       isMoreLoading={isFetchingNextPage}
     />

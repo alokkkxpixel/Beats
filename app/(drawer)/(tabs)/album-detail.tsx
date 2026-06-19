@@ -1,10 +1,9 @@
 import AlbumDetailScreen from "@/components/AlbumDetailScreen";
 import { useAlbum } from "@/src/hooks/useQueries";
-import { transformAlbumToUI } from "@/src/utils/transform";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { transformAlbumToUI } from "@/src/utils/transform";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function AlbumDetailRoute() {
   const { albumId, albumUrl } = useLocalSearchParams<{
@@ -28,7 +27,9 @@ export default function AlbumDetailRoute() {
       id: "liked-songs",
       name: "Liked music",
       title: "Liked music",
-      description: "Music that you like in any YouTube app will be shown here. You can change this in Settings.",
+      artistName: "Various Artists",
+      description:
+        "Music that you like in any YouTube app will be shown here. You can change this in Settings.",
       type: "Auto playlist",
       year: "2026",
       playCount: null,
@@ -59,23 +60,23 @@ export default function AlbumDetailRoute() {
   }
 
   // ✅ Loading
-  if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "#050505",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="white" />
-      </View>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         backgroundColor: "#050505",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //       }}
+  //     >
+  //       {/* <ActivityIndicator size="large" color="white" /> */}
+  //     </View>
+  //   );
+  // }
 
   // ✅ Error
-  if (error || !data) {
+  if (!isLoading && (error || !data)) {
     return (
       <View
         style={{
@@ -91,6 +92,23 @@ export default function AlbumDetailRoute() {
       </View>
     );
   }
+  //  // ✅ Error (only when not loading)
+  //   if (!isLoading && (error || !data || !data.pages?.length)) {
+  //     return (
+  //       <View
+  //         style={{
+  //           flex: 1,
+  //           backgroundColor: "#000",
+  //           justifyContent: "center",
+  //           alignItems: "center",
+  //         }}
+  //       >
+  //         <Text style={{ color: "white" }}>
+  //           {error ? "Error loading playlist" : "Playlist not found"}
+  //         </Text>
+  //       </View>
+  //     );
+  //   }
 
   // ✅ IMPORTANT: no pages here
   const rawAlbum = data?.data ?? data;
@@ -100,13 +118,15 @@ export default function AlbumDetailRoute() {
   if (!album) return null;
 
   return (
-    <AlbumDetailScreen
-      route={{ params: { album } } as any}
-      navigation={navigation}
-      // ❌ REMOVE THESE (not needed anymore)
-      // onLoadMore
-      // isMoreLoading
-    />
+    <>
+      <AlbumDetailScreen
+        route={{ params: { album } } as any}
+        navigation={navigation}
+        isLoading={isLoading}
+        // ❌ REMOVE THESE (not needed anymore)
+        // onLoadMore
+        // isMoreLoading
+      />
+    </>
   );
 }
-
