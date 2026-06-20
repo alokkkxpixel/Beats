@@ -103,7 +103,11 @@ const TrackItem = React.memo(function TrackItem({
             </View>
           )}
 
-          <Text style={styles.trackSub} numberOfLines={1}>
+          <Text
+            style={styles.trackSub}
+            className="font-sans-regular"
+            numberOfLines={1}
+          >
             {artist} • {duration} • {formatPlayCount(item.playCount)}
           </Text>
         </View>
@@ -224,12 +228,14 @@ const AlbumDetailScreen = ({
           transition={500}
         />
 
-        <Text style={styles.mainTitle}>{album?.name || album?.title}</Text>
+        <Text style={styles.mainTitle} className="tracking-tighter">
+          {album?.name || album?.title}
+        </Text>
 
         <View style={styles.descriptionContainer}>
           <Text
             style={styles.descriptionText}
-            className=" text-center"
+            className=" text-center tracking-tight"
             numberOfLines={2}
           >
             {album?.description
@@ -412,13 +418,15 @@ const styles = StyleSheet.create({
   headerArtist: {
     color: "white",
     fontSize: 14,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-semibold",
   },
   headerSubtitle: {
     color: "#e8e9ebff",
-    fontSize: 10,
+    fontSize: 9,
     textTransform: "uppercase",
     letterSpacing: 1,
+    fontFamily: "sans-medium",
   },
   listHeader: {
     paddingHorizontal: 24,
@@ -437,8 +445,10 @@ const styles = StyleSheet.create({
   mainTitle: {
     color: "white",
     fontSize: 28,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-bold",
     marginTop: 24,
+
     textAlign: "center",
   },
   descriptionContainer: {
@@ -499,7 +509,8 @@ const styles = StyleSheet.create({
   trackTitle: {
     color: "white",
     fontSize: 16,
-    fontWeight: "500",
+    // fontWeight: "500",
+    fontFamily: "sans-medium",
   },
   activeTrackTitle: {
     color: "#ffffffff",
@@ -558,11 +569,13 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#9ca3af",
     fontSize: 14,
-    fontWeight: "500",
+    // fontWeight: "500",
+    fontFamily: "sans-medium",
   },
   footerSubText: {
     color: "#6b7280",
     fontSize: 12,
     marginTop: 4,
+    fontFamily: "sans-regular",
   },
 });

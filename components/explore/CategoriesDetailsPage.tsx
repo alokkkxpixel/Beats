@@ -1,5 +1,4 @@
 import { useHomePreviews } from "@/src/hooks/useQueries";
-import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
@@ -8,6 +7,7 @@ import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Dimensions,
+  FlatList,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -61,11 +61,16 @@ const CategoriesDetailsPage = ({
     return (
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderTitle}>{sectionTitle}</Text>
+          <Text
+            style={styles.sectionHeaderTitle}
+            className="font-sans-semibold"
+          >
+            {sectionTitle}
+          </Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </View>
         <View style={{ height: 420 }}>
-          <FlashList
+          <FlatList
             data={chunkedData}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -125,7 +130,12 @@ const CategoriesDetailsPage = ({
     return (
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderTitle}>{sectionTitle}</Text>
+          <Text
+            style={styles.sectionHeaderTitle}
+            className="font-sans-semibold"
+          >
+            {sectionTitle}
+          </Text>
         </View>
         <FlashList
           data={dataList.slice(0, 12)}
@@ -159,7 +169,11 @@ const CategoriesDetailsPage = ({
                 source={{ uri: getImageUri(item.image) }}
                 style={styles.simpleImage}
               />
-              <Text style={styles.simpleTitle} numberOfLines={1}>
+              <Text
+                style={styles.simpleTitle}
+                className="font-sans-semibold"
+                numberOfLines={2}
+              >
                 {item.title}
               </Text>
               <Text style={styles.simpleSubtitle} numberOfLines={1}>
@@ -214,11 +228,11 @@ const CategoriesDetailsPage = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 160 }}
           >
-            {renderSimpleSongsList(podcastData.slice(0, 8), "Featured Podcasts")}
-            {renderHorizontalGrid(
-              podcastData.slice(8),
-              "More Podcasts",
+            {renderSimpleSongsList(
+              podcastData.slice(0, 8),
+              "Featured Podcasts",
             )}
+            {renderHorizontalGrid(podcastData.slice(8), "More Podcasts")}
           </ScrollView>
         );
       default:
@@ -279,7 +293,7 @@ const styles = StyleSheet.create({
   sectionHeaderTitle: {
     color: "white",
     fontSize: 22,
-    fontWeight: "bold",
+    // fontWeight: "bold",
   },
   simpleCard: {
     width: 150,
@@ -294,7 +308,7 @@ const styles = StyleSheet.create({
   simpleTitle: {
     color: "white",
     fontSize: 14,
-    fontWeight: "700",
+    // fontWeight: "700",
     marginBottom: 2,
   },
   simpleSubtitle: {

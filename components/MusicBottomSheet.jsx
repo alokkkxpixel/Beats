@@ -253,13 +253,13 @@ export default function MusicBottomSheet() {
         <View className="flex-1 ml-3">
           <Text
             numberOfLines={2}
-            className="text-white text-base font-semibold"
+            className="text-white text-base font-sans-semibold"
           >
             {activeSong?.title || activeSong?.name}
           </Text>
 
           <TextTicker
-            className="text-zinc-400 text-sm mt-1"
+            className="text-zinc-400 text-sm font-sans-medium mt-1"
             // style={styles.miniTitle}
             duration={18000}
             animationType="scroll"
@@ -290,7 +290,9 @@ export default function MusicBottomSheet() {
           >
             <item.icon width={24} height={24} fill="white" />
 
-            <Text className="text-white text-[15px] ml-5">{item.label}</Text>
+            <Text className="text-white font-sans-regular text-[15px] ml-5">
+              {item.label}
+            </Text>
           </Pressable>
         ))}
       </View>

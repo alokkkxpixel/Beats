@@ -17,12 +17,14 @@ export default function AboutScreen() {
         >
           <BackIcon width={22} height={22} fill="#fff" />
         </Pressable>
-        <Text className="text-white text-xl font-bold ml-4">About</Text>
+        <Text className="text-white text-xl font-sans-bold ml-4">About</Text>
       </View>
 
       <View className="rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-6">
         <Text className="text-zinc-400 text-sm">App</Text>
-        <Text className="text-white text-2xl font-bold mt-1">{appName}</Text>
+        <Text className="text-white text-2xl font-sans-bold mt-1">
+          {appName}
+        </Text>
 
         <Text className="text-zinc-400 text-sm mt-6">Version</Text>
         <Text className="text-white text-base mt-1">

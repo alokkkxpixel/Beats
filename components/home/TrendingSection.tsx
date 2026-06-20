@@ -244,7 +244,7 @@ export default function TrendingSection({
           </View>
           <Text
             style={styles.cardTitle}
-            className="font-sans-medium text-white"
+            className="font-sans-semibold text-white"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -252,7 +252,7 @@ export default function TrendingSection({
           </Text>
           <Text
             style={styles.description}
-            className="font-sans-light"
+            className="font-sans-light tracking-tight capitalize"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     // color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "700",
+    // fontWeight: "700",
     lineHeight: 18,
     includeFontPadding: false,
     marginBottom: 2,

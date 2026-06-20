@@ -3,7 +3,6 @@ import { useNavigation } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { FlatList } from "react-native";
@@ -112,7 +111,7 @@ export default function CityHotSection({
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title} className="font-sans-light">
+          <Text style={styles.title} className="font-sans-semibold">
             {title}
           </Text>
           {subtitle && (
@@ -121,9 +120,6 @@ export default function CityHotSection({
             </Text>
           )}
         </View>
-        <Pressable hitSlop={10}>
-          <Text style={styles.moreBtn}>More</Text>
-        </Pressable>
       </View>
 
       <FlatList
@@ -160,7 +156,7 @@ const styles = StyleSheet.create({
   title: {
     color: "#FFFFFF",
     fontSize: 22,
-    fontWeight: "800",
+    // fontWeight: "800",
     letterSpacing: -0.5,
   },
   subtitle: {

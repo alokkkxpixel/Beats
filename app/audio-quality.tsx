@@ -40,7 +40,7 @@ export default function AudioQualityScreen() {
             <BackIcon width={22} height={22} fill="#fff" />
           </Pressable>
 
-          <Text className="text-white text-xl font-bold ml-4">
+          <Text className="text-white text-xl font-sans-bold ml-4">
             Audio quality
           </Text>
         </View>
@@ -67,7 +67,7 @@ export default function AudioQualityScreen() {
               <View className="flex-row items-center justify-between">
                 <View>
                   <Text
-                    className={`text-base font-semibold ${
+                    className={`text-base font-sans-semibold ${
                       isSelected ? "text-green-400" : "text-white"
                     }`}
                   >
@@ -79,7 +79,7 @@ export default function AudioQualityScreen() {
                 </View>
 
                 <Text
-                  className={`text-sm font-medium ${
+                  className={`text-sm font-sans-medium ${
                     isSelected ? "text-green-400" : "text-zinc-400"
                   }`}
                 >
@@ -93,7 +93,7 @@ export default function AudioQualityScreen() {
 
       <View className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
         <Text className="text-sm text-zinc-400">Current selection</Text>
-        <Text className="mt-1 text-lg font-semibold text-white">
+        <Text className="mt-1 text-lg font-sans-semibold text-white">
           {getAudioQualityLabel(selected)}
         </Text>
       </View>
@@ -102,7 +102,9 @@ export default function AudioQualityScreen() {
         onPress={handleDone}
         className="absolute bottom-10 left-4 right-4 rounded-xl bg-green-500 py-4"
       >
-        <Text className="text-center text-lg font-bold text-black">Done</Text>
+        <Text className="text-center text-lg font-sans-bold text-black">
+          Done
+        </Text>
       </Pressable>
     </View>
   );

@@ -1,11 +1,11 @@
+import { getMusicLanguages, setMusicLanguages } from "@/src/lib/storage";
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { MoveLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { getMusicLanguages, setMusicLanguages } from "@/src/lib/storage";
 
 const LANGUAGES = [
   "Hindi",
@@ -28,7 +28,9 @@ export default function LanguageSelectionScreen() {
   // Load initial selection from MMKV
   useEffect(() => {
     const savedLangs = getMusicLanguages();
-    const initial = savedLangs.map(l => l.charAt(0).toUpperCase() + l.slice(1));
+    const initial = savedLangs.map(
+      (l) => l.charAt(0).toUpperCase() + l.slice(1),
+    );
     setSelected(initial);
   }, []);
 
@@ -77,7 +79,7 @@ export default function LanguageSelectionScreen() {
             }`}
           >
             <Text
-              className={`text-center font-semibold ${
+              className={`text-center font-sans-semibold ${
                 isSelected(item) ? "text-black" : "text-white"
               }`}
             >
@@ -95,7 +97,9 @@ export default function LanguageSelectionScreen() {
           selected.length === 0 ? "bg-zinc-700" : "bg-green-500"
         }`}
       >
-        <Text className="text-center font-bold text-black text-lg">Done</Text>
+        <Text className="text-center font-sans-bold text-black text-lg">
+          Done
+        </Text>
       </Pressable>
     </View>
   );
@@ -117,7 +121,7 @@ export function LanguageHeader() {
         </Pressable>
 
         {/* Title */}
-        <Text className="text-white text-xl font-bold ml-4">
+        <Text className="text-white text-xl font-sans-bold ml-4">
           Choose your music languages
         </Text>
       </View>

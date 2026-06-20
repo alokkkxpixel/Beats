@@ -68,9 +68,7 @@ export default function Header({ title }: { title: string }) {
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
         <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
-          <Text className="text-white font-sans-semibold text-3xl ">
-            {title}
-          </Text>
+          <Text className="text-white font-sans-medium text-3xl ">{title}</Text>
 
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>

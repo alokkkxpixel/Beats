@@ -98,6 +98,7 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           <View style={{ height: 18, justifyContent: "center" }}>
             <TextTicker
               style={styles.miniTitle}
+              className="tracking-tight"
               duration={15000}
               animationType="scroll"
               loop
@@ -116,6 +117,7 @@ const MiniPlayer = React.memo(function MiniPlayer() {
 
           <Text
             style={styles.miniArtist}
+            className="font-sans-medium"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -215,7 +217,8 @@ const styles = StyleSheet.create({
   miniTitle: {
     color: "white",
     fontSize: 14,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-bold",
     lineHeight: 16, // important
     marginBottom: 0, // remove extra gap
   },

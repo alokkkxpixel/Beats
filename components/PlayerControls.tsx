@@ -232,7 +232,8 @@ const styles = StyleSheet.create({
   deviceText: {
     color: "white",
     fontSize: 10,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-semibold",
     marginLeft: 5,
   },
   footerRightIcons: {

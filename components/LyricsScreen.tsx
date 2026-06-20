@@ -212,10 +212,13 @@ export default function LyricsScreen() {
           <Statminus height={24} width={24} />
         </TouchableOpacity>
         <View className="flex-1 ml-4 justify-center">
-          <Text className="text-white text-xl font-bold" numberOfLines={1}>
+          <Text className="text-white text-xl font-sans-bold" numberOfLines={1}>
             {trackTitle || "Unknown Track"}
           </Text>
-          <Text className="text-neutral-400 text-sm mt-0.5" numberOfLines={1}>
+          <Text
+            className="text-neutral-400 text-sm font-sans-regular mt-0.5"
+            numberOfLines={1}
+          >
             {artistCandidates[0] || "Unknown Artist"}
           </Text>
         </View>
@@ -226,11 +229,15 @@ export default function LyricsScreen() {
         {loadingLyrics ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#ffffff" />
-            <Text className="text-neutral-400 mt-4">Loading lyrics...</Text>
+            <Text className="text-neutral-400 font-sans-medium mt-4">
+              Loading lyrics...
+            </Text>
           </View>
         ) : lyricsNotFound ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-neutral-400 text-lg">Lyrics not found</Text>
+            <Text className="text-neutral-400 font-sans-medium text-lg">
+              Lyrics not found
+            </Text>
           </View>
         ) : parsedLyrics.length > 0 ? (
           <BottomSheetScrollView
@@ -264,7 +271,7 @@ export default function LyricsScreen() {
                     style={{
                       color: "#ffffff",
                       fontSize: isActive ? 24 : 20,
-                      fontWeight: isActive ? "800" : "600",
+                      fontFamily: isActive ? "sans-bold" : "sans-medium",
                       textAlign: "left",
                       lineHeight: isActive ? 34 : 28,
                       opacity: isActive ? 1.0 : 0.45,

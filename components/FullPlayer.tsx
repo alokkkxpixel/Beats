@@ -253,6 +253,7 @@ const FullPlayer = React.memo(
               <TextTicker
                 style={styles.songTitle}
                 duration={15000}
+                className="tracking-tighter"
                 loop
                 animationType="scroll"
                 easing={Easing.linear}
@@ -266,7 +267,11 @@ const FullPlayer = React.memo(
               </TextTicker>
               {/* </View> */}
               <Pressable onPress={handleArtistPress}>
-                <Text style={styles.songArtist} numberOfLines={1}>
+                <Text
+                  style={styles.songArtist}
+                  className="tracking-tight"
+                  numberOfLines={1}
+                >
                   {artistName}
                 </Text>
               </Pressable>
@@ -421,7 +426,8 @@ const styles = StyleSheet.create({
     right: 60,
     color: "white",
     fontSize: 14,
-    fontWeight: "600",
+    // fontWeight: "600",
+    fontFamily: "sans-semibold",
     textAlign: "center",
   },
   artWrapper: {
@@ -463,13 +469,15 @@ const styles = StyleSheet.create({
   songTitle: {
     color: "white",
     fontSize: 22,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-bold",
   },
   songArtist: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 16,
     marginTop: 4,
     marginBottom: 5,
+    fontFamily: "sans-regular",
   },
   artistCard: {
     marginHorizontal: 20,
@@ -494,6 +502,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 11,
     fontWeight: "800",
+    fontFamily: "sans-semibold",
   },
   artistDetailsBody: {
     paddingHorizontal: 16,
@@ -502,12 +511,14 @@ const styles = StyleSheet.create({
   artistNameText: {
     color: "white",
     fontSize: 20,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-semibold",
   },
   artistDescription: {
     color: "#CCCCCC",
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: "sans-regular",
   },
   creditsCard: {
     backgroundColor: "rgba(255,255,255,0.05)",

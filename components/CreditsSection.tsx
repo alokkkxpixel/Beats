@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 // Custom row component remains unchanged...
@@ -15,8 +15,10 @@ const CreditRow = ({ item, index, type, isLast, navigateToArtist }: any) => (
       className={`flex-row justify-between items-center py-3 ${isLast ? "" : "border-b border-white/10"}`}
     >
       <View className="flex-1 pr-3">
-        <Text className="text-white text-sm font-semibold">{item?.name}</Text>
-        <Text className="text-gray-400 text-xs mt-1 capitalize">
+        <Text className="text-white text-sm font-sans-semibold">
+          {item?.name}
+        </Text>
+        <Text className="text-gray-400 font-sans-regular text-xs mt-1 capitalize">
           {item?.role ? item.role.split("_").join(" ") : "Artist"}
         </Text>
       </View>
@@ -102,7 +104,8 @@ const styles = StyleSheet.create({
   creditsTitle: {
     color: "white",
     fontSize: 18,
-    fontWeight: "bold",
+    // fontWeight: "bold",
+    fontFamily: "sans-semibold",
     marginBottom: 10,
   },
   scrollListContainer: {

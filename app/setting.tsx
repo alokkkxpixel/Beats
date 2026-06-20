@@ -41,7 +41,7 @@ export default function SettingsScreen() {
           <BackIcon width={22} height={22} fill="#fff" />
         </Pressable>
 
-        <Text className="text-white text-xl font-bold ml-4">Settings</Text>
+        <Text className="text-white text-xl font-sans-bold ml-4">Settings</Text>
       </View>
 
       {/* Options */}
@@ -52,7 +52,9 @@ export default function SettingsScreen() {
             onPress={item.onPress}
             className="flex-row items-center justify-between py-4 border-b border-zinc-800"
           >
-            <Text className="text-white text-base">{item.label}</Text>
+            <Text className="text-white text-base font-sans-medium">
+              {item.label}
+            </Text>
             <ForwardArrow width={20} height={20} fill="#fff" />
           </Pressable>
         ))}

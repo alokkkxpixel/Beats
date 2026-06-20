@@ -22,7 +22,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
-  withTiming
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -133,7 +133,11 @@ export default function ExploreScreen() {
         style={styles.albumImage}
         contentFit="cover"
       />
-      <Text style={styles.albumTitle} numberOfLines={1}>
+      <Text
+        style={styles.albumTitle}
+        className="font-sans-medium"
+        numberOfLines={1}
+      >
         {item.title}
       </Text>
       <Text
@@ -174,7 +178,9 @@ export default function ExploreScreen() {
 
         {/* New Albums Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>New albums and singles</Text>
+          <Text style={styles.sectionTitle} className="font-sans-semibold">
+            New albums and singles
+          </Text>
           <ChevronIcon
             width={20}
             height={20}
@@ -204,7 +210,7 @@ export default function ExploreScreen() {
         {/* Moods and Genres Section */}
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionTitle}>
+            <Text style={styles.sectionTitle} className="font-sans-medium">
               {data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"}
             </Text>
             {data?.modules?.["promo:vx:data:76"]?.subtitle && (
@@ -251,7 +257,11 @@ export default function ExploreScreen() {
                       source={{ uri: getImageUri(mood.image) }}
                       style={styles.moodRowImage}
                     />
-                    <Text style={styles.moodRowTitle} numberOfLines={1}>
+                    <Text
+                      style={styles.moodRowTitle}
+                      className="font-sans-medium"
+                      numberOfLines={1}
+                    >
                       {mood.title}
                     </Text>
                   </Pressable>
@@ -312,7 +322,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: "white",
     fontSize: 22,
-    fontWeight: "bold",
+    // fontWeight: "bold",
   },
   sectionSubtitle: {
     color: "#999",
@@ -337,11 +347,11 @@ const styles = StyleSheet.create({
   albumTitle: {
     color: "white",
     fontSize: 14,
-    fontWeight: "600",
+    // fontWeight: "600",
     marginBottom: 2,
   },
   albumSubtitle: {
-    color: "#999",
+    color: "#ccccccff",
     fontSize: 12,
   },
   moodItemRow: {
@@ -362,7 +372,7 @@ const styles = StyleSheet.create({
   moodRowTitle: {
     color: "white",
     fontSize: 15,
-    fontWeight: "600",
+    // fontWeight: "600",
     flex: 1,
   },
   moodCard: {

@@ -2,15 +2,15 @@ import React, { useCallback, useEffect } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
 
 import {
-    TrackPlayer,
-    useOnPlaybackProgressChange,
+  TrackPlayer,
+  useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 
 export default function ProgressSection() {
@@ -155,5 +155,6 @@ const styles = StyleSheet.create({
   timeText: {
     color: "rgba(255,255,255,0.5)",
     fontSize: 11,
+    fontFamily: "sans-regular",
   },
 });

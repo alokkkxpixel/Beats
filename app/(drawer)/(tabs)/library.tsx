@@ -120,7 +120,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
 
       <View className="flex-1 justify-center">
         <Text
-          className="text-white text-[17px] font-medium tracking-tight"
+          className="text-white text-[17px] font-sans-medium tracking-tight"
           numberOfLines={1}
         >
           {item.title}
@@ -295,7 +295,7 @@ export default function LibraryScreen() {
             {/* User Playlists Section */}
             {combinedPlaylistsAndAlbums.length > 0 && (
               <View className="px-4 pb-6 mt-4">
-                <Text className="text-white text-3xl font-extrabold tracking-tighter mb-4">
+                <Text className="text-white text-3xl font-sans-medium tracking-tighter mb-4">
                   Your Playlists
                 </Text>
                 {combinedPlaylistsAndAlbums.map((item) => {
@@ -343,7 +343,7 @@ export default function LibraryScreen() {
                           />
                         ) : (
                           <View className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 items-center justify-center">
-                            <Text className="text-white text-2xl font-bold">
+                            <Text className="text-white text-2xl font-sans-bold">
                               {item.title.charAt(0).toUpperCase()}
                             </Text>
                           </View>
@@ -352,7 +352,7 @@ export default function LibraryScreen() {
 
                       <View className="flex-1 justify-center">
                         <Text
-                          className="text-white text-[17px] font-medium tracking-tight"
+                          className="text-white text-[17px] font-sans-medium tracking-tight"
                           numberOfLines={1}
                         >
                           {item.title}
@@ -374,10 +374,10 @@ export default function LibraryScreen() {
             {recentActivity.length > 0 && (
               <View className="px-4 pb-2 flex-row items-center justify-between mt-6">
                 <View>
-                  <Text className="text-white text-2xl font-medium tracking-tighter">
+                  <Text className="text-white text-2xl font-sans-medium tracking-tighter">
                     Recent Activity
                   </Text>
-                  <Text className="text-gray-500 text-sm font-medium mt-1">
+                  <Text className="text-gray-500 text-sm font-sans-medium mt-1">
                     Your history across sessions
                   </Text>
                 </View>
@@ -387,7 +387,7 @@ export default function LibraryScreen() {
                     className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
                   >
                     <Trash2 size={16} color="#ef4444" />
-                    <Text className="text-[#ef4444] text-xs font-bold ml-2">
+                    <Text className="text-[#ef4444] text-xs font-sans-bold ml-2">
                       Clear
                     </Text>
                   </TouchableOpacity>
@@ -399,7 +399,7 @@ export default function LibraryScreen() {
         // ListEmptyComponent={
         //   <View className="flex-1 items-center justify-center pt-32 px-12">
         //     <View className="w-20 h-20 bg-white/5 rounded-full items-center justify-center mb-6"></View>
-        //     <Text className="text-white text-xl font-bold mb-2">
+        //     <Text className="text-white text-xl font-sans-bold mb-2">
         //       Nothing here yet
         //     </Text>
         //     <Text className="text-gray-500 text-center text-base leading-6">

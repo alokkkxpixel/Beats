@@ -53,7 +53,9 @@ const Categories = () => {
           <View style={styles.iconContainer}>
             <cat.icon width={24} height={24} fill="white" />
           </View>
-          <Text style={styles.categoryTitle}>{cat.title}</Text>
+          <Text style={styles.categoryTitle} className="font-sans-medium">
+            {cat.title}
+          </Text>
         </Pressable>
       ))}
     </View>
