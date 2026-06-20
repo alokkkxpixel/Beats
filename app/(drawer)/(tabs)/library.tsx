@@ -7,14 +7,16 @@ import { useFocusEffect } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Trash2 } from "lucide-react-native";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react-native";
 import { memo, useCallback, useMemo, useState } from "react";
 import {
+  Modal,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Animated, {
   interpolateColor,
@@ -145,6 +147,13 @@ export default function LibraryScreen() {
   const loadPlaylists = usePlaylistStore((s) => s.loadPlaylists);
   const savedAlbums = usePlaylistStore((s) => s.savedAlbums);
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
+  const deletePlaylist = usePlaylistStore((s) => s.deletePlaylist);
+  const updatePlaylist = usePlaylistStore((s) => s.updatePlaylist);
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editPlaylistName, setEditPlaylistName] = useState("");
 
   useFocusEffect(
     useCallback(() => {
@@ -204,6 +213,32 @@ export default function LibraryScreen() {
   const handleClear = () => {
     clearRecentActivity();
     setRecentActivity([]);
+  };
+
+  const handleMenuPress = (playlist: any) => {
+    setSelectedPlaylist(playlist);
+    setMenuVisible(true);
+  };
+
+  const handleEditPlaylist = () => {
+    setMenuVisible(false);
+    setEditPlaylistName(selectedPlaylist?.title || "");
+    setEditModalVisible(true);
+  };
+
+  const handleDeletePlaylist = () => {
+    if (selectedPlaylist) {
+      deletePlaylist(selectedPlaylist.id);
+      setMenuVisible(false);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (selectedPlaylist && editPlaylistName.trim()) {
+      updatePlaylist(selectedPlaylist.id, { name: editPlaylistName.trim() });
+      setEditModalVisible(false);
+      setEditPlaylistName("");
+    }
   };
 
   const HEADER_HEIGHT = 54;
@@ -364,6 +399,14 @@ export default function LibraryScreen() {
                           {item.subtitle}
                         </Text>
                       </View>
+                      {isLocalPlaylist && (
+                        <TouchableOpacity
+                          onPress={() => handleMenuPress(item)}
+                          hitSlop={10}
+                        >
+                          <MoreVertical size={20} color="#888" />
+                        </TouchableOpacity>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -409,6 +452,78 @@ export default function LibraryScreen() {
         //   </View>
         // }
       />
+
+      {/* Playlist Options Menu */}
+      <Modal
+        visible={menuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}
+        >
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleEditPlaylist}
+            >
+              <Pencil size={20} color="#fff" />
+              <Text style={styles.menuItemText}>Rename</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleDeletePlaylist}
+            >
+              <Trash2 size={20} color="#ef4444" />
+              <Text style={[styles.menuItemText, styles.deleteText]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Edit Playlist Modal */}
+      <Modal
+        visible={editModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          activeOpacity={1}
+          onPress={() => setEditModalVisible(false)}
+        >
+          <View style={styles.editModalContainer}>
+            <Text style={styles.editModalTitle}>Rename Playlist</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editPlaylistName}
+              onChangeText={setEditPlaylistName}
+              placeholder="Playlist name"
+              placeholderTextColor="#666"
+              autoFocus
+            />
+            <View style={styles.editButtons}>
+              <TouchableOpacity
+                style={[styles.editButton, styles.cancelButton]}
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.editButton, styles.saveButton]}
+                onPress={handleSaveEdit}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -444,6 +559,85 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(139, 92, 246, 0.08)",
     filter: "blur(60px)",
   } as any,
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  menuContainer: {
+    backgroundColor: "#282828",
+    borderRadius: 12,
+    width: 200,
+    overflow: "hidden",
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    gap: 12,
+  },
+  menuItemText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  deleteText: {
+    color: "#ef4444",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: "#333",
+  },
+  editModalContainer: {
+    backgroundColor: "#282828",
+    borderRadius: 16,
+    padding: 24,
+    width: "85%",
+    maxWidth: 400,
+  },
+  editModalTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  editInput: {
+    backgroundColor: "#333",
+    color: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  editButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 24,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#666",
+  },
+  cancelButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  saveButton: {
+    backgroundColor: "#1DB954",
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });
 
 {

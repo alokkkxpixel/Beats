@@ -3,8 +3,9 @@ import CheckIcon from "@/assets/app-icons/check.svg";
 import CloseIcon from "@/assets/app-icons/stat-minus.svg";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import { SongDetail } from "@/types/jiosaavn";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Keyboard,
   Modal,
   Pressable,
   ScrollView,
@@ -12,9 +13,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 interface PlaylistModalProps {
   visible: boolean;
@@ -31,6 +31,23 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [newPlaylistDesc, setNewPlaylistDesc] = useState("");
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setIsKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   const handleCreatePlaylist = () => {
     if (!newPlaylistName.trim()) return;
@@ -66,7 +83,10 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.container} onPress={(e) => e.stopPropagation()}>
+        <Pressable 
+          style={[styles.container, isKeyboardVisible && styles.containerWithKeyboard]} 
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Add to playlist</Text>
             <Pressable onPress={onClose} hitSlop={20}>
@@ -141,6 +161,8 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
                   </View>
                 ) : (
                   playlists.map((playlist) => (
+                    <>
+
                     <TouchableOpacity
                       key={playlist.id}
                       style={styles.playlistItem}
@@ -166,6 +188,8 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
                         <CheckIcon width={20} height={20} fill="#1DB954" />
                       )}
                     </TouchableOpacity>
+                   
+                    </>
                   ))
                 )}
               </>
@@ -180,7 +204,7 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(0, 0, 0, 0.0)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -190,6 +214,9 @@ const styles = StyleSheet.create({
     width: "85%",
     maxHeight: "70%",
     overflow: "hidden",
+  },
+  containerWithKeyboard: {
+    marginBottom: 80,
   },
   header: {
     flexDirection: "row",
@@ -226,7 +253,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 8,
-    backgroundColor: "#1DB954",
+    backgroundColor: "#dadada65",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -287,10 +314,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   confirmButton: {
-    backgroundColor: "#1DB954",
+    backgroundColor: "#ffffff",
   },
   confirmButtonText: {
-    color: "white",
+    color: "#000",
     fontSize: 16,
     fontWeight: "600",
   },
