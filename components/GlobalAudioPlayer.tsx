@@ -1,9 +1,9 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import React, { useEffect, useRef } from "react";
 import {
-  useNowPlaying,
-  useOnPlaybackProgressChange,
-  useOnPlaybackStateChange,
+    useNowPlaying,
+    useOnPlaybackProgressChange,
+    useOnPlaybackStateChange,
 } from "react-native-nitro-player";
 
 const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
@@ -106,7 +106,6 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
       currentTrack: queue[newIndex],
       position: 0,
       duration: queue[newIndex].duration || 0,
-      isLoading: true,
     });
 
     // Infinite autoplay: approaching end of queue — fetch more tracks

@@ -100,12 +100,10 @@ const PlayerControls = React.memo(() => {
   }, [isPlaying]);
 
   const next = useCallback(async () => {
-    usePlayerStore.setState({ isLoading: true });
     await TrackPlayer.skipToNext();
   }, []);
 
   const previous = useCallback(async () => {
-    usePlayerStore.setState({ isLoading: true });
     await TrackPlayer.skipToPrevious();
   }, []);
 

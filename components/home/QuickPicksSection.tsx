@@ -1,15 +1,13 @@
-import React from "react";
 import { FlashList } from "@shopify/flash-list";
+import React from "react";
 import {
-  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
-  View,
+  View
 } from "react-native";
 
 import { SongDetail } from "@/types/jiosaavn";
-import { Ionicons } from "@expo/vector-icons";
 import QuickPickRow from "./QuickPickRow";
 
 // export default function QuickPicksSection(): React.JSX.Element {
@@ -134,14 +132,14 @@ export default function QuickPicksSection({
             </Text>
           ) : null}
         </View>
-        <Pressable style={styles.headerActions} onPress={onMorePress}>
+        {/* <Pressable style={styles.headerActions} onPress={onMorePress}>
           <View style={styles.playAllButton}>
             <Text style={styles.playAllText}>
               {onMorePress ? "More" : "Play all"}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
-        </Pressable>
+        </Pressable> */}
       </View>
 
       {/* Horizontal Rail */}

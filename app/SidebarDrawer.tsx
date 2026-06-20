@@ -73,8 +73,8 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
             />
             <View className="flex-row items-center gap-3">
               <Image
-                source={require("../assets/icons/playstore.png")}
-                style={{ width: 32, height: 32, borderRadius: 8 }}
+                source={require("../assets/icons/logo-group.png")}
+                style={{ width: 32, height: 32, borderRadius: 0 }}
               />
               <Text
                 className="text-white text-2xl font-bold tracking-tight"

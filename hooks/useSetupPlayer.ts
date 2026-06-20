@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { TrackPlayer } from "react-native-nitro-player";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { useEffect, useState } from "react";
+import { Platform } from "react-native";
+import { TrackPlayer } from "react-native-nitro-player";
 
 export const useSetupPlayer = () => {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
@@ -17,8 +18,8 @@ export const useSetupPlayer = () => {
           androidAutoEnabled: false,
           carPlayEnabled: false,
           lookaheadCount: 10,
-          // androidNotificationIcon: "ic_notification", // Android-only custom notification icon
-        });
+          ...(Platform.OS === 'android' && { androidNotificationIcon: "ic_notification" }), // Android-only custom notification icon
+        } as any);
 
         console.log("✅ Nitro Player setup complete");
 

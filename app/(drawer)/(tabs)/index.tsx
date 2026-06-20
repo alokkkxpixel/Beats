@@ -1,5 +1,4 @@
 import CityHotSection from "@/components/home/CityHotSection";
-import SpeedDialGrid from "@/components/home/MusicCarousel";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
@@ -28,6 +27,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Header from "@/components/Header";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { TopGenre } from "./explore";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
@@ -49,6 +49,7 @@ export default function Index() {
     isLoading: SpecialForYouLoading,
     refetch: refetchSpecialForYou,
   } = useSpecialForYou();
+  const moodsAndGenres = data?.["promo:vx:data:76"] || [];
   // Time-based background logic
   const getBackgroundData = () => {
     const hour = new Date().getHours();
@@ -59,13 +60,15 @@ export default function Index() {
       };
     } else if (hour >= 16 && hour < 20) {
       return {
-        // image: require("../../../assets/images/evening_bg.jpg"),
+        // image: require("../../../assets/images/morning_default_image.png"),
+
+        // image: require("../../../assets/images/night_bg.jpg"),
+        image: require("../../../assets/images/evening_bg.jpg"),
         greeting: "Good Evening",
       };
     } else {
       return {
-        // image: require("../../../assets/images/night_bg.jpg"),
-        image: require("../../../assets/images/morning_default_image.png"),
+        // image: require("../../../assets/images/morning_default_image.png"),
 
         greeting: "Good Night",
       };
@@ -199,8 +202,15 @@ export default function Index() {
         type: "promo:vx:data:69",
         data: data?.["promo:vx:data:69"].data,
       },
+       {
+        id: "moodsAndGenres",
+        title: "Moods and Genres",
+        subtitle: "Discover new music",
+        type: "moodsAndGenres",
+        data: moodsAndGenres,
+      },
     ],
-    [data, SpecialForYouData],
+    [data, SpecialForYouData, moodsAndGenres],
   );
 
   // Loading State is handled inline below to keep the header and background visible
@@ -293,9 +303,17 @@ export default function Index() {
                 />
               );
             if (item.type === "foryou")
-              return <SpeedDialGrid data={item.data} />;
+              return <QuickPicksSection data={item.data} title={item.title} subtitle={item.subtitle} />;
             if (item.type === "artistrecos") {
               return <RecommendedArtist title={item.title} data={item.data} />;
+            }
+            if (item.type === "moodsAndGenres") {
+              return <TopGenre data={Array.from(
+                {
+                  length: Math.ceil(item.data.length / 3),
+                },
+                (_, i) => item.data.slice(i * 3, i * 3 + 3),
+              ) || []} title={item.title} subtitle={item.subtitle} />;
             }
             if (item.type === "promo:vx:data:68") {
               return (

@@ -2,7 +2,7 @@ import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -14,7 +14,6 @@ import Animated, {
 
 // Import SVGs
 import SearchIcon from "@/assets/app-icons/search.svg";
-
 const HEADER_HEIGHT = 40;
 
 export default function Header({ title }: { title: string }) {
@@ -68,8 +67,14 @@ export default function Header({ title }: { title: string }) {
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
         <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
-          <Text className="text-white font-sans-medium text-3xl ">{title}</Text>
-
+          {/* <Text className="text-white font-sans-medium text-3xl ">{title}</Text> */}
+           <View className="w-[50px] h-[30px] ">
+           <Image
+                  source={require("../assets/icons/logo-group.png")}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                  />
+                  </View>
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>
               <SearchIcon width={28} height={28} fill="white" />
