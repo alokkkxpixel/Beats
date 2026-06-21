@@ -26,6 +26,9 @@ export const useSetupPlayer = () => {
         // Sync liked playlist with Nitro Player on app launch
         await usePlayerStore.getState().syncLikedPlaylist();
 
+        // Restore player state from local storage
+        await usePlayerStore.getState().restorePlaybackState();
+
         setIsPlayerReady(true);
       } catch (error) {
         console.error("❌ Error setting up Nitro Player:", error);

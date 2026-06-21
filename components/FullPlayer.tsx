@@ -3,16 +3,15 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  Easing,
-  NativeModules,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
+    ActivityIndicator,
+    Dimensions,
+    Easing,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    useWindowDimensions
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useShallow } from "zustand/shallow";
@@ -43,20 +42,7 @@ type ImageColorsResult =
       vibrant?: string;
     };
 
-const getAccentColor = (colors: ImageColorsResult) => {
-  if (colors.platform === "ios") {
-    return colors.background || colors.primary || fallbackAccentColor;
-  }
 
-  return colors.dominant || colors.vibrant || fallbackAccentColor;
-};
-
-const hasImageColorsNativeModule = () => {
-  const expoModules = (globalThis as any).expo?.modules;
-  const legacyExpoModules = NativeModules.NativeUnimoduleProxy?.exportedMethods;
-
-  return Boolean(expoModules?.ImageColors || legacyExpoModules?.ImageColors);
-};
 
 const FullPlayer = React.memo(
   ({
@@ -253,7 +239,6 @@ const FullPlayer = React.memo(
               <TextTicker
                 style={styles.songTitle}
                 duration={15000}
-                className="tracking-tighter"
                 loop
                 animationType="scroll"
                 easing={Easing.linear}
@@ -267,11 +252,7 @@ const FullPlayer = React.memo(
               </TextTicker>
               {/* </View> */}
               <Pressable onPress={handleArtistPress}>
-                <Text
-                  style={styles.songArtist}
-                  className="tracking-tight"
-                  numberOfLines={1}
-                >
+                <Text style={styles.songArtist} numberOfLines={1}>
                   {artistName}
                 </Text>
               </Pressable>
@@ -426,8 +407,7 @@ const styles = StyleSheet.create({
     right: 60,
     color: "white",
     fontSize: 14,
-    // fontWeight: "600",
-    fontFamily: "sans-semibold",
+    fontWeight: "600",
     textAlign: "center",
   },
   artWrapper: {
@@ -469,15 +449,13 @@ const styles = StyleSheet.create({
   songTitle: {
     color: "white",
     fontSize: 22,
-    // fontWeight: "bold",
-    fontFamily: "sans-bold",
+    fontWeight: "bold",
   },
   songArtist: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 16,
     marginTop: 4,
     marginBottom: 5,
-    fontFamily: "sans-regular",
   },
   artistCard: {
     marginHorizontal: 20,
@@ -502,7 +480,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 11,
     fontWeight: "800",
-    fontFamily: "sans-semibold",
   },
   artistDetailsBody: {
     paddingHorizontal: 16,
@@ -511,14 +488,12 @@ const styles = StyleSheet.create({
   artistNameText: {
     color: "white",
     fontSize: 20,
-    // fontWeight: "bold",
-    fontFamily: "sans-semibold",
+    fontWeight: "bold",
   },
   artistDescription: {
     color: "#CCCCCC",
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: "sans-regular",
   },
   creditsCard: {
     backgroundColor: "rgba(255,255,255,0.05)",

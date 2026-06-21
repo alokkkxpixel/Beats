@@ -220,3 +220,34 @@ export const getSavedAlbums = (): any[] => {
 export const saveSavedAlbums = (albums: any[]) => {
   storage.set(SAVED_ALBUMS_KEY, JSON.stringify(albums));
 };
+
+const PLAYER_STATE_KEY = "player-state";
+
+export interface PlayerState {
+  currentTrack: any | null;
+  queue: any[];
+  currentIndex: number;
+  position: number;
+  duration: number;
+  isPlaying: boolean;
+  isShuffleEnabled: boolean;
+  timestamp: number;
+}
+
+export const getPlayerState = (): PlayerState | null => {
+  const state = storage.getString(PLAYER_STATE_KEY);
+  if (!state) return null;
+  try {
+    return JSON.parse(state);
+  } catch {
+    return null;
+  }
+};
+
+export const savePlayerState = (state: PlayerState) => {
+  storage.set(PLAYER_STATE_KEY, JSON.stringify(state));
+};
+
+export const clearPlayerState = () => {
+  storage.remove(PLAYER_STATE_KEY);
+};

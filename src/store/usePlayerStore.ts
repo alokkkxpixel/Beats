@@ -1,10 +1,13 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
-    AudioQualityPreference,
-    getAudioQualityPreference,
-    getLikedSongs,
-    saveLikedSongs,
-    setAudioQualityPreference,
+  AudioQualityPreference,
+  clearPlayerState as clearStoredPlayerState,
+  getAudioQualityPreference,
+  getLikedSongs,
+  getPlayerState as getStoredPlayerState,
+  saveLikedSongs,
+  savePlayerState as saveStoredPlayerState,
+  setAudioQualityPreference,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
@@ -148,6 +151,10 @@ interface PlayerState {
   updateProgress: (position: number, duration: number) => void;
   setPlaying: (isPlaying: boolean) => void;
   setLoading: (isLoading: boolean) => void;
+
+  // --- Persistence ---
+  persistPlayerState: () => void;
+  restorePlaybackState: () => Promise<void>;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -390,6 +397,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       await TrackPlayer.play();
 
       set({ isLoading: false });
+      get().persistPlayerState();
     } catch (error) {
       console.error("Error playing track:", error);
       set({ isLoading: false });
@@ -501,6 +509,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       await TrackPlayer.play();
 
       set({ isLoading: false });
+      get().persistPlayerState();
     } catch (error) {
       console.error("Error setting queue:", error);
       set({ isLoading: false });
@@ -775,14 +784,151 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const state = get();
     if (state.position === position && state.duration === duration) return;
     set({ position, duration });
+    get().persistPlayerState();
   },
 
   setPlaying: (isPlaying) => {
     if (get().isPlaying === isPlaying) return;
     set({ isPlaying });
+    get().persistPlayerState();
   },
   setLoading: (isLoading) => {
     if (get().isLoading === isLoading) return;
     set({ isLoading });
+  },
+
+  // --- Persistence ---
+  persistPlayerState: () => {
+    const state = get();
+    if (!state.currentTrack) return;
+
+    const playerState = {
+      currentTrack: state.currentTrack,
+      queue: state.queue,
+      currentIndex: state.currentIndex,
+      position: state.position,
+      duration: state.duration,
+      isPlaying: state.isPlaying,
+      isShuffleEnabled: state.isShuffleEnabled,
+      timestamp: Date.now(),
+    };
+    saveStoredPlayerState(playerState);
+  },
+
+  restorePlaybackState: async () => {
+    const savedState = getStoredPlayerState();
+    if (!savedState || !savedState.currentTrack) return;
+
+    try {
+      // Check if the saved state is too old (more than 24 hours)
+      const hoursSinceSave = (Date.now() - savedState.timestamp) / (1000 * 60 * 60);
+      if (hoursSinceSave > 24) {
+        clearStoredPlayerState();
+        return;
+      }
+
+      // Restore the queue and current track
+      const normalizedQueue = savedState.queue.map((track: any) => ({
+        ...track,
+        id: track.id,
+        name: track.name || track.title || "",
+        image: track.image,
+        primaryArtists:
+          track.primaryArtists ||
+          track.artists?.primary?.[0]?.name ||
+          track.subtitle ||
+          track.artist ||
+          "Unknown Artist",
+        album:
+          typeof track.album === "string"
+            ? track.album
+            : track.album?.name || track.album || "",
+        url: track.url || track.perma_url || "",
+      }));
+
+      const normalizedCurrentTrack = {
+        ...savedState.currentTrack,
+        id: savedState.currentTrack.id,
+        name: savedState.currentTrack.name || savedState.currentTrack.title || "",
+        image: savedState.currentTrack.image,
+        primaryArtists:
+          savedState.currentTrack.primaryArtists ||
+          savedState.currentTrack.artists?.primary?.[0]?.name ||
+          savedState.currentTrack.subtitle ||
+          savedState.currentTrack.artist ||
+          "Unknown Artist",
+        album:
+          typeof savedState.currentTrack.album === "string"
+            ? savedState.currentTrack.album
+            : savedState.currentTrack.album?.name || savedState.currentTrack.album || "",
+        url: savedState.currentTrack.url || savedState.currentTrack.perma_url || "",
+      };
+
+      // Update store with restored state
+      set({
+        queue: normalizedQueue as any,
+        currentIndex: savedState.currentIndex,
+        currentTrack: normalizedCurrentTrack as any,
+        position: savedState.position,
+        duration: savedState.duration,
+        isPlaying: false, // Don't auto-play on restore
+        isShuffleEnabled: savedState.isShuffleEnabled,
+        isLoading: true,
+      });
+
+      // Fetch full track details if needed
+      let fullTrack = normalizedCurrentTrack as any;
+      const isPartial =
+        !normalizedCurrentTrack.downloadUrl ||
+        normalizedCurrentTrack.downloadUrl.length === 0;
+
+      if (isPartial) {
+        const response = await jioSaavnService.getSongByIdandLink(
+          normalizedCurrentTrack.id,
+          normalizedCurrentTrack.url,
+        );
+        if (response.success && response.data[0]) {
+          fullTrack = response.data[0];
+          const updatedQueue = [...normalizedQueue];
+          updatedQueue[savedState.currentIndex] = fullTrack;
+
+          set({
+            currentTrack: fullTrack,
+            queue: updatedQueue as any,
+            duration: fullTrack.duration || 0,
+          });
+        }
+      }
+
+      // Create and load playlist in native player
+      const trackItems = get().queue.map((item) =>
+        mapToTrackItem(item, get().audioQuality),
+      );
+
+      const playlistId = await PlayerQueue.createPlaylist(
+        `Restored Queue_${Date.now()}`,
+        "Restored Playback Queue",
+      );
+
+      set({ activePlaylistId: playlistId });
+      await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
+      await PlayerQueue.loadPlaylist(playlistId, savedState.currentIndex);
+
+      // Seek to the saved position
+      await TrackPlayer.seek(savedState.position);
+
+      set({ isLoading: false });
+
+      
+
+      // Fetch suggestions for the current track
+      if (fullTrack.id) {
+        get().fetchAndAppendSuggestions(fullTrack.id);
+      }
+    } catch (error) {
+      console.error("Error restoring player state:", error);
+      clearStoredPlayerState();
+      set({ isLoading: false });
+    }
   },
 }));
