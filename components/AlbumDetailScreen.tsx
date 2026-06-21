@@ -15,6 +15,7 @@ import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -137,7 +138,6 @@ const AlbumDetailScreen = ({
   const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
   const setQueue = usePlayerStore((state) => state.setQueue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
-
   const savedAlbums = usePlaylistStore((s) => s.savedAlbums);
   const addAlbumToLibrary = usePlaylistStore((s) => s.addAlbumToLibrary);
   const removeAlbumFromLibrary = usePlaylistStore(
@@ -175,6 +175,9 @@ const AlbumDetailScreen = ({
   useEffect(() => {
     if (!album) return;
     if (album.id === "liked-songs") {
+      return;
+    }
+    if (album.id.startsWith("playlist-")) {
       return;
     }
 
@@ -219,15 +222,15 @@ const AlbumDetailScreen = ({
   const renderHeader = React.useMemo(
     () => (
       <View style={styles.listHeader}>
-        <Image
+      <Image
           source={{
-            uri: highResCover ? highResCover : songs?.[0]?.image?.[2]?.url,
+            uri: highResCover ? highResCover : songs?.[0]?.image?.[2]?.url ,
           }}
           style={styles.mainCover}
           contentFit="cover"
           transition={500}
         />
-
+     
         <Text style={styles.mainTitle} className="tracking-tighter">
           {album?.name || album?.title}
         </Text>
@@ -441,6 +444,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 15,
+  },
+  miniArt: {
+    width: 240,
+    height: 240,
+    borderRadius: 4,
   },
   mainTitle: {
     color: "white",

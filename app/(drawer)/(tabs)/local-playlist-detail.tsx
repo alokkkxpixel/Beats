@@ -1,13 +1,15 @@
+import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import AlbumDetailScreen from "@/components/AlbumDetailScreen";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function LocalPlaylistDetailRoute() {
   const { playlistId } = useLocalSearchParams<{ playlistId?: string }>();
   const navigation = useNavigation();
-  const { playlists, loadPlaylists } = usePlaylistStore();
+  const loadPlaylists  = usePlaylistStore(s=> s.loadPlaylists);
+  const playlists = usePlaylistStore(s=> s.playlists);
 
   useEffect(() => {
     loadPlaylists();
@@ -53,12 +55,13 @@ export default function LocalPlaylistDetailRoute() {
     id: playlist.id,
     name: playlist.name,
     description: playlist.description || "",
-    image: playlist.image || null,
-    songs: playlist.songs || [],
+    image: playlist.image || defaultCover,
+    songs: playlist.songs || "No songs",
     type: "playlist",
     subtitle: `${playlist.songs?.length || 0} songs`,
     year: new Date(playlist.createdAt).getFullYear(),
   };
+  console.log("transformedPlaylist", transformedPlaylist);
 
   return (
     <AlbumDetailScreen

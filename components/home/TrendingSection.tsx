@@ -3,11 +3,13 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { TopPlaylists } from "@/types/jiosaavn";
 // FlatList is the right choice for small horizontal carousels (10-20 items).
 // FlashList v2's cell recycling causes blank images and overlap for lists this small.
+import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import PlayingIndicator from "../PlayingIndicator";
+
 interface TrendingSectionProps {
   title?: string;
   data: TopPlaylists[];
@@ -47,6 +49,12 @@ export default function TrendingSection({
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   if (!data || data.length === 0) return <></>;
   const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const [failedImages, setFailedImages] = React.useState<Set<string>>(new Set());
+
+  const handleImageError = React.useCallback((imageUrl: string) => {
+    setFailedImages((prev) => new Set(prev).add(imageUrl));
+  }, []);
+
   // ✅ Memoized — prevents recreation on every parent re-render (FlashList perf best practice)
   const renderItem = React.useCallback(
     ({ item }: { item: any }) => {
@@ -231,7 +239,7 @@ export default function TrendingSection({
         <Pressable style={styles.card} onPress={handlePress}>
           <View style={styles.imageContainer}>
             <Image
-              source={{ uri: getImageUri(displayImage) }}
+              source={getImageUri(displayImage) ? { uri: getImageUri(displayImage) } : defaultCover}
               style={styles.image}
               contentFit="cover"
               cachePolicy="memory-disk"
@@ -261,7 +269,7 @@ export default function TrendingSection({
         </Pressable>
       );
     },
-    [type, navigation, setCurrentTrack],
+    [type, navigation, setCurrentTrack, failedImages, handleImageError],
   );
 
   return (

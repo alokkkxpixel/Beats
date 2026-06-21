@@ -3,15 +3,15 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Easing,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-    useWindowDimensions
+  ActivityIndicator,
+  Dimensions,
+  Easing,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useShallow } from "zustand/shallow";
@@ -25,6 +25,7 @@ import LikeUnfill from "@/assets/app-icons/like-unfill.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 import TextTicker from "react-native-text-ticker";
 // 🟢 CORRECT (For default exports)
+import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import CreditsSection from "./CreditsSection";
 
 const { width } = Dimensions.get("window");
@@ -55,6 +56,7 @@ const FullPlayer = React.memo(
     const { height } = useWindowDimensions();
     // const [accentColor, setAccentColor] = React.useState(fallbackAccentColor);
     const accentColor = usePlayerStore((state) => state.accentColor);
+    const [imageError, setImageError] = React.useState(false);
 
     // FIX: Removed native hooks (useNowPlaying). Using stable store instead.
     const {
@@ -97,6 +99,11 @@ const FullPlayer = React.memo(
       originalSong?.image?.[3]?.url ||
       (currentTrack as any)?.image?.[2]?.url ||
       originalSong?.image?.[0]?.url;
+
+    // Reset error state when track changes
+    React.useEffect(() => {
+      setImageError(false);
+    }, [trackImage]);
 
     const router = useRouter();
 
@@ -204,11 +211,12 @@ const FullPlayer = React.memo(
           <View style={styles.artWrapper}>
             <View style={styles.artContainer}>
               <Image
-                source={{ uri: trackImage }}
+                source={trackImage && !imageError ? { uri: trackImage } : defaultCover}
                 style={styles.mainArt}
                 contentFit="cover"
+                onError={() => setImageError(true)}
               />
-              {isLoading && (
+              {isLoading && !imageError && (
                 <View style={styles.imageLoaderContainer}>
                   <ActivityIndicator size="large" color="white" />
                 </View>
