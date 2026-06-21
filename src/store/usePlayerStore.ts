@@ -340,7 +340,33 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       }
 
-      // 2. Update store metadata IMMEDIATELY with the normalized track
+      // 2. Check if the track exists in the current queue (for manual selection from queue sheet)
+      const { queue: currentQueue, activePlaylistId } = get();
+      const existingIndex = currentQueue.findIndex(
+        (t) => t.id === normalizedTrack.id,
+      );
+
+      if (existingIndex !== -1 && activePlaylistId) {
+        // Track exists in current queue, just skip to it
+        set({
+          currentTrack: currentQueue[existingIndex] as any,
+          currentIndex: existingIndex,
+          position: 0,
+          isLoading: true,
+          isFullPlayerOpen: true,
+          isPlaying: true,
+        });
+
+        await TrackPlayer.skipToIndex(existingIndex);
+        await TrackPlayer.seek(0);
+        await TrackPlayer.play();
+
+        set({ isLoading: false });
+        get().persistPlayerState();
+        return;
+      }
+
+      // 3. Update store metadata IMMEDIATELY with the normalized track (new single track)
       set({
         currentTrack: normalizedTrack as any,
         queue: [normalizedTrack] as any,
