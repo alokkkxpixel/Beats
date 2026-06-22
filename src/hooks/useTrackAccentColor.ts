@@ -17,16 +17,8 @@ export default function useTrackAccentColor(trackImage?: string) {
         checkMounted: () => isMounted,
       });
 
-      let finalColor = "#1d1c1cff";
-
-      if (colorData && typeof colorData === "object") {
-        finalColor = colorData.average || colorData.darkMuted || "#1d1c1cff";
-      } else if (typeof colorData === "string") {
-        finalColor = colorData;
-      }
-
       if (isMounted) {
-        setAccentColor(finalColor);
+        setAccentColor(colorData);
       }
     }
 

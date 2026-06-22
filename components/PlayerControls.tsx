@@ -121,20 +121,20 @@ const PlayerControls = React.memo(() => {
 
   const renderRepeatIcon = () => {
     if (repeatMode === "track")
-      return <RepeatOneIcon width={24} height={24} fill="#1DB954" />;
+      return <RepeatOneIcon width={24} height={24} fill="#FFF" />;
     if (repeatMode === "Playlist")
-      return <RepeatOnIcon width={24} height={24} fill="#1DB954" />;
+      return <RepeatOnIcon width={24} height={24} fill="#fff" />;
     return <RepeatIcon width={24} height={24} fill="#A3A3A3" />;
   };
 
   return (
     <>
       <View style={styles.mainControls}>
-        <Pressable onPress={toggleShuffle} hitSlop={12}>
+        <Pressable onPress={toggleShuffle} hitSlop={15}>
           <ShuffleIcon
-            width={24}
-            height={24}
-            fill={isShuffleEnabled ? "#1DB954" : "#A3A3A3"}
+            width={25}
+            height={25}
+            fill={isShuffleEnabled ? "#fff" : "#A3A3A3"}
           />
         </Pressable>
         <Pressable onPress={previous}>
@@ -170,9 +170,9 @@ const PlayerControls = React.memo(() => {
           {/* Keep MaterialIcons for system-like icons if desired, or replace if SVG exists */}
           <View className="w-4 h-4 rounded-full items-center justify-center mr-2">
             {activeDevice?.type === 3 ? (
-              <Headphones width={18} height={18} color="#1DB954" />
+              <Headphones width={18} height={18} color="#fff" />
             ) : (
-              <SpeakerIcon width={18} height={18} fill="#1DB954" />
+              <SpeakerIcon width={18} height={18} fill="#fff" />
             )}
           </View>
           <Text style={styles.deviceText}>

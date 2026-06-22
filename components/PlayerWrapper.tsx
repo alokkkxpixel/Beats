@@ -217,7 +217,7 @@ const QueueSheetLayer = React.memo(() => {
         backdropComponent={renderBackdrop}
         backgroundStyle={[
           styles.queueSheetBackground,
-          { backgroundColor: accentColor },
+          { backgroundColor: accentColor.average },
         ]}
         handleIndicatorStyle={{ backgroundColor: "#fff" }}
       >
@@ -272,7 +272,7 @@ const LyricsSheetLayer = React.memo(() => {
         backdropComponent={renderBackdrop}
         backgroundStyle={[
           styles.queueSheetBackground,
-          { backgroundColor: accentColor },
+          { backgroundColor: accentColor.average },
         ]}
         handleIndicatorStyle={{ backgroundColor: "#fff" }}
       >

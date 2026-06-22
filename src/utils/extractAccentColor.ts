@@ -1,7 +1,7 @@
 import { getColors } from "react-native-image-colors";
 
 // 1. Define a strict structure for what this function returns
-interface ExtractedColors {
+export interface ExtractedColors {
   dominant: string;
   average: string;
   vibrant: string;

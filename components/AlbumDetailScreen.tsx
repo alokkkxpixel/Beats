@@ -9,7 +9,7 @@ import { addToRecentActivity } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
-import { extractAccentColor } from "@/src/utils/extractAccentColor";
+import { extractAccentColor, ExtractedColors } from "@/src/utils/extractAccentColor";
 import { formatPlayCount } from "@/src/utils/transform";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
@@ -18,11 +18,11 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PlayingIndicator from "./PlayingIndicator";
@@ -144,7 +144,7 @@ const AlbumDetailScreen = ({
     (s) => s.removeAlbumFromLibrary,
   );
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
-  const [albumBgColor, setAlbumBgColor] = useState("#000");
+  const [albumBgColor, setAlbumBgColor] = useState<ExtractedColors | string>("#000");
 
   useEffect(() => {
     loadSavedAlbums();
@@ -159,13 +159,9 @@ const AlbumDetailScreen = ({
         trackImage: highResCover,
         checkMounted: () => isMounted,
       });
-      let finalColor = "#1d1c1cff";
-      if (colorData && typeof colorData === "object") {
-        finalColor = colorData.average || colorData.darkMuted || "#1d1c1cff";
-      } else if (typeof colorData === "string") {
-        finalColor = colorData;
+      if (isMounted) {
+        setAlbumBgColor(colorData);
       }
-      setAlbumBgColor(finalColor);
     }
     updateColor();
     return () => {
@@ -308,7 +304,7 @@ const AlbumDetailScreen = ({
         /> */}
         <LinearGradient
           colors={[
-            albumBgColor,
+            typeof albumBgColor === "string" ? albumBgColor : albumBgColor?.dominant || albumBgColor?.average || "#000",
             // "rgba(5,5,5,0.9)",
             "rgba(5,5,5,0.8)",
             "#050505",

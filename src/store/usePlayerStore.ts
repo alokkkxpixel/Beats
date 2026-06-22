@@ -1,15 +1,16 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
-  AudioQualityPreference,
-  clearPlayerState as clearStoredPlayerState,
-  getAudioQualityPreference,
-  getLikedSongs,
-  getPlayerState as getStoredPlayerState,
-  saveLikedSongs,
-  savePlayerState as saveStoredPlayerState,
-  setAudioQualityPreference,
+    AudioQualityPreference,
+    clearPlayerState as clearStoredPlayerState,
+    getAudioQualityPreference,
+    getLikedSongs,
+    getPlayerState as getStoredPlayerState,
+    saveLikedSongs,
+    savePlayerState as saveStoredPlayerState,
+    setAudioQualityPreference,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { ExtractedColors } from "@/src/utils/extractAccentColor";
 import { SongDetail } from "@/types/jiosaavn";
 // ===== COMMENTED OUT: RNTP imports =====
 // import TrackPlayer, { State } from "react-native-track-player";
@@ -104,8 +105,8 @@ interface PlayerState {
 
   isDrawerOpen: boolean;
   isLyricsOpen: boolean;
-  accentColor: string;
-  setAccentColor: (color: string) => void;
+  accentColor: ExtractedColors;
+  setAccentColor: (color: ExtractedColors) => void;
   // --- Progress / Seekbar ---
   position: number;
   duration: number;
@@ -180,7 +181,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   selectedSongOption: "",
   isDragging: false,
   isFetchingSuggestions: false,
-  accentColor: "#222222ff",
+  accentColor: {
+    dominant: "#222222ff",
+    average: "#222222ff",
+    vibrant: "#222222ff",
+    darkVibrant: "#222222ff",
+    lightVibrant: "#222222ff",
+    darkMuted: "#222222ff",
+    lightMuted: "#222222ff",
+    muted: "#222222ff",
+    fallbackAccentColor: "#222222ff",
+  },
 
   setAccentColor: (color) =>
     set({

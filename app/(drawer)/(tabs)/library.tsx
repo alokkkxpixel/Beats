@@ -10,20 +10,20 @@ import { useRouter } from "expo-router";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react-native";
 import { memo, useCallback, useMemo, useState } from "react";
 import {
-  Modal,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Modal,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Animated, {
-  interpolateColor,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    interpolateColor,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -414,7 +414,7 @@ export default function LibraryScreen() {
             )}
 
             {/* Recent Activity Section */}
-            {recentActivity.length > 0 && (
+            {/* {recentActivity.length > 0 && (
               <View className="px-4 pb-2 flex-row items-center justify-between mt-6">
                 <View>
                   <Text className="text-white text-2xl font-sans-medium tracking-tighter">
@@ -436,7 +436,7 @@ export default function LibraryScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-            )}
+            )} */}
           </>
         }
         // ListEmptyComponent={

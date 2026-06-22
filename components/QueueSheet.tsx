@@ -119,7 +119,7 @@ const QueueSheet = () => {
 
   // FIX 3: Safety shield overlay calculation for white/light album covers
   const overlayColor = useMemo(() => {
-    const brightness = getLuminance(accentColor);
+    const brightness = getLuminance(accentColor.average || accentColor.dominant);
     if (brightness > 0.8) return "rgba(0, 0, 0, 0.65)"; // Protects text on pure white covers
     if (brightness > 0.5) return "rgba(0, 0, 0, 0.35)"; // Protects text on medium bright covers
     return "transparent";
@@ -206,7 +206,7 @@ const QueueSheet = () => {
       : currentTrack?.album?.name || "Playback Queue";
 
   return (
-    <View style={[styles.container, { backgroundColor: accentColor }]}>
+    <View style={[styles.container, { backgroundColor: accentColor.average }]}>
       {/* Universal protection overlay for bright backgrounds */}
       <View
         style={[
@@ -263,7 +263,7 @@ const QueueSheet = () => {
         style={[
           styles.footer,
           {
-            backgroundColor: accentColor,
+            backgroundColor: accentColor.average,
             borderTopColor: "rgba(255, 255, 255, 0.49)",
           },
         ]}
@@ -272,13 +272,13 @@ const QueueSheet = () => {
           <ShuffleIcon
             width={24}
             height={24}
-            fill={isShuffleEnabled ? "#1DB954" : "white"}
-            stroke={isShuffleEnabled ? "#1DB954" : "white"}
+            fill={isShuffleEnabled ? "#FFF" : "gray"}
+            stroke={isShuffleEnabled ? "#FFF" : "gray"}
           />
           <Text
             style={[
               styles.footerBtnText,
-              { color: isShuffleEnabled ? "#1DB954" : "white" },
+              { color: isShuffleEnabled ? "#fff" : "gray" },
             ]}
           >
             Shuffle
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#1e1e1e",
+    // backgroundColor: "#1e1e1e",
     paddingTop: 12,
     paddingBottom: 35,
     justifyContent: "space-around",
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   footerBtnText: {
-    color: "white",
+    color: "gray",
     fontSize: 11,
     marginTop: 6,
     fontFamily: "sans-medium",

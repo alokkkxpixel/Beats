@@ -27,6 +27,7 @@ import TextTicker from "react-native-text-ticker";
 // 🟢 CORRECT (For default exports)
 import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import CreditsSection from "./CreditsSection";
+import LyricsPreview from "./LyricsPreview";
 
 const { width } = Dimensions.get("window");
 const fallbackAccentColor = "#050505";
@@ -161,7 +162,7 @@ const FullPlayer = React.memo(
     return (
       <GestureHandlerRootView
         style={[
-          { backgroundColor: accentColor && accentColor },
+          { backgroundColor: accentColor?.dominant || accentColor?.average || "#222222" },
           //   styles.container,
           { flex: 1 },
         ]}
@@ -169,7 +170,7 @@ const FullPlayer = React.memo(
         <ScrollView
           style={[
             styles.container,
-            { backgroundColor: accentColor && accentColor },
+            { backgroundColor: accentColor?.average || accentColor?.dominant || "#222222" },
           ]}
           bounces={true}
           showsVerticalScrollIndicator={false}
@@ -284,12 +285,23 @@ const FullPlayer = React.memo(
           <ProgressSection />
           <PlayerControls />
 
-          <Pressable
+          {/* <Pressable
             className="items-center mb-2"
             onPress={() => expandLyrics()}
-          >
-            <Text className="text-white">View Lyrics</Text>
-          </Pressable>
+          > */}
+          <LyricsPreview
+          // style={{width: "28%", marginLeft: "auto", marginRight: "auto"}}
+              lyrics={[
+    "I don't wanna lose you now",
+    "I'm looking right at the other half of me",
+    "The vacancy that sat in my heart",
+    "Is a space that now you hold",
+    "Show me how to fight for now",
+  ]}
+  currentLineIndex={1}
+            onPress={expandLyrics}
+           />
+          {/* </Pressable> */}
           {/* --- Artist Card --- */}
           <Pressable style={styles.artistCard} onPress={handleArtistPress}>
             <View style={styles.artistHeader}>

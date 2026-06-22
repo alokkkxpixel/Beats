@@ -69,7 +69,7 @@ const MiniPlayer = React.memo(function MiniPlayer() {
     <View
       style={[
         styles.miniContainer,
-        { backgroundColor: accentColor && accentColor },
+        { backgroundColor: accentColor?.average || accentColor?.darkVibrant || "#222222" },
       ]}
     >
       {/* <BlurredBackground height={12} accentColor={accentColor} /> */}

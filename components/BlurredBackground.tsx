@@ -1,3 +1,4 @@
+import { ExtractedColors } from "@/src/utils/extractAccentColor";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -5,11 +6,12 @@ import { StyleSheet, View } from "react-native";
 interface BlurredBackgroundProps {
   imageUri?: string;
   height: number;
-  accentColor?: string;
+  accentColor?: ExtractedColors | string;
 }
 const BlurredBackground = React.memo(
   ({ imageUri, height, accentColor = "#050505" }: BlurredBackgroundProps) => {
-    console.log("color", accentColor);
+    const color = typeof accentColor === "string" ? accentColor : accentColor?.dominant || accentColor?.average || "#050505";
+    console.log("color", color);
     return (
       <View
         style={{
@@ -22,7 +24,7 @@ const BlurredBackground = React.memo(
       >
         <LinearGradient
           colors={[
-            accentColor,
+            color,
             "rgba(5, 5, 5, 0.2)",
             // "rgba(5, 5, 5, 0.5)",
 

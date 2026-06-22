@@ -3,7 +3,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import ArrowLeft from "@/assets/app-icons/back-arrow.svg";
-import PlayIcon from "@/assets/app-icons/play.svg";
 import { default as Search } from "@/assets/app-icons/search.svg";
 
 import { addToRecentActivity } from "@/src/lib/storage";
@@ -272,7 +271,7 @@ export default function ArtistScreen() {
               style={styles.playButtonCircle}
               onPress={() => openCatalog("songs")}
             >
-              <PlayIcon width={45} height={45} />
+              {/* <PlayIcon width={45} height={45} /> */}
             </Pressable>
           </View>
         </View>
