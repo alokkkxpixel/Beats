@@ -140,7 +140,7 @@ interface PlayerState {
   pause: () => Promise<void>;
   togglePlay: () => Promise<void>;
   next: () => Promise<void>;
-  previous: () => Promise<void>;
+  previous: (force?: boolean) => Promise<void>;
   toggleShuffle: () => Promise<void>;
   addToQueue: (track: SongDetail) => Promise<void>;
   playNext: (track: SongDetail) => Promise<void>;
@@ -637,13 +637,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  previous: async () => {
+  previous: async (force = false) => {
     try {
       const { position } = get();
-      if (position > 3) {
-        await TrackPlayer.seek(0);
-      } else {
+      if (force || position <= 3) {
         await TrackPlayer.skipToPrevious();
+      } else {
+        await TrackPlayer.seek(0);
       }
     } catch (error) {
       console.error("Error skipping to previous:", error);

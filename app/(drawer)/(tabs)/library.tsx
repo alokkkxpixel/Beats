@@ -10,20 +10,20 @@ import { useRouter } from "expo-router";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react-native";
 import { memo, useCallback, useMemo, useState } from "react";
 import {
-    Modal,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Modal,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Animated, {
-    interpolateColor,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  interpolateColor,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -413,30 +413,7 @@ export default function LibraryScreen() {
               </View>
             )}
 
-            {/* Recent Activity Section */}
-            {/* {recentActivity.length > 0 && (
-              <View className="px-4 pb-2 flex-row items-center justify-between mt-6">
-                <View>
-                  <Text className="text-white text-2xl font-sans-medium tracking-tighter">
-                    Recent Activity
-                  </Text>
-                  <Text className="text-gray-500 text-sm font-sans-medium mt-1">
-                    Your history across sessions
-                  </Text>
-                </View>
-                {recentActivity.length > 0 && (
-                  <TouchableOpacity
-                    onPress={handleClear}
-                    className="flex-row items-center bg-red-500/10 px-4 py-2 rounded-full active:bg-red-500/20"
-                  >
-                    <Trash2 size={16} color="#ef4444" />
-                    <Text className="text-[#ef4444] text-xs font-sans-bold ml-2">
-                      Clear
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )} */}
+            
           </>
         }
         // ListEmptyComponent={

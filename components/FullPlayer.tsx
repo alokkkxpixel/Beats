@@ -28,6 +28,7 @@ import TextTicker from "react-native-text-ticker";
 import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import CreditsSection from "./CreditsSection";
 import LyricsPreview from "./LyricsPreview";
+import SwipeArtwork from "./SwipeArtwork";
 
 const { width } = Dimensions.get("window");
 const fallbackAccentColor = "#050505";
@@ -68,6 +69,10 @@ const FullPlayer = React.memo(
       isLoading,
       likedSongs,
       toggleLike,
+      next,
+      previous,
+      queue,
+      currentIndex,
     } = usePlayerStore(
       useShallow((s) => ({
         currentTrack: s.currentTrack,
@@ -77,6 +82,10 @@ const FullPlayer = React.memo(
         isLoading: s.isLoading,
         likedSongs: s.likedSongs,
         toggleLike: s.toggleLike,
+        next: s.next,
+        previous: s.previous,
+        queue: s.queue,
+        currentIndex: s.currentIndex,
       })),
     );
 
@@ -100,6 +109,29 @@ const FullPlayer = React.memo(
       originalSong?.image?.[3]?.url ||
       (currentTrack as any)?.image?.[2]?.url ||
       originalSong?.image?.[0]?.url;
+
+    // Get previous and next track images for carousel
+    const previousTrackImage = React.useMemo(() => {
+      if (currentIndex > 0 && queue[currentIndex - 1]) {
+        const prevSong = queue[currentIndex - 1];
+        const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
+        return prevOriginal?.image?.[3]?.url ||
+               (prevSong as any)?.image?.[2]?.url ||
+               prevOriginal?.image?.[0]?.url;
+      }
+      return undefined;
+    }, [currentIndex, queue]);
+
+    const nextTrackImage = React.useMemo(() => {
+      if (currentIndex < queue.length - 1 && queue[currentIndex + 1]) {
+        const nextSong = queue[currentIndex + 1];
+        const nextOriginal = (nextSong as any)?.extraPayload?.song || nextSong;
+        return nextOriginal?.image?.[3]?.url ||
+               (nextSong as any)?.image?.[2]?.url ||
+               nextOriginal?.image?.[0]?.url;
+      }
+      return undefined;
+    }, [currentIndex, queue]);
 
     // Reset error state when track changes
     React.useEffect(() => {
@@ -210,19 +242,18 @@ const FullPlayer = React.memo(
 
           {/* --- Album Artwork --- */}
           <View style={styles.artWrapper}>
-            <View style={styles.artContainer}>
-              <Image
-                source={trackImage && !imageError ? { uri: trackImage } : defaultCover}
-                style={styles.mainArt}
-                contentFit="cover"
-                onError={() => setImageError(true)}
-              />
-              {isLoading && !imageError && (
-                <View style={styles.imageLoaderContainer}>
-                  <ActivityIndicator size="large" color="white" />
-                </View>
-              )}
-            </View>
+            <SwipeArtwork
+              currentImage={trackImage && !imageError ? trackImage : defaultCover}
+              previousImage={previousTrackImage}
+              nextImage={nextTrackImage}
+              onNext={next}
+              onPrevious={() => previous(true)}
+            />
+            {isLoading && !imageError && (
+              <View style={styles.imageLoaderContainer}>
+                <ActivityIndicator size="large" color="white" />
+              </View>
+            )}
           </View>
 
           {/* --- Track Info --- */}
@@ -434,14 +465,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 50,
     marginBottom: 40,
-  },
-  artContainer: {
     position: "relative",
-  },
-  mainArt: {
-    width: width * 0.88,
-    height: width * 0.88,
-    borderRadius: 8,
   },
   imageLoaderContainer: {
     position: "absolute",
@@ -453,6 +477,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 8,
+    width: width * 0.88,
+    height: width * 0.88,
   },
   trackInfo: {
     flex: 1,
