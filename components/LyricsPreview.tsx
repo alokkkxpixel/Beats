@@ -6,20 +6,15 @@ import {
 } from "react-native";
 
 interface LyricsPreviewProps {
-  lyrics: string[];
-  currentLineIndex: number;
+ 
   onPress?: () => void;
 }
 
 const LyricsPreview = ({
-  lyrics,
-  currentLineIndex,
+  
   onPress,
 }: LyricsPreviewProps) => {
-  const visibleLyrics = lyrics.slice(
-    currentLineIndex,
-    currentLineIndex + 4
-  );
+  
 const accentColor = usePlayerStore((state) => state.accentColor);
   return (
     <Pressable

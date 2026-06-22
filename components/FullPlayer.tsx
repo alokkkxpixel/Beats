@@ -26,7 +26,7 @@ import MoreIcon from "@/assets/app-icons/more.svg";
 import TextTicker from "react-native-text-ticker";
 // 🟢 CORRECT (For default exports)
 import defaultCover from "@/assets/app-icons/defualt-cover.png";
-import CreditsSection from "./CreditsSection";
+import ArtistCredits from "./ArtistCredits";
 import LyricsPreview from "./LyricsPreview";
 import SwipeArtwork from "./SwipeArtwork";
 
@@ -322,14 +322,7 @@ const FullPlayer = React.memo(
           > */}
           <LyricsPreview
           // style={{width: "28%", marginLeft: "auto", marginRight: "auto"}}
-              lyrics={[
-    "I don't wanna lose you now",
-    "I'm looking right at the other half of me",
-    "The vacancy that sat in my heart",
-    "Is a space that now you hold",
-    "Show me how to fight for now",
-  ]}
-  currentLineIndex={1}
+             
             onPress={expandLyrics}
            />
           {/* </Pressable> */}
@@ -415,9 +408,14 @@ const FullPlayer = React.memo(
               )}
             </View>
           </View> */}
-          <CreditsSection
-            originalSong={originalSong}
-            navigateToArtist={navigateToArtist}
+          <ArtistCredits
+            artists={[
+              ...(originalSong?.artists?.primary ?? []),
+              ...(originalSong?.artists?.featured ?? []),
+            ]}
+            onShowAll={() => console.log("Show all credits")}
+            onFollow={(artist: any) => console.log("Follow artist:", artist)}
+            onArtistPress={navigateToArtist}
           />
         </ScrollView>
       </GestureHandlerRootView>

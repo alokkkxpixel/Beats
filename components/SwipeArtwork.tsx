@@ -14,9 +14,9 @@ const ARTWORK_SIZE = SCREEN_WIDTH * 0.88;
 const SPACING = 60;
 
 interface SwipeArtworkProps {
-  currentImage: string;
-  previousImage?: string;
-  nextImage?: string;
+  currentImage: string | number;
+  previousImage?: string | number;
+  nextImage?: string | number;
   onNext: () => void;
   onPrevious: () => void;
 }
@@ -143,25 +143,25 @@ export default function SwipeArtwork({
         <Animated.View style={[styles.artwork, previousStyle]}>
           {previousImage && (
             <Image
-              source={{ uri: previousImage }}
+              source={typeof previousImage === 'number' ? previousImage : { uri: previousImage }}
               style={styles.image}
               resizeMode="cover"
             />
           )}
         </Animated.View>
-        
+
         <Animated.View style={[styles.artwork, currentStyle]}>
           <Image
-            source={{ uri: currentImage }}
+            source={typeof currentImage === 'number' ? currentImage : { uri: currentImage }}
             style={styles.image}
             resizeMode="cover"
           />
         </Animated.View>
-        
+
         <Animated.View style={[styles.artwork, nextStyle]}>
           {nextImage && (
             <Image
-              source={{ uri: nextImage }}
+              source={typeof nextImage === 'number' ? nextImage : { uri: nextImage }}
               style={styles.image}
               resizeMode="cover"
             />
