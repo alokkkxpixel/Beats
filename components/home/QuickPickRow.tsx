@@ -178,7 +178,6 @@ const styles = StyleSheet.create({
   
     position: "relative",
   },
-
   // trackImage: {
   //   width: "100%",
   //   height: "100%",

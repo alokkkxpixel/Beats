@@ -1,17 +1,18 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
-    AudioQualityPreference,
-    clearPlayerState as clearStoredPlayerState,
-    getAudioQualityPreference,
-    getLikedSongs,
-    getPlayerState as getStoredPlayerState,
-    saveLikedSongs,
-    savePlayerState as saveStoredPlayerState,
-    setAudioQualityPreference,
+  AudioQualityPreference,
+  clearPlayerState as clearStoredPlayerState,
+  getAudioQualityPreference,
+  getLikedSongs,
+  getPlayerState as getStoredPlayerState,
+  saveLikedSongs,
+  savePlayerState as saveStoredPlayerState,
+  setAudioQualityPreference,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { ExtractedColors } from "@/src/utils/extractAccentColor";
 import { SongDetail } from "@/types/jiosaavn";
+import { ToastAndroid } from "react-native";
 // ===== COMMENTED OUT: RNTP imports =====
 // import TrackPlayer, { State } from "react-native-track-player";
 
@@ -209,8 +210,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     let updated: SongDetail[];
     if (isLiked) {
       updated = likedSongs.filter((s) => s.id !== song.id);
+      ToastAndroid.show("Removed from liked songs", ToastAndroid.LONG);
     } else {
       updated = [song, ...likedSongs];
+      ToastAndroid.show("Added to liked songs", ToastAndroid.LONG);
     }
     saveLikedSongs(updated);
     set({ likedSongs: updated });
@@ -724,6 +727,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     if (queue.some((queuedTrack) => queuedTrack.id === track.id)) {
+      ToastAndroid.show("Already in queue", ToastAndroid.LONG);
       return;
     }
 
@@ -737,7 +741,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: originalQueue ? [...originalQueue, track] : null,
         queue: [...queue, track],
       });
+      
+      ToastAndroid.show("Added to queue", ToastAndroid.LONG);
+      // Toast.show({
+      //   type: "success",
+      //   text1: "Added to queue",
+      //   text2: track.name || "Song",
+      //   position: "top",
+      // });
     } catch (error) {
+      ToastAndroid.show("Error adding track to queue", ToastAndroid.LONG);
       console.error("Error adding track to queue:", error);
     }
   },

@@ -2,13 +2,13 @@ import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import { PlayerWrapper } from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
+import { persister, queryClient } from "@/src/lib/query-client";
 import { useFonts } from "@expo-google-fonts/inter";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { persister, queryClient } from "@/src/lib/query-client";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -16,8 +16,8 @@ import * as React from "react";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import Toast from "react-native-toast-message";
 import "../global.css";
-
 // const queryClient = new QueryClient({
 //   defaultOptions: {
 //     queries: {
@@ -98,6 +98,7 @@ export default function RootLayout() {
           </PlayerWrapper>
 
           <StatusBar style="light" translucent={true} />
+          <Toast />
         </ThemeProvider>
       </GestureHandlerRootView>
     </PersistQueryClientProvider>

@@ -333,7 +333,7 @@ export default function LibraryScreen() {
                 <Text className="text-white text-3xl font-sans-medium tracking-tighter mb-4">
                   Your Playlists
                 </Text>
-                {combinedPlaylistsAndAlbums.map((item) => {
+                {combinedPlaylistsAndAlbums.map((item,idx) => {
                   const imageUri = getImageUri(item.image);
                   const isLiked = item.id === "liked-songs";
                   const isLocalPlaylist = item.type === "local-playlist";
@@ -360,7 +360,7 @@ export default function LibraryScreen() {
 
                   return (
                     <TouchableOpacity
-                      key={item.id}
+                      key={item.id || idx}
                       activeOpacity={0.7}
                       className="flex-row items-center py-3"
                       onPress={handleItemPress}

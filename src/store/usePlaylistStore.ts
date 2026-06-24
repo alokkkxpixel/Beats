@@ -1,16 +1,15 @@
-import { Playlist } from "@/types/jiosaavn";
 import {
-  addSongToPlaylist,
-  createPlaylist as createPlaylistStorage,
-  deletePlaylist as deletePlaylistStorage,
-  getPlaylists,
-  removeSongFromPlaylist,
-  savePlaylists,
-  updatePlaylist as updatePlaylistStorage,
-  getSavedAlbums,
-  saveSavedAlbums,
+    addSongToPlaylist,
+    createPlaylist as createPlaylistStorage,
+    deletePlaylist as deletePlaylistStorage,
+    getPlaylists,
+    getSavedAlbums,
+    removeSongFromPlaylist,
+    saveSavedAlbums,
+    updatePlaylist as updatePlaylistStorage
 } from "@/src/lib/storage";
-import { SongDetail } from "@/types/jiosaavn";
+import { Playlist, SongDetail } from "@/types/jiosaavn";
+import Toast from "react-native-toast-message";
 import { create } from "zustand";
 
 interface PlaylistState {
@@ -53,17 +52,35 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
   createPlaylist: (name, description) => {
     const newPlaylist = createPlaylistStorage(name, description);
     get().loadPlaylists();
+    Toast.show({
+      type: "success",
+      text1: "Playlist created",
+      text2: name,
+      position: "top",
+    });
     return newPlaylist;
   },
 
   addSongToPlaylist: (playlistId, song) => {
     addSongToPlaylist(playlistId, song);
     get().loadPlaylists();
+    const playlist = get().playlists.find((p) => p.id === playlistId);
+    Toast.show({
+      type: "success",
+      text1: "Added to playlist",
+      text2: playlist?.name || "Playlist",
+      position: "top",
+    });
   },
 
   removeSongFromPlaylist: (playlistId, songId) => {
     removeSongFromPlaylist(playlistId, songId);
     get().loadPlaylists();
+    Toast.show({
+      type: "success",
+      text1: "Removed from playlist",
+      position: "top",
+    });
   },
 
   deletePlaylist: (playlistId) => {
@@ -93,7 +110,15 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
   addAlbumToLibrary: (album) => {
     const albums = getSavedAlbums();
-    if (albums.some((a) => a.id === album.id)) return;
+    if (albums.some((a) => a.id === album.id)) {
+      Toast.show({
+        type: "info",
+        text1: "Already in library",
+        text2: "This album is already in your library",
+        position: "top",
+      });
+      return;
+    }
 
     const artistName = album.artists?.primary?.[0]?.name || album.artist || "Various Artists";
     const yearText = album.year ? ` • ${album.year}` : "";
@@ -110,6 +135,13 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     const updated = [newAlbum, ...albums];
     saveSavedAlbums(updated);
     get().loadSavedAlbums();
+
+    Toast.show({
+      type: "success",
+      text1: "Added to library",
+      text2: album.name || album.title || "Album",
+      position: "top",
+    });
   },
 
   removeAlbumFromLibrary: (albumId) => {

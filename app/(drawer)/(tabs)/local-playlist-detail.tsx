@@ -61,7 +61,7 @@ export default function LocalPlaylistDetailRoute() {
     subtitle: `${playlist.songs?.length || 0} songs`,
     year: new Date(playlist.createdAt).getFullYear(),
   };
-  console.log("transformedPlaylist", transformedPlaylist);
+  // console.log("transformedPlaylist", transformedPlaylist);
 
   return (
     <AlbumDetailScreen
