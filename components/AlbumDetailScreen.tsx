@@ -18,11 +18,11 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PlayingIndicator from "./PlayingIndicator";
@@ -135,6 +135,8 @@ const AlbumDetailScreen = ({
   const songs = album?.songs || [];
   const artistName =
     album?.artists?.primary?.[0]?.name || album?.artistName || "";
+  const artistImage =
+    album?.artists?.primary?.[0]?.image[0]?.url || album?.image?.[0]?.url || "";
   const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
   const setQueue = usePlayerStore((state) => state.setQueue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
@@ -228,7 +230,7 @@ const AlbumDetailScreen = ({
         />
      
         <Text style={styles.mainTitle} className="tracking-tighter">
-          {album?.name || album?.title}
+          {album?.name || album?.title }
         </Text>
 
         <View style={styles.descriptionContainer}>
@@ -323,7 +325,7 @@ const AlbumDetailScreen = ({
             <View style={styles.headerArtistRow}>
               <Image
                 source={{
-                  uri: highResCover,
+                  uri: artistImage,
                 }}
                 style={styles.headerAvatar}
               />
@@ -448,7 +450,7 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     color: "white",
-    fontSize: 28,
+    fontSize: 26,
     // fontWeight: "bold",
     fontFamily: "sans-bold",
     marginTop: 24,
@@ -499,7 +501,7 @@ const styles = StyleSheet.create({
     // borderRadius: 12,
   },
   activeTrackItem: {
-    backgroundColor: "rgba(49, 48, 48, 0.7)",
+    backgroundColor: "rgb(255, 255, 255,0.1)",
   },
   trackImage: {
     width: 48,
@@ -523,6 +525,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 8,
+    zIndex:999,
     overflow: "hidden",
     position: "relative",
   },
@@ -534,11 +537,12 @@ const styles = StyleSheet.create({
 
   playingOverlay: {
     height: "100%",
-    width: "100%",
+    width: "86%",
     position: "absolute",
     top: 0,
+    overflow: "hidden",
     left: 0,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    // backgroundColor: "rgba(230, 225, 225, 0.45)",
     justifyContent: "center",
     alignItems: "center",
   },

@@ -460,10 +460,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   artWrapper: {
+    justifyContent:"center",
     alignItems: "center",
     marginTop: 50,
     marginBottom: 40,
     position: "relative",
+    width: width * 0.88,
+    height: width * 0.88,
+    alignSelf: "center",
   },
   imageLoaderContainer: {
     position: "absolute",
@@ -475,8 +479,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 8,
-    width: width * 0.88,
-    height: width * 0.88,
   },
   trackInfo: {
     flex: 1,

@@ -20,7 +20,6 @@ export default function AlbumDetailRoute() {
     isLikedPlaylist ? null : (albumId ?? null),
     albumUrl ?? null,
   );
-
   // ✅ Liked Songs Conditional Branch
   if (isLikedPlaylist) {
     const playlist = {

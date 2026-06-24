@@ -4,7 +4,7 @@
     "slug": "Beats",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/appstore.png",
+    "icon": "./assets/icons/appIcon.png",
     "scheme": "beats",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050505",
@@ -33,13 +33,13 @@
     "web": {
       "output": "static",
       "bundler": "metro",
-      "favicon": "./assets/icons/playstore.png"
+      "favicon": "./assets/icons/appIcon.png"
     },
     "plugins": [
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/android-icon-monochrome.png",
+          "icon": "./assets/icons/ic_notification.png",
           "color": "#ffffff"
         }
       ],
@@ -48,7 +48,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icons/appstore.png",
+          "image": "./assets/icons/appIcon.png",
           "imageWidth": 250,
           "resizeMode": "contain",
           "backgroundColor": "#050505",

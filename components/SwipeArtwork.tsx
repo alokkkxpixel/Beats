@@ -140,7 +140,7 @@ export default function SwipeArtwork({
   return (
     <GestureDetector gesture={gesture}>
       <View style={styles.container}>
-        <Animated.View style={[styles.artwork, previousStyle]}>
+        {/* <Animated.View style={[styles.artwork, previousStyle]}>
           {previousImage && (
             <Image
               source={typeof previousImage === 'number' ? previousImage : { uri: previousImage }}
@@ -148,7 +148,7 @@ export default function SwipeArtwork({
               resizeMode="cover"
             />
           )}
-        </Animated.View>
+        </Animated.View> */}
 
         <Animated.View style={[styles.artwork, currentStyle]}>
           <Image
@@ -180,6 +180,8 @@ const styles = StyleSheet.create({
   },
   artwork: {
     position: "absolute",
+    left: 0,
+    top: 0,
     width: ARTWORK_SIZE,
     height: ARTWORK_SIZE,
     borderRadius: 8,

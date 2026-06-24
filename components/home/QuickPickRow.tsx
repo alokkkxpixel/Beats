@@ -159,11 +159,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.15)", // 0.6 = 60% opacity
   },
   cover: {
-    width: 53,
-    height: 53,
+    width: 50,
+    height: 50,
     borderRadius: 6,
     marginRight: 12,
     backgroundColor: "#18181B",
+    justifyContent: "center",
+    alignItems: "center",
   },
   meta: {
     flex: 1,
@@ -173,6 +175,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 8,
     overflow: "hidden",
+  
     position: "relative",
   },
 
@@ -187,9 +190,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    marginHorizontal:"auto",
+    // backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "center",
   },
   title: {
     color: "#FAFAFA",
