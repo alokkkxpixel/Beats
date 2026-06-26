@@ -129,6 +129,17 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
         </Pressable>
       </View>
 
+      {/* <DownloadButton
+        track={{
+          id: item.id,
+          name: item.title,
+          image: item.cover,
+          primaryArtists: item.artist,
+          url: item.url,
+        } as any}
+        size={20}
+      /> */}
+
       <Pressable
         style={{
           justifyContent: "center",
@@ -175,7 +186,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 8,
     overflow: "hidden",
-  
+
     position: "relative",
   },
   // trackImage: {
@@ -189,7 +200,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    marginHorizontal:"auto",
+    marginHorizontal: "auto",
     // backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "center",
     alignItems: "center",

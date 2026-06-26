@@ -60,6 +60,15 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  React.useEffect(() => {
+    // Dynamically import downloadManager so native modules (expo-task-manager,
+    // expo-background-fetch) are only accessed after the native bridge is ready.
+    // A top-level static import crashes the app before providers mount.
+    import("../src/lib/downloadManager")
+      .then(({ configureDownloadManager }) => configureDownloadManager())
+      .catch((err) => console.warn("DownloadManager init failed:", err));
+  }, []);
+
   // Temporarily bypass font check to avoid black screen
   // if (!fontsLoaded) return null;
 

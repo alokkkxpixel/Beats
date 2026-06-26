@@ -6,6 +6,7 @@ import LibraryFill from "@/assets/app-icons/library-fill.svg";
 import LibraryUnfill from "@/assets/app-icons/library-unfill.svg";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Tabs } from "expo-router";
+import { Download } from "lucide-react-native";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgProps } from "react-native-svg";
@@ -85,6 +86,16 @@ export default function TabLayout() {
               focused={focused}
               color={color}
             />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="downloads"
+        options={{
+          href: null,
+          title: "Downloads",
+          tabBarIcon: ({ color, focused }) => (
+            <Download size={24} color={focused ? "#fff" : "#737373"} />
           ),
         }}
       />

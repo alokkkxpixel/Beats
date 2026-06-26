@@ -115,7 +115,7 @@ const FullPlayer = React.memo(
       if (currentIndex > 0 && queue[currentIndex - 1]) {
         const prevSong = queue[currentIndex - 1];
         const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
-        return prevOriginal?.image?.[3]?.url ||
+     return prevOriginal?.image?.[3]?.url ||
                (prevSong as any)?.image?.[2]?.url ||
                prevOriginal?.image?.[0]?.url;
       }
@@ -127,8 +127,8 @@ const FullPlayer = React.memo(
         const nextSong = queue[currentIndex + 1];
         const nextOriginal = (nextSong as any)?.extraPayload?.song || nextSong;
         return nextOriginal?.image?.[3]?.url ||
-               (nextSong as any)?.image?.[2]?.url ||
-               nextOriginal?.image?.[0]?.url;
+          (nextSong as any)?.image?.[2]?.url ||
+          nextOriginal?.image?.[0]?.url;
       }
       return undefined;
     }, [currentIndex, queue]);

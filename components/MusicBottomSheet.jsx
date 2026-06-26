@@ -16,6 +16,8 @@ import SaveIcon from "@/assets/app-icons/playlist-add.svg";
 import PlayNextIcon from "@/assets/app-icons/playlist-next.svg";
 import RadioIcon from "@/assets/app-icons/radio.svg";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
+import { useDownloadStore } from "@/src/store/useDownloadStore";
+import { Check, Trash2 } from "lucide-react-native";
 import TextTicker from "react-native-text-ticker";
 
 export default function MusicBottomSheet() {
@@ -27,6 +29,17 @@ export default function MusicBottomSheet() {
     usePlayerStore((state) => state.activeSong) ||
     selectedSongOption ||
     currentTrack;
+  const {
+    downloadTrack,
+    deleteDownload,
+    getDownloadProgress,
+  } = useDownloadStore();
+
+  const isDownloaded = useDownloadStore((s) =>
+    activeSong?.id ? s.downloadedTracks.has(activeSong.id) : false,
+  );
+  const progress = getDownloadProgress(activeSong?.id);
+
   const router = useRouter();
   const addToQueue = usePlayerStore((s) => s.addToQueue);
   const playNext = usePlayerStore((s) => s.playNext);
@@ -180,7 +193,35 @@ export default function MusicBottomSheet() {
           },
         ]
       : []),
-    { icon: DownloadIcon, label: "Download" },
+    ...(isDownloaded
+      ? [
+          {
+            icon: (props) => <Trash2 size={props.width || 24} color="#ef4444" />,
+            label: "Delete download",
+            fnx: async () => {
+              await deleteDownload(activeSong.id);
+              minizeMoreOption();
+            },
+          },
+        ]
+      : progress?.state === "downloading"
+      ? [
+          {
+            icon: DownloadIcon,
+            label: `Downloading (${Math.round(progress.progress * 100)}%)`,
+            fnx: () => {},
+          },
+        ]
+      : [
+          {
+            icon: DownloadIcon,
+            label: "Download",
+            fnx: async () => {
+              minizeMoreOption();
+              await downloadTrack(activeSong);
+            },
+          },
+        ]),
     {
       icon: AlbumIcon,
       label: "Go to album",

@@ -15,6 +15,8 @@ import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { useDownloadStore } from "@/src/store/useDownloadStore";
+import { Check } from "lucide-react-native";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -46,18 +48,24 @@ const TrackItem = React.memo(function TrackItem({
   artistName,
   isCurrent,
   onPress,
+  albumId,
 }: {
   item: Song;
   index: number;
   artistName: string;
   isCurrent: boolean;
   onPress: () => void;
+  albumId?: string;
 }) {
   const imageUri = item.image?.[1]?.url || item.image?.[0]?.url;
   const artist = item.artists?.primary?.[0]?.name || artistName;
   const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
+  const setShowDeleteDownloadOption = usePlayerStore((s) => s.setShowDeleteDownloadOption);
+
+  const isDownloaded = useDownloadStore((s) => s.downloadedTracks.has(item.id));
+  const progress = useDownloadStore((s) => s.downloadProgress.get(item.id));
 
   const handleOption = async (songItem: any) => {
     const response = await jioSaavnService.getSongByIdandLink(
@@ -69,6 +77,7 @@ const TrackItem = React.memo(function TrackItem({
     } else {
       setSelectedSongOption(songItem);
     }
+    setShowDeleteDownloadOption(albumId === "downloaded-songs");
     expandMoreOption();
   };
   const accentColor = usePlayerStore((state) => state.accentColor);
@@ -113,6 +122,21 @@ const TrackItem = React.memo(function TrackItem({
           </Text>
         </View>
       </View>
+
+      {/* Download Status overlay in list */}
+      {isDownloaded && (
+        <View style={{ marginRight: 8, justifyContent: "center" }}>
+          <Check size={18} color="#22c55e" />
+        </View>
+      )}
+
+      {progress?.state === "downloading" && (
+        <View style={{ marginRight: 8, justifyContent: "center" }}>
+          <Text style={{ color: "#3b82f6", fontSize: 12, fontWeight: "bold" }}>
+            {Math.round(progress.progress * 100)}%
+          </Text>
+        </View>
+      )}
 
       <TouchableOpacity
         onPress={() => handleOption(item)}
@@ -366,6 +390,7 @@ const AlbumDetailScreen = ({
                   artistName={artistName}
                   isCurrent={isCurrent}
                   onPress={() => setQueue(songs, index)}
+                  albumId={album?.id}
                 />
               );
             }}

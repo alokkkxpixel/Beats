@@ -1,4 +1,5 @@
 import { createMMKV } from "react-native-mmkv";
+import type { SongDetail } from "@/types/jiosaavn";
 
 export const storage = createMMKV({
   id: "beats-app-storage",
@@ -223,6 +224,8 @@ export const saveSavedAlbums = (albums: any[]) => {
 
 const PLAYER_STATE_KEY = "player-state";
 
+const DOWNLOAD_TRACK_METADATA_PREFIX = "download-track-metadata:";
+
 export interface PlayerState {
   currentTrack: any | null;
   queue: any[];
@@ -250,4 +253,40 @@ export const savePlayerState = (state: PlayerState) => {
 
 export const clearPlayerState = () => {
   storage.remove(PLAYER_STATE_KEY);
+};
+
+export const saveDownloadedTrackMetadata = (
+  trackId: string,
+  song: SongDetail,
+) => {
+  storage.set(
+    `${DOWNLOAD_TRACK_METADATA_PREFIX}${trackId}`,
+    JSON.stringify(song),
+  );
+};
+
+export const getDownloadedTrackMetadata = (
+  trackId: string,
+): SongDetail | null => {
+  const raw = storage.getString(`${DOWNLOAD_TRACK_METADATA_PREFIX}${trackId}`);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as SongDetail;
+  } catch {
+    return null;
+  }
+};
+
+export const deleteDownloadedTrackMetadata = (trackId: string) => {
+  storage.remove(`${DOWNLOAD_TRACK_METADATA_PREFIX}${trackId}`);
+};
+
+export const clearDownloadedTrackMetadata = () => {
+  const keys = storage.getAllKeys();
+  keys.forEach((key) => {
+    if (key.startsWith(DOWNLOAD_TRACK_METADATA_PREFIX)) {
+      storage.remove(key);
+    }
+  });
 };

@@ -16,8 +16,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import { DownloadManager } from "react-native-nitro-player";
 import Animated, {
   interpolateColor,
   useAnimatedScrollHandler,
@@ -144,6 +145,7 @@ export default function LibraryScreen() {
   const [recentActivity, setRecentActivity] = useState<LibraryItemData[]>([]);
   const insets = useSafeAreaInsets();
   const playlists = usePlaylistStore((s) => s.playlists);
+  const liked = usePlayerStore((s) => s.likedSongs);
   const loadPlaylists = usePlaylistStore((s) => s.loadPlaylists);
   const savedAlbums = usePlaylistStore((s) => s.savedAlbums);
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
@@ -155,12 +157,22 @@ export default function LibraryScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editPlaylistName, setEditPlaylistName] = useState("");
 
+  const [downloadCount, setDownloadCount] = useState(0);
+
   useFocusEffect(
     useCallback(() => {
       const activity = getRecentActivity();
       setRecentActivity(activity);
       loadPlaylists();
       loadSavedAlbums();
+
+      DownloadManager.getAllDownloadedTracks()
+        .then((tracks) => {
+          setDownloadCount(tracks?.length || 0);
+        })
+        .catch((err) =>
+          console.error("Error fetching downloaded tracks count:", err),
+        );
     }, [loadPlaylists, loadSavedAlbums]),
   );
 
@@ -178,9 +190,10 @@ export default function LibraryScreen() {
       updatedAt: Infinity,
     });
 
-    // 2. Playlists
+    // Sort playlists and albums by updatedAt desc
+    const sortedRest: any[] = [];
     playlists.forEach((p) => {
-      items.push({
+      sortedRest.push({
         id: p.id,
         title: p.name,
         subtitle: `${p.songs?.length || 0} songs`,
@@ -190,9 +203,8 @@ export default function LibraryScreen() {
       });
     });
 
-    // 3. Saved Albums
     savedAlbums.forEach((a) => {
-      items.push({
+      sortedRest.push({
         id: a.id,
         title: a.title,
         subtitle: a.subtitle || "Album",
@@ -202,13 +214,21 @@ export default function LibraryScreen() {
       });
     });
 
-    // Sort index 1+ by updatedAt desc, keeping Liked Songs at index 0
-    const liked = items[0];
-    const rest = items.slice(1);
-    rest.sort((a, b) => b.updatedAt - a.updatedAt);
+    sortedRest.sort((a, b) => b.updatedAt - a.updatedAt);
 
-    return [liked, ...rest];
-  }, [playlists, savedAlbums]);
+    // Downloads item
+    const downloadsItem = {
+      id: "downloaded-songs",
+      title: "Downloads",
+      subtitle: `${downloadCount} songs`,
+      type: "downloaded-songs",
+      image:
+        "@/assets/app-icons/download-cover.png",
+      updatedAt: Infinity - 1,
+    };
+
+    return [items[0], downloadsItem, ...sortedRest];
+  }, [liked, playlists, savedAlbums, downloadCount]);
 
   const handleClear = () => {
     clearRecentActivity();
@@ -333,7 +353,7 @@ export default function LibraryScreen() {
                 <Text className="text-white text-3xl font-sans-medium tracking-tighter mb-4">
                   Your Playlists
                 </Text>
-                {combinedPlaylistsAndAlbums.map((item,idx) => {
+                {combinedPlaylistsAndAlbums.map((item, idx) => {
                   const imageUri = getImageUri(item.image);
                   const isLiked = item.id === "liked-songs";
                   const isLocalPlaylist = item.type === "local-playlist";
@@ -344,6 +364,11 @@ export default function LibraryScreen() {
                       router.push({
                         pathname: "/album-detail",
                         params: { albumId: "liked-songs" },
+                      });
+                    } else if (item.id === "downloaded-songs") {
+                      router.push({
+                        pathname: "/album-detail",
+                        params: { albumId: "downloaded-songs" },
                       });
                     } else if (isLocalPlaylist) {
                       router.push({
@@ -412,8 +437,6 @@ export default function LibraryScreen() {
                 })}
               </View>
             )}
-
-            
           </>
         }
         // ListEmptyComponent={
@@ -456,7 +479,9 @@ export default function LibraryScreen() {
               onPress={handleDeletePlaylist}
             >
               <Trash2 size={20} color="#ef4444" />
-              <Text style={[styles.menuItemText, styles.deleteText]}>Delete</Text>
+              <Text style={[styles.menuItemText, styles.deleteText]}>
+                Delete
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

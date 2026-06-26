@@ -2,6 +2,7 @@ import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
   AudioQualityPreference,
   clearPlayerState as clearStoredPlayerState,
+  getDownloadedTrackMetadata,
   getAudioQualityPreference,
   getLikedSongs,
   getPlayerState as getStoredPlayerState,
@@ -17,32 +18,38 @@ import { ToastAndroid } from "react-native";
 // import TrackPlayer, { State } from "react-native-track-player";
 
 // ===== NEW: Nitro Player imports =====
-import { PlayerQueue, TrackItem, TrackPlayer } from "react-native-nitro-player";
+import { DownloadManager, PlayerQueue, TrackItem, TrackPlayer } from "react-native-nitro-player";
 import { create } from "zustand";
 
 const mapToTrackItem = (
   song: SongDetail,
   audioQuality: AudioQualityPreference = getAudioQualityPreference(),
-): TrackItem => ({
-  id: song.id,
-  title: song.name,
-  artist:
-    song.primaryArtists || song.artists?.primary?.[0]?.name || "Unknown Artist",
-  album:
-    typeof song.album === "string"
-      ? song.album
-      : song.album?.name || "Unknown Album",
-  duration: song.duration || 0,
-  url: getPreferredTrackUrl(song, audioQuality),
-  artwork: Array.isArray(song.image)
-    ? typeof song.image[song.image.length - 1] === "string"
-      ? song.image[song.image.length - 1]
-      : (song.image[song.image.length - 1] as any)?.url || ""
-    : typeof song.image === "string"
-      ? song.image
-      : "",
-  extraPayload: { song: song as any }, // Store the full original song data
-});
+): TrackItem => {
+  const networkUrl = getPreferredTrackUrl(song, audioQuality);
+
+  const tempTrackItem: TrackItem = {
+    id: song.id,
+    title: song.name,
+    artist:
+      song.primaryArtists || song.artists?.primary?.[0]?.name || "Unknown Artist",
+    album:
+      typeof song.album === "string"
+        ? song.album
+        : song.album?.name || "Unknown Album",
+    duration: song.duration || 0,
+    url: networkUrl,
+    artwork: Array.isArray(song.image)
+      ? typeof song.image[song.image.length - 1] === "string"
+        ? song.image[song.image.length - 1]
+        : (song.image[song.image.length - 1] as any)?.url || ""
+      : typeof song.image === "string"
+        ? song.image
+        : "",
+    extraPayload: { song: song as any },
+  };
+
+  return tempTrackItem;
+};
 
 const shuffleSongs = (songs: SongDetail[]) => {
   const shuffled = [...songs];
@@ -102,6 +109,8 @@ interface PlayerState {
   isFullPlayerOpen: boolean;
   selectedSongOption: SongDetail | null | string;
   isMoreOptionOpen: boolean;
+  showDeleteDownloadOption: boolean;
+  setShowDeleteDownloadOption: (show: boolean) => void;
   isQueueOpen: boolean;
 
   isDrawerOpen: boolean;
@@ -180,6 +189,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isLyricsOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
+  showDeleteDownloadOption: false,
+  setShowDeleteDownloadOption: (show) => set({ showDeleteDownloadOption: show }),
   isDragging: false,
   isFetchingSuggestions: false,
   accentColor: {
@@ -264,9 +275,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
       );
       if (likedSongs.length > 0) {
-        const trackItems = likedSongs.map((s) =>
-          mapToTrackItem(s, audioQuality),
-        );
+        const trackItems = likedSongs.map((s) => mapToTrackItem(s, audioQuality));
         await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
       }
     } catch (error) {
@@ -297,9 +306,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     try {
-      const updatedTrackItems = queue.map((track) =>
-        mapToTrackItem(track, quality),
-      );
+      const updatedTrackItems = queue.map((track) => mapToTrackItem(track, quality));
       const playlistId = await PlayerQueue.createPlaylist(
         `Queue_${Date.now()}`,
         "Playback Queue",
@@ -395,14 +402,45 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       });
 
       let fullTrack = normalizedTrack as any;
+      let isDownloaded = false;
+      try {
+        isDownloaded = await DownloadManager.isTrackDownloaded(normalizedTrack.id);
+      } catch (err) {
+        console.warn("Error checking download status:", err);
+      }
+
+      if (isDownloaded) {
+        try {
+          const savedMetadata = getDownloadedTrackMetadata(normalizedTrack.id);
+          if (savedMetadata) {
+            fullTrack = savedMetadata;
+          } else {
+            const downloadedTrack = await DownloadManager.getDownloadedTrack(normalizedTrack.id);
+            if (downloadedTrack?.originalTrack?.extraPayload?.song) {
+              fullTrack = downloadedTrack.originalTrack.extraPayload.song;
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to retrieve downloaded track details:", err);
+        }
+      }
+
+      if (isDownloaded) {
+        set({
+          currentTrack: fullTrack,
+          queue: [fullTrack] as any,
+          duration: fullTrack.duration || 0,
+        });
+      }
+
       const isPartial =
-        !normalizedTrack.downloadUrl ||
-        normalizedTrack.downloadUrl.length === 0;
+        (!fullTrack.downloadUrl || fullTrack.downloadUrl.length === 0) &&
+        !isDownloaded;
 
       if (isPartial) {
         const response = await jioSaavnService.getSongByIdandLink(
-          normalizedTrack.id,
-          normalizedTrack.url,
+          fullTrack.id,
+          fullTrack.url,
         );
         if (response.success && response.data[0]) {
           fullTrack = response.data[0];
@@ -502,14 +540,47 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       });
 
       let fullTrack = normalizedSelectedTrack as any;
+      let isDownloaded = false;
+      try {
+        isDownloaded = await DownloadManager.isTrackDownloaded(normalizedSelectedTrack.id);
+      } catch (err) {
+        console.warn("Error checking download status:", err);
+      }
+
+      if (isDownloaded) {
+        try {
+          const savedMetadata = getDownloadedTrackMetadata(normalizedSelectedTrack.id);
+          if (savedMetadata) {
+            fullTrack = savedMetadata;
+          } else {
+            const downloadedTrack = await DownloadManager.getDownloadedTrack(normalizedSelectedTrack.id);
+            if (downloadedTrack?.originalTrack?.extraPayload?.song) {
+              fullTrack = downloadedTrack.originalTrack.extraPayload.song;
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to retrieve downloaded track details:", err);
+        }
+      }
+
+      if (isDownloaded) {
+        const updatedQueue = [...normalizedQueue];
+        updatedQueue[startIndex] = fullTrack;
+        set({
+          currentTrack: fullTrack,
+          queue: updatedQueue as any,
+          duration: fullTrack.duration || 0,
+        });
+      }
+
       const isPartial =
-        !normalizedSelectedTrack.downloadUrl ||
-        normalizedSelectedTrack.downloadUrl.length === 0;
+        (!fullTrack.downloadUrl || fullTrack.downloadUrl.length === 0) &&
+        !isDownloaded;
 
       if (isPartial) {
         const response = await jioSaavnService.getSongByIdandLink(
-          normalizedSelectedTrack.id,
-          normalizedSelectedTrack.url,
+          fullTrack.id,
+          fullTrack.url,
         );
         if (response.success && response.data[0]) {
           fullTrack = response.data[0];
@@ -928,14 +999,47 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       // Fetch full track details if needed
       let fullTrack = normalizedCurrentTrack as any;
+      let isDownloaded = false;
+      try {
+        isDownloaded = await DownloadManager.isTrackDownloaded(normalizedCurrentTrack.id);
+      } catch (err) {
+        console.warn("Error checking download status:", err);
+      }
+
+      if (isDownloaded) {
+        try {
+          const savedMetadata = getDownloadedTrackMetadata(normalizedCurrentTrack.id);
+          if (savedMetadata) {
+            fullTrack = savedMetadata;
+          } else {
+            const downloadedTrack = await DownloadManager.getDownloadedTrack(normalizedCurrentTrack.id);
+            if (downloadedTrack?.originalTrack?.extraPayload?.song) {
+              fullTrack = downloadedTrack.originalTrack.extraPayload.song;
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to retrieve downloaded track details:", err);
+        }
+      }
+
+      if (isDownloaded) {
+        const updatedQueue = [...normalizedQueue];
+        updatedQueue[savedState.currentIndex] = fullTrack;
+        set({
+          currentTrack: fullTrack,
+          queue: updatedQueue as any,
+          duration: fullTrack.duration || 0,
+        });
+      }
+
       const isPartial =
-        !normalizedCurrentTrack.downloadUrl ||
-        normalizedCurrentTrack.downloadUrl.length === 0;
+        (!fullTrack.downloadUrl || fullTrack.downloadUrl.length === 0) &&
+        !isDownloaded;
 
       if (isPartial) {
         const response = await jioSaavnService.getSongByIdandLink(
-          normalizedCurrentTrack.id,
-          normalizedCurrentTrack.url,
+          fullTrack.id,
+          fullTrack.url,
         );
         if (response.success && response.data[0]) {
           fullTrack = response.data[0];
