@@ -17,6 +17,7 @@ import QueueSheet from "./QueueSheet";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import LyricsScreen from "./LyricsScreen";
 import PlaylistModal from "./PlaylistModal";
+import AudioDeviceBottomSheet from "./AudioDeviceBottomSheet";
 const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
   const { hasTrack, isDrawerOpen, expandFullPlayer } = usePlayerStore(
     useShallow((s) => ({
@@ -118,7 +119,6 @@ const MoreOptionsSheetLayer = React.memo(() => {
       minizeMoreOption: s.minizeMoreOption,
     })),
   );
-  const accentColor = usePlayerStore((state) => state.accentColor);
   const moreSheetRef = useRef<BottomSheet>(null);
   const snapPoints = React.useMemo(() => ["70%"], []);
 
@@ -171,6 +171,66 @@ const MoreOptionsSheetLayer = React.memo(() => {
   );
 });
 MoreOptionsSheetLayer.displayName = "MoreOptionsSheetLayer";
+
+const AudioDeviceSheetLayer = React.memo(() => {
+  const { isAudioDeviceOpen, minizeAudioDevice } = usePlayerStore(
+    useShallow((s) => ({
+      isAudioDeviceOpen: s.isAudioDeviceOpen,
+      minizeAudioDevice: s.minizeAudioDevice,
+    })),
+  );
+
+  const audioSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = React.useMemo(() => ["65%"], []);
+
+  useEffect(() => {
+    if (isAudioDeviceOpen) audioSheetRef.current?.snapToIndex(0);
+    else audioSheetRef.current?.close();
+  }, [isAudioDeviceOpen]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        pressBehavior="close"
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
+
+  return (
+    <View
+      style={[
+        styles.sheetContainer,
+        { zIndex: isAudioDeviceOpen ? 2100 : -1 },
+      ]}
+      pointerEvents={isAudioDeviceOpen ? "auto" : "none"}
+    >
+      <BottomSheet
+        ref={audioSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        enableDynamicSizing={false}
+        animateOnMount={false}
+        onClose={minizeAudioDevice}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.audioSheetBackground}
+        handleIndicatorStyle={{ backgroundColor: "#fff" }}
+      >
+        <BottomSheetScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.moreSheetContent}
+        >
+          <AudioDeviceBottomSheet />
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </View>
+  );
+});
+AudioDeviceSheetLayer.displayName = "AudioDeviceSheetLayer";
 
 const QueueSheetLayer = React.memo(() => {
   const { isQueueOpen, minimizeQueue } = usePlayerStore(
@@ -315,6 +375,10 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
         state.minizeMoreOption();
         return true;
       }
+      if (state.isAudioDeviceOpen) {
+        state.minizeAudioDevice();
+        return true;
+      }
       if (state.isLyricsOpen) {
         state.minimizeLyrics();
         return true;
@@ -340,6 +404,7 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
       <MiniPlayerLayer tabHeight={TABBAR_HEIGHT} />
       <FullPlayerSheetLayer />
       <MoreOptionsSheetLayer />
+      <AudioDeviceSheetLayer />
       <QueueSheetLayer />
       <LyricsSheetLayer />
       <PlaylistModalLayer />
@@ -361,6 +426,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   moreSheetBackground: {
+    backgroundColor: "#1d1d1dff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  audioSheetBackground: {
     backgroundColor: "#1d1d1dff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

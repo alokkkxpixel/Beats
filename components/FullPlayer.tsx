@@ -35,15 +35,15 @@ const fallbackAccentColor = "#050505";
 
 type ImageColorsResult =
   | {
-      platform: "ios";
-      background?: string;
-      primary?: string;
-    }
+    platform: "ios";
+    background?: string;
+    primary?: string;
+  }
   | {
-      platform: "android" | "web";
-      dominant?: string;
-      vibrant?: string;
-    };
+    platform: "android" | "web";
+    dominant?: string;
+    vibrant?: string;
+  };
 
 
 
@@ -115,9 +115,9 @@ const FullPlayer = React.memo(
       if (currentIndex > 0 && queue[currentIndex - 1]) {
         const prevSong = queue[currentIndex - 1];
         const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
-     return prevOriginal?.image?.[3]?.url ||
-               (prevSong as any)?.image?.[2]?.url ||
-               prevOriginal?.image?.[0]?.url;
+        return prevOriginal?.image?.[3]?.url ||
+          (prevSong as any)?.image?.[2]?.url ||
+          prevOriginal?.image?.[0]?.url;
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -321,10 +321,10 @@ const FullPlayer = React.memo(
             onPress={() => expandLyrics()}
           > */}
           <LyricsPreview
-          // style={{width: "28%", marginLeft: "auto", marginRight: "auto"}}
-             
+            // style={{width: "28%", marginLeft: "auto", marginRight: "auto"}}
+
             onPress={expandLyrics}
-           />
+          />
           {/* </Pressable> */}
           {/* --- Artist Card --- */}
           <Pressable style={styles.artistCard} onPress={handleArtistPress}>
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   artWrapper: {
-    justifyContent:"center",
+    justifyContent: "center",
     alignItems: "center",
     marginTop: 50,
     marginBottom: 40,

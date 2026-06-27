@@ -94,6 +94,7 @@ export default function ArtistScreen() {
 
   useEffect(() => {
     if (artist) {
+      const timer = setTimeout(() => {
       addToRecentActivity({
         id: artist.id || id,
         title: artist.name,
@@ -104,6 +105,7 @@ export default function ArtistScreen() {
         )} monthly listeners`,
         timestamp: Date.now(),
       });
+    },20000);
     }
   }, [artist, id]);
 

@@ -1,14 +1,14 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
-  AudioQualityPreference,
-  clearPlayerState as clearStoredPlayerState,
-  getDownloadedTrackMetadata,
-  getAudioQualityPreference,
-  getLikedSongs,
-  getPlayerState as getStoredPlayerState,
-  saveLikedSongs,
-  savePlayerState as saveStoredPlayerState,
-  setAudioQualityPreference,
+    AudioQualityPreference,
+    clearPlayerState as clearStoredPlayerState,
+    getAudioQualityPreference,
+    getDownloadedTrackMetadata,
+    getLikedSongs,
+    getPlayerState as getStoredPlayerState,
+    saveLikedSongs,
+    savePlayerState as saveStoredPlayerState,
+    setAudioQualityPreference,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { ExtractedColors } from "@/src/utils/extractAccentColor";
@@ -18,7 +18,12 @@ import { ToastAndroid } from "react-native";
 // import TrackPlayer, { State } from "react-native-track-player";
 
 // ===== NEW: Nitro Player imports =====
-import { DownloadManager, PlayerQueue, TrackItem, TrackPlayer } from "react-native-nitro-player";
+import {
+    DownloadManager,
+    PlayerQueue,
+    TrackItem,
+    TrackPlayer,
+} from "react-native-nitro-player";
 import { create } from "zustand";
 
 const mapToTrackItem = (
@@ -31,7 +36,9 @@ const mapToTrackItem = (
     id: song.id,
     title: song.name,
     artist:
-      song.primaryArtists || song.artists?.primary?.[0]?.name || "Unknown Artist",
+      song.primaryArtists ||
+      song.artists?.primary?.[0]?.name ||
+      "Unknown Artist",
     album:
       typeof song.album === "string"
         ? song.album
@@ -112,11 +119,13 @@ interface PlayerState {
   showDeleteDownloadOption: boolean;
   setShowDeleteDownloadOption: (show: boolean) => void;
   isQueueOpen: boolean;
+  isAudioDeviceOpen: boolean;
 
   isDrawerOpen: boolean;
   isLyricsOpen: boolean;
   accentColor: ExtractedColors;
   setAccentColor: (color: ExtractedColors) => void;
+
   // --- Progress / Seekbar ---
   position: number;
   duration: number;
@@ -139,6 +148,8 @@ interface PlayerState {
   minizeMoreOption: () => void;
   expandQueue: () => void;
   minimizeQueue: () => void;
+  expandAudioDevice: () => void;
+  minizeAudioDevice: () => void;
   expandLyrics: () => void;
   minimizeLyrics: () => void;
   setDrawerOpen: (isOpen: boolean) => void;
@@ -186,11 +197,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   buffered: 0,
   isMoreOptionOpen: false,
   isQueueOpen: false,
+  isAudioDeviceOpen: false,
   isLyricsOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
   showDeleteDownloadOption: false,
-  setShowDeleteDownloadOption: (show) => set({ showDeleteDownloadOption: show }),
+  setShowDeleteDownloadOption: (show) =>
+    set({ showDeleteDownloadOption: show }),
   isDragging: false,
   isFetchingSuggestions: false,
   accentColor: {
@@ -275,7 +288,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
       );
       if (likedSongs.length > 0) {
-        const trackItems = likedSongs.map((s) => mapToTrackItem(s, audioQuality));
+        const trackItems = likedSongs.map((s) =>
+          mapToTrackItem(s, audioQuality),
+        );
         await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
       }
     } catch (error) {
@@ -306,7 +321,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     try {
-      const updatedTrackItems = queue.map((track) => mapToTrackItem(track, quality));
+      const updatedTrackItems = queue.map((track) =>
+        mapToTrackItem(track, quality),
+      );
       const playlistId = await PlayerQueue.createPlaylist(
         `Queue_${Date.now()}`,
         "Playback Queue",
@@ -404,7 +421,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       let fullTrack = normalizedTrack as any;
       let isDownloaded = false;
       try {
-        isDownloaded = await DownloadManager.isTrackDownloaded(normalizedTrack.id);
+        isDownloaded = await DownloadManager.isTrackDownloaded(
+          normalizedTrack.id,
+        );
       } catch (err) {
         console.warn("Error checking download status:", err);
       }
@@ -415,7 +434,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           if (savedMetadata) {
             fullTrack = savedMetadata;
           } else {
-            const downloadedTrack = await DownloadManager.getDownloadedTrack(normalizedTrack.id);
+            const downloadedTrack = await DownloadManager.getDownloadedTrack(
+              normalizedTrack.id,
+            );
             if (downloadedTrack?.originalTrack?.extraPayload?.song) {
               fullTrack = downloadedTrack.originalTrack.extraPayload.song;
             }
@@ -542,18 +563,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       let fullTrack = normalizedSelectedTrack as any;
       let isDownloaded = false;
       try {
-        isDownloaded = await DownloadManager.isTrackDownloaded(normalizedSelectedTrack.id);
+        isDownloaded = await DownloadManager.isTrackDownloaded(
+          normalizedSelectedTrack.id,
+        );
       } catch (err) {
         console.warn("Error checking download status:", err);
       }
 
       if (isDownloaded) {
         try {
-          const savedMetadata = getDownloadedTrackMetadata(normalizedSelectedTrack.id);
+          const savedMetadata = getDownloadedTrackMetadata(
+            normalizedSelectedTrack.id,
+          );
           if (savedMetadata) {
             fullTrack = savedMetadata;
           } else {
-            const downloadedTrack = await DownloadManager.getDownloadedTrack(normalizedSelectedTrack.id);
+            const downloadedTrack = await DownloadManager.getDownloadedTrack(
+              normalizedSelectedTrack.id,
+            );
             if (downloadedTrack?.originalTrack?.extraPayload?.song) {
               fullTrack = downloadedTrack.originalTrack.extraPayload.song;
             }
@@ -678,6 +705,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   expandQueue: () => set({ isQueueOpen: true }),
   minimizeQueue: () => set({ isQueueOpen: false }),
+  expandAudioDevice: () => set({ isAudioDeviceOpen: true }),
+  minizeAudioDevice: () => set({ isAudioDeviceOpen: false }),
   expandLyrics: () => set({ isLyricsOpen: true }),
   minimizeLyrics: () => set({ isLyricsOpen: false }),
   // Playback Controls
@@ -812,7 +841,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         originalQueue: originalQueue ? [...originalQueue, track] : null,
         queue: [...queue, track],
       });
-      
+
       ToastAndroid.show("Added to queue", ToastAndroid.LONG);
       // Toast.show({
       //   type: "success",
@@ -942,7 +971,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     try {
       // Check if the saved state is too old (more than 24 hours)
-      const hoursSinceSave = (Date.now() - savedState.timestamp) / (1000 * 60 * 60);
+      const hoursSinceSave =
+        (Date.now() - savedState.timestamp) / (1000 * 60 * 60);
       if (hoursSinceSave > 24) {
         clearStoredPlayerState();
         return;
@@ -970,7 +1000,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const normalizedCurrentTrack = {
         ...savedState.currentTrack,
         id: savedState.currentTrack.id,
-        name: savedState.currentTrack.name || savedState.currentTrack.title || "",
+        name:
+          savedState.currentTrack.name || savedState.currentTrack.title || "",
         image: savedState.currentTrack.image,
         primaryArtists:
           savedState.currentTrack.primaryArtists ||
@@ -981,8 +1012,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         album:
           typeof savedState.currentTrack.album === "string"
             ? savedState.currentTrack.album
-            : savedState.currentTrack.album?.name || savedState.currentTrack.album || "",
-        url: savedState.currentTrack.url || savedState.currentTrack.perma_url || "",
+            : savedState.currentTrack.album?.name ||
+              savedState.currentTrack.album ||
+              "",
+        url:
+          savedState.currentTrack.url ||
+          savedState.currentTrack.perma_url ||
+          "",
       };
 
       // Update store with restored state
@@ -1001,18 +1037,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       let fullTrack = normalizedCurrentTrack as any;
       let isDownloaded = false;
       try {
-        isDownloaded = await DownloadManager.isTrackDownloaded(normalizedCurrentTrack.id);
+        isDownloaded = await DownloadManager.isTrackDownloaded(
+          normalizedCurrentTrack.id,
+        );
       } catch (err) {
         console.warn("Error checking download status:", err);
       }
 
       if (isDownloaded) {
         try {
-          const savedMetadata = getDownloadedTrackMetadata(normalizedCurrentTrack.id);
+          const savedMetadata = getDownloadedTrackMetadata(
+            normalizedCurrentTrack.id,
+          );
           if (savedMetadata) {
             fullTrack = savedMetadata;
           } else {
-            const downloadedTrack = await DownloadManager.getDownloadedTrack(normalizedCurrentTrack.id);
+            const downloadedTrack = await DownloadManager.getDownloadedTrack(
+              normalizedCurrentTrack.id,
+            );
             if (downloadedTrack?.originalTrack?.extraPayload?.song) {
               fullTrack = downloadedTrack.originalTrack.extraPayload.song;
             }
@@ -1072,8 +1114,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       await TrackPlayer.seek(savedState.position);
 
       set({ isLoading: false });
-
-      
 
       // Fetch suggestions for the current track
       if (fullTrack.id) {

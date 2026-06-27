@@ -68,7 +68,7 @@ export default function Header({ title }: { title: string }) {
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
         <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
-          <Image
+         <Image
             source={require("../assets/icons/Vector.png")}
             style={{ width: 40, height: 40 }}
             contentFit="contain"

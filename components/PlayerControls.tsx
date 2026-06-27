@@ -3,8 +3,7 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
-  View,
+  View
 } from "react-native";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
@@ -17,32 +16,37 @@ import {
 import { useShallow } from "zustand/shallow";
 
 // Import SVGs
+import DownloadCircleIcon from "@/assets/app-icons/download-circle.svg";
 import PauseIcon from "@/assets/app-icons/pause.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
 import QueueIcon from "@/assets/app-icons/queue.svg";
 import RepeatOnIcon from "@/assets/app-icons/repeat-on.svg";
 import RepeatOneIcon from "@/assets/app-icons/repeat-one.svg";
 import RepeatIcon from "@/assets/app-icons/repeat.svg";
-import ShareIcon from "@/assets/app-icons/share.svg"; // Fallback for share if not found
 import ShuffleIcon from "@/assets/app-icons/shuffle.svg";
 import SkipNextIcon from "@/assets/app-icons/skip-next.svg";
 import SkipPreviousIcon from "@/assets/app-icons/skip-previous.svg";
-import SpeakerIcon from "@/assets/app-icons/speaker.svg";
-import { Headphones } from "lucide-react-native";
-
+import SpeckerGroup from "@/assets/app-icons/speaker-group.svg";
 const PlayerControls = React.memo(() => {
   // FIX: Removed native hooks (useOnPlaybackStateChange).
   // We now use the synced `isPlaying` state from the store.
-  const { expandQueue, isShuffleEnabled, toggleShuffle, isPlaying, isLoading } =
-    usePlayerStore(
-      useShallow((s) => ({
-        expandQueue: s.expandQueue,
-        isShuffleEnabled: s.isShuffleEnabled,
-        toggleShuffle: s.toggleShuffle,
-        isPlaying: s.isPlaying,
-        isLoading: s.isLoading,
-      })),
-    );
+  const {
+    expandQueue,
+    expandAudioDevice,
+    isShuffleEnabled,
+    toggleShuffle,
+    isPlaying,
+    isLoading,
+  } = usePlayerStore(
+    useShallow((s) => ({
+      expandQueue: s.expandQueue,
+      expandAudioDevice: s.expandAudioDevice,
+      isShuffleEnabled: s.isShuffleEnabled,
+      toggleShuffle: s.toggleShuffle,
+      isPlaying: s.isPlaying,
+      isLoading: s.isLoading,
+    })),
+  );
 
   const [repeatMode, setRepeatMode] = React.useState<RepeatMode>("off");
   const [devices, setDevices] = React.useState<TAudioDevice[]>([]);
@@ -166,28 +170,30 @@ const PlayerControls = React.memo(() => {
       </View>
 
       <View style={styles.footerControls}>
-        <View style={styles.deviceIndicator}>
+        <Pressable
+          style={styles.deviceIndicator}
+          hitSlop={10}
+        >
+          <View className="w-4 h-4 rounded-full bg-[#333333] items-center justify-center mr-2">
+            <DownloadCircleIcon width={28} height={28} fill="white" opacity={0.5} />
+          </View>
+         
+        </Pressable>
+        <View style={styles.footerRightIcons}>
+         <Pressable
+          style={styles.deviceIndicator}
+          onPress={expandAudioDevice}
+          className="mr-3"
+          hitSlop={10}
+        >
           {/* Keep MaterialIcons for system-like icons if desired, or replace if SVG exists */}
           <View className="w-4 h-4 rounded-full items-center justify-center mr-2">
-            {activeDevice?.type === 3 ? (
-              <Headphones width={18} height={18} color="#fff" />
-            ) : (
-              <SpeakerIcon width={18} height={18} fill="#fff" />
-            )}
+            <SpeckerGroup width={20} height={20} fill="white" />
           </View>
-          <Text style={styles.deviceText}>
-            {activeDevice?.name || "Speaker"}
-          </Text>
-        </View>
-        <View style={styles.footerRightIcons}>
-          <ShareIcon
-            width={22}
-            height={22}
-            fill="white"
-            style={{ marginRight: 25 }}
-          />
+         
+        </Pressable>
           <Pressable onPress={expandQueue}>
-            <QueueIcon width={28} height={28} fill="white" />
+            <QueueIcon width={35} height={35} fill="white" />
           </Pressable>
         </View>
       </View>
@@ -227,15 +233,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  deviceText: {
-    color: "white",
-    fontSize: 10,
-    // fontWeight: "bold",
-    fontFamily: "sans-semibold",
-    marginLeft: 5,
-  },
+  
   footerRightIcons: {
+    gap: 10,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
 });

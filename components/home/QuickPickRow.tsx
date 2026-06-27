@@ -1,3 +1,4 @@
+
 import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -7,11 +8,9 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { decodeHtmlEntities, formatPlayCount } from "@/src/utils/transform";
 import { QuickPick } from "./types";
 
-import MoreIcon from "@/assets/app-icons/more.svg";
-import { addToRecentActivity } from "@/src/lib/storage";
+import MoreOptionIcon from "@/assets/app-icons/more.svg";
 import { useRouter } from "expo-router";
 import PlayingIndicator from "../PlayingIndicator";
-
 type QuickPickRowProps = {
   item: QuickPick;
 };
@@ -33,21 +32,7 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
       url: link || item.url,
     };
     setCurrentTrack(partialTrack as any);
-    addToRecentActivity({
-      id: id,
-      title: item.title,
-      image: item.cover,
-      type: "song",
-      subtitle: decodeHtmlEntities(
-        item.playCount && Number(item.playCount || "") > 0
-          ? item.artist +
-              " • " +
-              formatPlayCount(Number(item.playCount || "")) +
-              " plays"
-          : item.artist,
-      ),
-      timestamp: Date.now(),
-    });
+    
   };
 
   const handleOption = async (item: any) => {
@@ -149,7 +134,7 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
         onPress={() => handleOption(item)}
       >
         <View style={[styles.menu]}>
-          <MoreIcon fill="#9ca3af" width={20} height={20} />
+          <MoreOptionIcon width={20} height={20} fill="#fff" />
         </View>
       </Pressable>
     </Pressable>

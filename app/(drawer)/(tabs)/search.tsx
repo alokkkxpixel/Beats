@@ -98,15 +98,7 @@ export default function SearchScreen() {
     if (item.type === "song") {
       setCurrentTrack(item);
     } else {
-      // For non-song items (albums, artists, playlists), track them here
-      addToRecentActivity({
-        id: item.id,
-        title: item.title || item.name,
-        image: item.image?.[1]?.url || item.image?.[0]?.url || item.image,
-        type: item.type,
-        subtitle: item.subtitle || item.description || item.type,
-        timestamp: Date.now(),
-      });
+     
 
       if (item.type === "album") {
         router.push({

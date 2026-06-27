@@ -226,7 +226,7 @@ const PLAYER_STATE_KEY = "player-state";
 
 const DOWNLOAD_TRACK_METADATA_PREFIX = "download-track-metadata:";
 
-export interface PlayerState {
+export interface PersistedPlayerState {
   currentTrack: any | null;
   queue: any[];
   currentIndex: number;
@@ -237,7 +237,7 @@ export interface PlayerState {
   timestamp: number;
 }
 
-export const getPlayerState = (): PlayerState | null => {
+export const getPlayerState = (): PersistedPlayerState | null => {
   const state = storage.getString(PLAYER_STATE_KEY);
   if (!state) return null;
   try {
@@ -247,7 +247,7 @@ export const getPlayerState = (): PlayerState | null => {
   }
 };
 
-export const savePlayerState = (state: PlayerState) => {
+export const savePlayerState = (state: PersistedPlayerState) => {
   storage.set(PLAYER_STATE_KEY, JSON.stringify(state));
 };
 

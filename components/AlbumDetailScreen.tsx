@@ -1,7 +1,7 @@
 import AddLibraryIcon from "@/assets/app-icons/add-library.svg";
 import ChevronLeftIcon from "@/assets/app-icons/chevron-left.svg";
-import DownloadDone from "@/assets/app-icons/Download-done.svg";
 import DownloadIcon from "@/assets/app-icons/download.svg";
+import DownloadOffline from "@/assets/app-icons/downloadOffline.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
 import SaveToLibraryIcon from "@/assets/app-icons/savetolibrary.svg";
@@ -130,7 +130,7 @@ const TrackItem = React.memo(function TrackItem({
       {/* Download Status overlay in list */}
       {isDownloaded && (
         <View style={{ marginRight: 8, justifyContent: "center" }}>
-          <DownloadDone
+          <DownloadOffline
             width={23}
             height={23}
             // color="#ffffffff"
