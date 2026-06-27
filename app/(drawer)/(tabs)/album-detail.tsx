@@ -36,7 +36,6 @@ export default function AlbumDetailRoute() {
         .then((tracks) => {
           console.log("📥 Fetched downloaded tracks count:", tracks?.length);
           const songsList = tracks.map((t) => {
-            console.log("📥 Track item:", t.originalTrack);
             const savedMetadata = getDownloadedTrackMetadata(
               t.originalTrack.id,
             );
@@ -219,9 +218,9 @@ export default function AlbumDetailRoute() {
         route={{ params: { album } } as any}
         navigation={navigation}
         isLoading={isLoading}
-        // ❌ REMOVE THESE (not needed anymore)
-        // onLoadMore
-        // isMoreLoading
+      // ❌ REMOVE THESE (not needed anymore)
+      // onLoadMore
+      // isMoreLoading
       />
     </>
   );

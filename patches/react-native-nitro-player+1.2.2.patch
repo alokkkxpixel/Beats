@@ -1,12 +1,64 @@
+diff --git a/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/download/DownloadWorker.kt b/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/download/DownloadWorker.kt
+index b6c073c..bae10c3 100644
+--- a/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/download/DownloadWorker.kt
++++ b/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/download/DownloadWorker.kt
+@@ -235,6 +235,11 @@ class DownloadWorker(
+         }
+     }
+ 
++    private fun getIconId(iconName: String, fallbackSystemIcon: Int): Int {
++        val resId = context.resources.getIdentifier(iconName, "drawable", context.packageName)
++        return if (resId != 0) resId else fallbackSystemIcon
++    }
++
+     private fun buildProgressNotification(
+         trackTitle: String,
+         percent: Int,
+@@ -244,9 +249,11 @@ class DownloadWorker(
+         .setContentTitle("Downloading")
+         .setContentText(trackTitle)
+         .setSubText(if (!indeterminate) "$percent%" else null)
+-        .setSmallIcon(android.R.drawable.stat_sys_download)
++        .setSmallIcon(getIconId("ic_notification", android.R.drawable.stat_sys_download))
+         .setOngoing(true)
+         .setOnlyAlertOnce(true)
++        .setCategory(NotificationCompat.CATEGORY_PROGRESS)
++        .setPriority(NotificationCompat.PRIORITY_LOW)
+         .setProgress(100, percent, indeterminate)
+         .build()
+ 
+@@ -269,7 +276,9 @@ class DownloadWorker(
+                     .Builder(context, NOTIFICATION_CHANNEL_ID)
+                     .setContentTitle("Download complete")
+                     .setContentText(trackTitle)
+-                    .setSmallIcon(android.R.drawable.stat_sys_download_done)
++                    .setSmallIcon(getIconId("ic_notification", android.R.drawable.stat_sys_download_done))
++                    .setCategory(NotificationCompat.CATEGORY_PROGRESS)
++                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                     .setAutoCancel(true)
+                     .build(),
+             )
+@@ -284,7 +293,9 @@ class DownloadWorker(
+                     .Builder(context, NOTIFICATION_CHANNEL_ID)
+                     .setContentTitle("Download failed")
+                     .setContentText(trackTitle)
+-                    .setSmallIcon(android.R.drawable.stat_notify_error)
++                    .setSmallIcon(getIconId("ic_notification", android.R.drawable.stat_notify_error))
++                    .setCategory(NotificationCompat.CATEGORY_ERROR)
++                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                     .setAutoCancel(true)
+                     .build(),
+             )
 diff --git a/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/media/NitroPlayerNotificationProvider.kt b/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/media/NitroPlayerNotificationProvider.kt
-index f78905a..20a176b 100644
+index f78905a..ed0aadd 100644
 --- a/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/media/NitroPlayerNotificationProvider.kt
 +++ b/node_modules/react-native-nitro-player/android/src/main/java/com/margelo/nitro/nitroplayer/media/NitroPlayerNotificationProvider.kt
-@@ -73,13 +73,17 @@ class NitroPlayerNotificationProvider(
+@@ -73,13 +73,18 @@ class NitroPlayerNotificationProvider(
                  PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
              )
  
-+        val smallIconId = context.resources.getIdentifier("notification_icon", "drawable", context.packageName)
++        val smallIconId = context.resources.getIdentifier("ic_notification", "drawable", context.packageName)
++            .let { if (it != 0) it else context.resources.getIdentifier("notification_icon", "drawable", context.packageName) }
 +            .let { if (it != 0) it else context.applicationInfo.icon }
 +            .let { if (it != 0) it else android.R.drawable.ic_media_play }
 +
