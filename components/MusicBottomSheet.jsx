@@ -206,9 +206,38 @@ export default function MusicBottomSheet() {
             ),
             label: "Delete download",
             fnx: async () => {
-              await deleteDownload(activeSong.id);
-              ToastAndroid.show("Download deleted", ToastAndroid.LONG);
-              minizeMoreOption();
+              Alert.alert(
+                "Delete Download",
+                "Are you sure you want to delete this song from your downloads?",
+                [
+                  {
+                    text: "Cancel",
+                    style: "cancel",
+                  },
+                  {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        await deleteDownload(activeSong.id);
+                        ToastAndroid.show(
+                          "Download deleted",
+                          ToastAndroid.LONG,
+                        );
+                        minizeMoreOption();
+                      } catch (error) {
+                        ToastAndroid.show(
+                          "Failed to delete download",
+                          ToastAndroid.SHORT,
+                        );
+                      }
+                    },
+                  },
+                ],
+                {
+                  cancelable: true,
+                },
+              );
             },
           },
         ]
