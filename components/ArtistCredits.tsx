@@ -29,7 +29,7 @@ const ArtistCredits = ({
  const accentColor = usePlayerStore((state) => state.accentColor);
 
   return (
-    <View style={[styles.container, { backgroundColor: accentColor.average + "30" , borderColor: "#FFFFFF20" , borderWidth: 1}]}>
+    <View style={[styles.container, { backgroundColor: accentColor.muted + "29" , borderColor: "#FFFFFF20" , borderWidth: 1}]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>

@@ -1,4 +1,3 @@
-import { addToRecentActivity } from "@/src/lib/storage";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { TopPlaylists } from "@/types/jiosaavn";
 // FlatList is the right choice for small horizontal carousels (10-20 items).
@@ -217,14 +216,7 @@ export default function TrendingSection({
             url: url,
           };
           setCurrentTrack(partialTrack as any);
-          addToRecentActivity({
-            id: id,
-            title: displayTitle,
-            image: displayImage,
-            type: "song",
-            subtitle: displaySubtitle,
-            timestamp: Date.now(),
-          });
+         
         } else {
           if (route === "artist/[id]") {
             navigation.navigate("artist/[id]", navParams);

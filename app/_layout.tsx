@@ -2,6 +2,7 @@ import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import { PlayerWrapper } from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
+import { configureDownloadManager } from "@/src/lib/downloadManager";
 import { persister, queryClient } from "@/src/lib/query-client";
 import { useFonts } from "@expo-google-fonts/inter";
 import {
@@ -61,12 +62,7 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   React.useEffect(() => {
-    // Dynamically import downloadManager so native modules (expo-task-manager,
-    // expo-background-fetch) are only accessed after the native bridge is ready.
-    // A top-level static import crashes the app before providers mount.
-    import("../src/lib/downloadManager")
-      .then(({ configureDownloadManager }) => configureDownloadManager())
-      .catch((err) => console.warn("DownloadManager init failed:", err));
+    configureDownloadManager();
   }, []);
 
   // Temporarily bypass font check to avoid black screen

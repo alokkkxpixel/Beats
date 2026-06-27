@@ -1,5 +1,6 @@
 import AddLibraryIcon from "@/assets/app-icons/add-library.svg";
 import ChevronLeftIcon from "@/assets/app-icons/chevron-left.svg";
+import DownloadDone from "@/assets/app-icons/Download-done.svg";
 import DownloadIcon from "@/assets/app-icons/download.svg";
 import MoreIcon from "@/assets/app-icons/more.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
@@ -7,17 +8,18 @@ import SaveToLibraryIcon from "@/assets/app-icons/savetolibrary.svg";
 import SearchIcon from "@/assets/app-icons/search.svg";
 import { addToRecentActivity } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { useDownloadStore } from "@/src/store/useDownloadStore";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
-import { extractAccentColor, ExtractedColors } from "@/src/utils/extractAccentColor";
+import {
+  extractAccentColor,
+  ExtractedColors,
+} from "@/src/utils/extractAccentColor";
 import { formatPlayCount } from "@/src/utils/transform";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDownloadStore } from "@/src/store/useDownloadStore";
-import { Check } from "lucide-react-native";
-
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -62,7 +64,9 @@ const TrackItem = React.memo(function TrackItem({
   const duration = item.duration ? (item.duration / 60).toFixed(2) : "0.00";
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-  const setShowDeleteDownloadOption = usePlayerStore((s) => s.setShowDeleteDownloadOption);
+  const setShowDeleteDownloadOption = usePlayerStore(
+    (s) => s.setShowDeleteDownloadOption,
+  );
 
   const isDownloaded = useDownloadStore((s) => s.downloadedTracks.has(item.id));
   const progress = useDownloadStore((s) => s.downloadProgress.get(item.id));
@@ -126,7 +130,12 @@ const TrackItem = React.memo(function TrackItem({
       {/* Download Status overlay in list */}
       {isDownloaded && (
         <View style={{ marginRight: 8, justifyContent: "center" }}>
-          <Check size={18} color="#22c55e" />
+          <DownloadDone
+            width={23}
+            height={23}
+            // color="#ffffffff"
+            fill="#ffffffff"
+          />
         </View>
       )}
 
@@ -170,7 +179,9 @@ const AlbumDetailScreen = ({
     (s) => s.removeAlbumFromLibrary,
   );
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
-  const [albumBgColor, setAlbumBgColor] = useState<ExtractedColors | string>("#000");
+  const [albumBgColor, setAlbumBgColor] = useState<ExtractedColors | string>(
+    "#000",
+  );
 
   useEffect(() => {
     loadSavedAlbums();
@@ -202,7 +213,9 @@ const AlbumDetailScreen = ({
     if (album.id.startsWith("playlist-")) {
       return;
     }
-
+    if (album.id.startsWith("downloaded-songs")) {
+      return;
+    }
     const artist = album.artists?.primary?.[0]?.name || "Various Artists";
     const yearText = album.year ? ` • ${album.year}` : "";
 
@@ -215,7 +228,7 @@ const AlbumDetailScreen = ({
         subtitle: `${artist}${yearText}`,
         timestamp: Date.now(),
       });
-    }, 15000);
+    }, 20000);
 
     return () => clearTimeout(timer);
   }, [album]);
@@ -244,17 +257,17 @@ const AlbumDetailScreen = ({
   const renderHeader = React.useMemo(
     () => (
       <View style={styles.listHeader}>
-      <Image
+        <Image
           source={{
-            uri: highResCover ? highResCover : songs?.[0]?.image?.[2]?.url ,
+            uri: highResCover ? highResCover : songs?.[0]?.image?.[2]?.url,
           }}
           style={styles.mainCover}
           contentFit="cover"
           transition={500}
         />
-     
+
         <Text style={styles.mainTitle} className="tracking-tighter">
-          {album?.name || album?.title }
+          {album?.name || album?.title}
         </Text>
 
         <View style={styles.descriptionContainer}>
@@ -330,7 +343,9 @@ const AlbumDetailScreen = ({
         /> */}
         <LinearGradient
           colors={[
-            typeof albumBgColor === "string" ? albumBgColor : albumBgColor?.dominant || albumBgColor?.average || "#000",
+            typeof albumBgColor === "string"
+              ? albumBgColor
+              : albumBgColor?.dominant || albumBgColor?.average || "#000",
             // "rgba(5,5,5,0.9)",
             "rgba(5,5,5,0.8)",
             "#050505",
@@ -550,7 +565,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 8,
-    zIndex:999,
+    zIndex: 999,
     overflow: "hidden",
     position: "relative",
   },

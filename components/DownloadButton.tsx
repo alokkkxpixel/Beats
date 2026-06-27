@@ -1,10 +1,9 @@
+import DownloadDone from "@/assets/app-icons/Download-done.svg";
 import { useDownloadStore } from "@/src/store/useDownloadStore";
 import { SongDetail } from "@/types/jiosaavn";
-import { Check, DownloadCloud, Pause, Play, X } from "lucide-react-native";
-import React, { useEffect, useRef } from "react";
-import { TouchableOpacity, View } from "react-native";
-import Toast from "react-native-toast-message";
-
+import { DownloadCloud, Pause, Play, X } from "lucide-react-native";
+import React, { useEffect } from "react";
+import { ToastAndroid, TouchableOpacity, View } from "react-native";
 interface DownloadButtonProps {
   track: SongDetail;
   size?: number;
@@ -24,37 +23,35 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     pauseDownload,
     resumeDownload,
     deleteDownload,
+    checkDownloadStatus,
     getDownloadProgress,
+    downloadedTracks,
   } = useDownloadStore();
 
-  const isDownloaded = useDownloadStore((s) => s.downloadedTracks.has(track.id));
+  const [isDownloaded, setIsDownloaded] = React.useState(false);
   const progress = getDownloadProgress(track.id);
-  const wasDownloadedRef = useRef(isDownloaded);
 
   useEffect(() => {
-    if (!wasDownloadedRef.current && isDownloaded) {
-      Toast.show({ type: "success", text1: "Download complete", text2: track.name });
-      onDownloadComplete?.();
-    }
-    wasDownloadedRef.current = isDownloaded;
-  }, [isDownloaded, onDownloadComplete, track.name]);
+    checkDownloadStatus(track.id).then(setIsDownloaded);
+  }, [track.id, checkDownloadStatus]);
 
   const handlePress = async () => {
     if (isDownloaded) {
       await deleteDownload(track.id);
-      Toast.show({ type: "success", text1: "Download removed" });
+      setIsDownloaded(false);
+      ToastAndroid.show("Download removed", ToastAndroid.SHORT);
       return;
     }
 
     if (progress?.state === "downloading") {
       await pauseDownload(progress.downloadId);
-      Toast.show({ type: "info", text1: "Download paused" });
+      ToastAndroid.show("Download paused", ToastAndroid.SHORT);
       return;
     }
 
     if (progress?.state === "paused") {
       await resumeDownload(progress.downloadId);
-      Toast.show({ type: "info", text1: "Download resumed" });
+      ToastAndroid.show("Download resumed", ToastAndroid.SHORT);
       return;
     }
 
@@ -63,14 +60,20 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     }
 
     onDownloadStart?.();
-    Toast.show({ type: "info", text1: "Downloading...", text2: track.name });
+    ToastAndroid.show("Download started", ToastAndroid.SHORT);
     await downloadTrack(track);
-
   };
 
   const getIcon = () => {
     if (isDownloaded) {
-      return <Check size={size} color="#22c55e" />;
+      return (
+        <DownloadDone
+          width={size}
+          height={size}
+          color="#ffffffff"
+          fill="#ffffffff"
+        />
+      );
     }
 
     if (progress?.state === "downloading") {
@@ -86,6 +89,14 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     }
 
     return <DownloadCloud size={size} color="#a1a1aa" />;
+  };
+
+  const getIconColor = () => {
+    if (isDownloaded) return "#22c55e";
+    if (progress?.state === "downloading") return "#3b82f6";
+    if (progress?.state === "paused") return "#f59e0b";
+    if (progress?.state === "failed") return "#ef4444";
+    return "#a1a1aa";
   };
 
   return (
