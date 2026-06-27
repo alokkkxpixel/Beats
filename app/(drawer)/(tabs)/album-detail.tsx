@@ -7,7 +7,7 @@ import { transformAlbumToUI } from "@/src/utils/transform";
 import { SongDetail } from "@/types/jiosaavn";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Image as RNImage, Text, View } from "react-native";
 import { DownloadManager } from "react-native-nitro-player";
 
 export default function AlbumDetailRoute() {
@@ -37,7 +37,9 @@ export default function AlbumDetailRoute() {
           console.log("📥 Fetched downloaded tracks count:", tracks?.length);
           const songsList = tracks.map((t) => {
             console.log("📥 Track item:", t.originalTrack);
-            const savedMetadata = getDownloadedTrackMetadata(t.originalTrack.id);
+            const savedMetadata = getDownloadedTrackMetadata(
+              t.originalTrack.id,
+            );
             if (savedMetadata) {
               return savedMetadata;
             }
@@ -97,7 +99,9 @@ export default function AlbumDetailRoute() {
       image: [
         {
           quality: "500x500",
-          url: "@/assets/app-icons/download-cover.png",
+          url: RNImage.resolveAssetSource(
+            require("@/assets/images/downloadedCover.jpg"),
+          ).uri,
         },
       ],
       songs: downloadedSongs,
@@ -136,7 +140,9 @@ export default function AlbumDetailRoute() {
       image: [
         {
           quality: "500x500",
-          url: "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
+          url: RNImage.resolveAssetSource(
+            require("@/assets/images/liked-songs.png"),
+          ).uri,
         },
       ],
       songs: likedSongs,

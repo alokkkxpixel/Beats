@@ -185,8 +185,7 @@ export default function LibraryScreen() {
       title: "Liked music",
       subtitle: "like by the user",
       type: "liked-songs",
-      image:
-        "https://www.gstatic.com/youtube/media/ytm/images/pbg/liked-songs-delhi-1200.png",
+      image: require("@/assets/images/liked-songs.png"),
       updatedAt: Infinity,
     });
 
@@ -222,8 +221,7 @@ export default function LibraryScreen() {
       title: "Downloads",
       subtitle: `${downloadCount} songs`,
       type: "downloaded-songs",
-      image:
-        "@/assets/app-icons/download-cover.png",
+      image: require("@/assets/images/downloadedCover.jpg"),
       updatedAt: Infinity - 1,
     };
 
@@ -396,7 +394,11 @@ export default function LibraryScreen() {
                       >
                         {item.image ? (
                           <Image
-                            source={{ uri: imageUri }}
+                            source={
+                              item.id === "downloaded-songs"
+                                ? item.image
+                                : { uri: imageUri }
+                            }
                             style={{ width: "100%", height: "100%" }}
                             contentFit="cover"
                             transition={400}

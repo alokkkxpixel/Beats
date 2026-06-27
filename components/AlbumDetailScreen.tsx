@@ -281,28 +281,33 @@ const AlbumDetailScreen = ({
               : ""}
           </Text>
         </View>
-
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionCircleBtn}>
-            <DownloadIcon fill="white" width={24} height={24} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.mainPlayBtn}
-            onPress={() => setQueue(songs)}
-          >
-            <PlayIcon fill="white" width={50} height={50} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCircleBtn}
-            onPress={handleSaveAlbum}
-          >
-            {isSaved ? (
-              <SaveToLibraryIcon fill="white" width={24} height={24} />
-            ) : (
-              <AddLibraryIcon fill="white" width={24} height={24} />
-            )}
-          </TouchableOpacity>
-        </View>
+        {!(
+          album?.id === "downloaded-songs" ||
+          album?.id === "liked-songs" ||
+          album?.id.startsWith("playlist-")
+        ) && (
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.actionCircleBtn}>
+              <DownloadIcon fill="white" width={24} height={24} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.mainPlayBtn}
+              onPress={() => setQueue(songs)}
+            >
+              <PlayIcon fill="white" width={50} height={50} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCircleBtn}
+              onPress={handleSaveAlbum}
+            >
+              {isSaved ? (
+                <SaveToLibraryIcon fill="white" width={24} height={24} />
+              ) : (
+                <AddLibraryIcon fill="white" width={24} height={24} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     ),
     [highResCover, album, setQueue, songs, isSaved],
@@ -472,7 +477,7 @@ const styles = StyleSheet.create({
   listHeader: {
     paddingHorizontal: 24,
     alignItems: "center",
-    paddingTop: 20,
+    paddingVertical: 20,
   },
   mainCover: {
     width: 240,
@@ -498,12 +503,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   descriptionContainer: {
-    marginTop: 12,
+    marginTop: 5,
     paddingHorizontal: 10,
   },
   descriptionText: {
     color: "#9ca3af",
     fontSize: 14,
+    fontFamily: "sans-regular",
     lineHeight: 20,
   },
   actionRow: {
@@ -511,7 +517,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-    marginTop: 30,
+    marginTop: 10,
     paddingHorizontal: 50,
   },
   actionCircleBtn: {
