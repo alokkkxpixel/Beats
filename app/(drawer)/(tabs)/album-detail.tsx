@@ -123,8 +123,7 @@ export default function AlbumDetailRoute() {
       name: "Liked music",
       title: "Liked music",
       artistName: "Various Artists",
-      description:
-        "Music that you like in any YouTube app will be shown here. You can change this in Settings.",
+      description: "Music that you like will be shown here.",
       type: "Auto playlist",
       year: "2026",
       playCount: null,

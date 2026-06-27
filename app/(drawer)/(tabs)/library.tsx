@@ -114,7 +114,9 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
         style={{ borderRadius: item.type === "artist" ? 32 : 12 }}
       >
         <Image
-          source={{ uri: imageUri }}
+          source={
+            typeof item.image === "number" ? item.image : { uri: imageUri }
+          }
           style={{ width: "100%", height: "100%" }}
           contentFit="cover"
           transition={400}
@@ -302,22 +304,6 @@ export default function LibraryScreen() {
     <View className="flex-1 ">
       <StatusBar barStyle="light-content" backgroundColor={"#000"} />
 
-      {/* Premium Glows
-      <Animated.View style={[StyleSheet.absoluteFill, glowAnimatedStyle]}>
-        <LinearGradient
-          colors={["rgba(59, 130, 246, 0.15)", "transparent"]}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 400,
-          }}
-        />
-        <View style={styles.backgroundGlowTop} />
-        <View style={styles.backgroundGlowCenter} />
-      </Animated.View> */}
-
       <Animated.View
         style={[
           styles.headerWrapper,
@@ -395,7 +381,7 @@ export default function LibraryScreen() {
                         {item.image ? (
                           <Image
                             source={
-                              item.id === "downloaded-songs"
+                              typeof item.image === "number"
                                 ? item.image
                                 : { uri: imageUri }
                             }
