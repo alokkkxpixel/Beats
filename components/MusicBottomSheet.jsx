@@ -2,7 +2,14 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 
-import { Alert, Easing, Pressable, Text, View } from "react-native";
+import {
+  Alert,
+  Easing,
+  Pressable,
+  Text,
+  ToastAndroid,
+  View,
+} from "react-native";
 
 import { usePlayerStore } from "../src/store/usePlayerStore";
 
@@ -15,10 +22,11 @@ import ShareIcon from "@/assets/app-icons/more.svg";
 import SaveIcon from "@/assets/app-icons/playlist-add.svg";
 import PlayNextIcon from "@/assets/app-icons/playlist-next.svg";
 import RadioIcon from "@/assets/app-icons/radio.svg";
-import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import { useDownloadStore } from "@/src/store/useDownloadStore";
-import { Check, Trash2 } from "lucide-react-native";
+import { usePlaylistStore } from "@/src/store/usePlaylistStore";
+import { Trash2 } from "lucide-react-native";
 import TextTicker from "react-native-text-ticker";
+import Toast from "react-native-toast-message";
 
 export default function MusicBottomSheet() {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
@@ -29,11 +37,8 @@ export default function MusicBottomSheet() {
     usePlayerStore((state) => state.activeSong) ||
     selectedSongOption ||
     currentTrack;
-  const {
-    downloadTrack,
-    deleteDownload,
-    getDownloadProgress,
-  } = useDownloadStore();
+  const { downloadTrack, deleteDownload, getDownloadProgress } =
+    useDownloadStore();
 
   const isDownloaded = useDownloadStore((s) =>
     activeSong?.id ? s.downloadedTracks.has(activeSong.id) : false,
@@ -196,32 +201,41 @@ export default function MusicBottomSheet() {
     ...(isDownloaded
       ? [
           {
-            icon: (props) => <Trash2 size={props.width || 24} color="#ef4444" />,
+            icon: (props) => (
+              <Trash2 size={props.width || 24} color="#ef4444" />
+            ),
             label: "Delete download",
             fnx: async () => {
               await deleteDownload(activeSong.id);
+              ToastAndroid.show("Download deleted", ToastAndroid.LONG);
               minizeMoreOption();
             },
           },
         ]
       : progress?.state === "downloading"
-      ? [
-          {
-            icon: DownloadIcon,
-            label: `Downloading (${Math.round(progress.progress * 100)}%)`,
-            fnx: () => {},
-          },
-        ]
-      : [
-          {
-            icon: DownloadIcon,
-            label: "Download",
-            fnx: async () => {
-              minizeMoreOption();
-              await downloadTrack(activeSong);
+        ? [
+            {
+              icon: DownloadIcon,
+              label: `Downloading (${Math.round(progress.progress * 100)}%)`,
+              fnx: () => {},
             },
-          },
-        ]),
+          ]
+        : [
+            {
+              icon: DownloadIcon,
+              label: "Download",
+              fnx: async () => {
+                minizeMoreOption();
+                Toast.show({
+                  type: "success",
+                  text1: "Downloading started !",
+                  text2: "Check your downloads for more info",
+                });
+                ToastAndroid.show("Download started", ToastAndroid.LONG);
+                await downloadTrack(activeSong);
+              },
+            },
+          ]),
     {
       icon: AlbumIcon,
       label: "Go to album",

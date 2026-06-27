@@ -31,6 +31,7 @@ import ShuffleIcon from "@/assets/app-icons/shuffle.svg";
 import SkipNextIcon from "@/assets/app-icons/skip-next.svg";
 import SkipPreviousIcon from "@/assets/app-icons/skip-previous.svg";
 import SpeckerGroup from "@/assets/app-icons/speaker-group.svg";
+import Toast from "react-native-toast-message";
 
 const PlayerControls = React.memo(() => {
   // FIX: Removed native hooks (useOnPlaybackStateChange).
@@ -88,13 +89,14 @@ const PlayerControls = React.memo(() => {
 
     if (progress?.state === "downloading") {
       await pauseDownload(progress.downloadId);
-      ToastAndroid.show("Download paused", ToastAndroid.SHORT);
+      ToastAndroid.show("Download paused", ToastAndroid.LONG);
       return;
     }
 
     if (progress?.state === "paused") {
       await resumeDownload(progress.downloadId);
-      ToastAndroid.show("Download resumed", ToastAndroid.SHORT);
+
+      ToastAndroid.show("Download resumed", ToastAndroid.LONG);
       return;
     }
 
@@ -102,7 +104,12 @@ const PlayerControls = React.memo(() => {
       await cancelDownload(progress.downloadId);
     }
 
-    ToastAndroid.show("Download started", ToastAndroid.SHORT);
+    Toast.show({
+      type: "success",
+      text1: "Downloading started !",
+      text2: "Check your downloads for more info",
+    });
+    ToastAndroid.show("Download started", ToastAndroid.LONG);
     await downloadTrack(currentTrack);
   }, [
     currentTrack,

@@ -161,8 +161,6 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
                   </View>
                 ) : (
                   playlists.map((playlist) => (
-                    <>
-
                     <TouchableOpacity
                       key={playlist.id}
                       style={styles.playlistItem}
@@ -188,8 +186,6 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({
                         <CheckIcon width={20} height={20} fill="#1DB954" />
                       )}
                     </TouchableOpacity>
-                   
-                    </>
                   ))
                 )}
               </>
