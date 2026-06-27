@@ -1,5 +1,6 @@
 import { PermissionsAndroid, Platform } from "react-native";
 import { DownloadManager } from "react-native-nitro-player";
+import { useDownloadStore } from "@/src/store/useDownloadStore";
 
 export const configureDownloadManager = () => {
   DownloadManager.configure({
@@ -14,6 +15,9 @@ export const configureDownloadManager = () => {
 
   // Set playback to prefer local files when available
   DownloadManager.setPlaybackSourcePreference("auto");
+
+  // Refresh downloaded tracks in store on initialization
+  useDownloadStore.getState().refreshDownloadedTracks();
 };
 
 export const requestNotificationPermission = async () => {

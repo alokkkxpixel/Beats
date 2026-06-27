@@ -330,11 +330,15 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
   checkDownloadStatus: async (trackId: string) => {
     try {
       const isDownloaded = await DownloadManager.isTrackDownloaded(trackId);
-      if (isDownloaded) {
-        set((state) => ({
-          downloadedTracks: new Set(state.downloadedTracks).add(trackId),
-        }));
-      }
+      set((state) => {
+        const newDownloaded = new Set(state.downloadedTracks);
+        if (isDownloaded) {
+          newDownloaded.add(trackId);
+        } else {
+          newDownloaded.delete(trackId);
+        }
+        return { downloadedTracks: newDownloaded };
+      });
       return isDownloaded;
     } catch (error) {
       console.error("Error checking download status:", error);
@@ -358,3 +362,5 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 }));
 
 registerDownloadListeners();
+useDownloadStore.getState().refreshDownloadedTracks();
+
