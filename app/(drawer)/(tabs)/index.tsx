@@ -174,6 +174,7 @@ export default function Index() {
         type: "artistrecos",
         data: data?.artist_recos.data,
       },
+
       {
         id: "albums",
         title: "New Releases",
@@ -189,6 +190,13 @@ export default function Index() {
         data: data?.["promo:vx:data:68"].data,
       },
       {
+        id: "moodsAndGenres",
+        title: "Moods and Genres",
+        subtitle: "Discover new music",
+        type: "moodsAndGenres",
+        data: moodsAndGenres,
+      },
+      {
         id: "promo:vx:data:185",
         title: data?.["promo:vx:data:185"]?.title,
         subtitle: data?.["promo:vx:data:185"]?.subtitle,
@@ -201,13 +209,6 @@ export default function Index() {
         subtitle: data?.["promo:vx:data:69"]?.subtitle,
         type: "promo:vx:data:69",
         data: data?.["promo:vx:data:69"].data,
-      },
-       {
-        id: "moodsAndGenres",
-        title: "Moods and Genres",
-        subtitle: "Discover new music",
-        type: "moodsAndGenres",
-        data: moodsAndGenres,
       },
     ],
     [data, SpecialForYouData, moodsAndGenres],
@@ -228,7 +229,7 @@ export default function Index() {
       >
         <Image
           source={bgImage}
-          style={{ width: "100%", height: 550, position: "absolute", top: 0, }}
+          style={{ width: "100%", height: 550, position: "absolute", top: 0 }}
           contentFit="cover"
           blurRadius={0}
         />
@@ -303,17 +304,31 @@ export default function Index() {
                 />
               );
             if (item.type === "foryou")
-              return <QuickPicksSection data={item.data} title={item.title} subtitle={item.subtitle} />;
+              return (
+                <QuickPicksSection
+                  data={item.data}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                />
+              );
             if (item.type === "artistrecos") {
               return <RecommendedArtist title={item.title} data={item.data} />;
             }
             if (item.type === "moodsAndGenres") {
-              return <TopGenre data={Array.from(
-                {
-                  length: Math.ceil(item.data.length / 3),
-                },
-                (_, i) => item.data.slice(i * 3, i * 3 + 3),
-              ) || []} title={item.title} subtitle={item.subtitle} />;
+              return (
+                <TopGenre
+                  data={
+                    Array.from(
+                      {
+                        length: Math.ceil(item.data.length / 3),
+                      },
+                      (_, i) => item.data.slice(i * 3, i * 3 + 3),
+                    ) || []
+                  }
+                  title={item.title}
+                  subtitle={item.subtitle}
+                />
+              );
             }
             if (item.type === "promo:vx:data:68") {
               return (

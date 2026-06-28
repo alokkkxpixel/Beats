@@ -4,7 +4,7 @@
     "slug": "Beats",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-1024.png",
+    "icon": "./assets/icons/appIcon.png",
     "scheme": "beats",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050505",
@@ -15,9 +15,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#050505",
-        "foregroundImage": "./assets/logo-1024.png",
+        "foregroundImage": "./assets/icons/appIcon.png",
         "backgroundImage": "./assets/logo-1024.png",
-        "monochromeImage": "./assets/monochrome.svg"
+        "monochromeImage": "./assets/notification.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -34,7 +34,7 @@
     "web": {
       "output": "static",
       "bundler": "metro",
-      "favicon": "./assets/logo-1024.png"
+      "favicon": "./assets/icons/appIcon.png"
     },
     "plugins": [
       [

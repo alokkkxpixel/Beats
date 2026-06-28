@@ -209,14 +209,18 @@ export default function ExploreScreen() {
 
         {/* Moods and Genres Section */}
         <TopGenre
-          title={data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"}
+          title={
+            data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"
+          }
           subtitle={data?.modules?.["promo:vx:data:76"]?.subtitle}
-          data={Array.from(
-                {
-                  length: Math.ceil(moodsAndGenres.length / 3),
-                },
-                (_, i) => moodsAndGenres.slice(i * 3, i * 3 + 3),
-              ) || []}
+          data={
+            Array.from(
+              {
+                length: Math.ceil(moodsAndGenres.length / 3),
+              },
+              (_, i) => moodsAndGenres.slice(i * 3, i * 3 + 3),
+            ) || []
+          }
         />
         {/* <View style={styles.sectionHeader}>
           <View>
@@ -285,69 +289,70 @@ export default function ExploreScreen() {
   );
 }
 
-export function TopGenre({title, subtitle ,data}: {title: string, subtitle?: string, data: any[]}) {
-  
+export function TopGenre({
+  title,
+  subtitle,
+  data,
+}: {
+  title: string;
+  subtitle?: string;
+  data: any[];
+}) {
   const router = useRouter();
   return (
     <View style={styles.container} className="mt-10">
-       {/* Moods and Genres Section */}
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle} className="font-sans-medium">
-              {title || "Moods and genres"}
-            </Text>
-            {subtitle && (
-              <Text style={styles.sectionSubtitle}>
-                {subtitle}
-              </Text>
-            )}
-          </View>
-          <ChevronIcon
-            width={20}
-            height={20}
-            fill="#999"
-            style={{ transform: [{ rotate: "180deg" }] }}
-          />
+      {/* Moods and Genres Section */}
+      <View style={styles.sectionHeader}>
+        <View>
+          <Text style={styles.sectionTitle} className="font-sans-medium">
+            {title || "Moods and genres"}
+          </Text>
+          {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
         </View>
+        <ChevronIcon
+          width={20}
+          height={20}
+          fill="#999"
+          style={{ transform: [{ rotate: "180deg" }] }}
+        />
+      </View>
 
-        <View style={{ height: 280, marginBottom: 20 }}>
-          <FlashList
-            data={
-             data
-            }
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            renderItem={({ item: columnItems }: { item: any[] }) => (
-              <View style={{ marginRight: 12 }}>
-                {columnItems?.map((mood: any) => (
-                  <Pressable
-                    key={mood.id}
-                    style={styles.moodItemRow}
-                    onPress={() => {
-                      router.push({
-                        pathname: "/playlist-detail",
-                        params: { playlistId: mood.id, playlistUrl: mood.url },
-                      });
-                    }}
+      <View style={{ height: 280, marginBottom: 0 }}>
+        <FlashList
+          data={data}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          renderItem={({ item: columnItems }: { item: any[] }) => (
+            <View style={{ marginRight: 12 }}>
+              {columnItems?.map((mood: any) => (
+                <Pressable
+                  key={mood.id}
+                  style={styles.moodItemRow}
+                  onPress={() => {
+                    router.push({
+                      pathname: "/playlist-detail",
+                      params: { playlistId: mood.id, playlistUrl: mood.url },
+                    });
+                  }}
+                >
+                  <Image
+                    source={{ uri: getImageUri(mood.image) }}
+                    style={styles.moodRowImage}
+                  />
+                  <Text
+                    style={styles.moodRowTitle}
+                    className="font-sans-medium"
+                    numberOfLines={1}
                   >
-                    <Image
-                      source={{ uri: getImageUri(mood.image) }}
-                      style={styles.moodRowImage}
-                    />
-                    <Text
-                      style={styles.moodRowTitle}
-                      className="font-sans-medium"
-                      numberOfLines={1}
-                    >
-                      {mood.title}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          />
-        </View>
+                    {mood.title}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        />
+      </View>
     </View>
   );
 }

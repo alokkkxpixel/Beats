@@ -48,7 +48,9 @@ export default function TrendingSection({
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   if (!data || data.length === 0) return <></>;
   const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const [failedImages, setFailedImages] = React.useState<Set<string>>(new Set());
+  const [failedImages, setFailedImages] = React.useState<Set<string>>(
+    new Set(),
+  );
 
   const handleImageError = React.useCallback((imageUrl: string) => {
     setFailedImages((prev) => new Set(prev).add(imageUrl));
@@ -216,7 +218,6 @@ export default function TrendingSection({
             url: url,
           };
           setCurrentTrack(partialTrack as any);
-         
         } else {
           if (route === "artist/[id]") {
             navigation.navigate("artist/[id]", navParams);
@@ -231,7 +232,11 @@ export default function TrendingSection({
         <Pressable style={styles.card} onPress={handlePress}>
           <View style={styles.imageContainer}>
             <Image
-              source={getImageUri(displayImage) ? { uri: getImageUri(displayImage) } : defaultCover}
+              source={
+                getImageUri(displayImage)
+                  ? { uri: getImageUri(displayImage) }
+                  : defaultCover
+              }
               style={styles.image}
               contentFit="cover"
               cachePolicy="memory-disk"
@@ -297,7 +302,7 @@ export default function TrendingSection({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 28,
+    marginTop: 25,
   },
 
   header: {
