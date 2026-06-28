@@ -1,5 +1,5 @@
-import { createMMKV } from "react-native-mmkv";
 import type { SongDetail } from "@/types/jiosaavn";
+import { createMMKV } from "react-native-mmkv";
 
 export const storage = createMMKV({
   id: "beats-app-storage",
@@ -289,4 +289,92 @@ export const clearDownloadedTrackMetadata = () => {
       storage.remove(key);
     }
   });
+};
+
+/**
+ * Clear search history cache
+ */
+export const clearSearchHistory = () => {
+  storage.remove(SEARCH_HISTORY_KEY);
+};
+
+/**
+ * Clear all cache (search history + recent activity)
+ */
+export const clearAllCache = () => {
+  clearSearchHistory();
+  clearRecentActivity();
+};
+
+/**
+ * Calculate storage usage in bytes
+ */
+export const calculateStorageUsage = async (): Promise<{
+  downloads: number;
+  cache: number;
+  other: number;
+  total: number;
+}> => {
+  try {
+    const { DownloadManager } = await import("react-native-nitro-player");
+
+    // Get downloaded tracks storage (estimated based on count)
+    const downloadedTracks = await DownloadManager.getAllDownloadedTracks();
+    // Estimate average song size as 3MB (320kbps quality)
+    const downloadsSize = downloadedTracks.length * 3 * 1024 * 1024;
+
+    // Calculate cache size (search history + recent activity + other MMKV data)
+    const searchHistory = getSearchHistory();
+    const recentActivity = getRecentActivity();
+    const likedSongs = getLikedSongs();
+    const playlists = getPlaylists();
+    const savedAlbums = getSavedAlbums();
+
+    const cacheSize =
+      JSON.stringify(searchHistory).length * 2 + // UTF-16 encoding
+      JSON.stringify(recentActivity).length * 2 +
+      JSON.stringify(likedSongs).length * 2 +
+      JSON.stringify(playlists).length * 2 +
+      JSON.stringify(savedAlbums).length * 2;
+
+    // Calculate other storage (track metadata)
+    const keys = storage.getAllKeys();
+    let metadataSize = 0;
+    for (const key of keys) {
+      if (key.startsWith(DOWNLOAD_TRACK_METADATA_PREFIX)) {
+        const value = storage.getString(key);
+        if (value) {
+          metadataSize += value.length * 2;
+        }
+      }
+    }
+
+    const total = downloadsSize + cacheSize + metadataSize;
+
+    return {
+      downloads: downloadsSize,
+      cache: cacheSize,
+      other: metadataSize,
+      total,
+    };
+  } catch (error) {
+    console.error("Error calculating storage usage:", error);
+    return {
+      downloads: 0,
+      cache: 0,
+      other: 0,
+      total: 0,
+    };
+  }
+};
+
+/**
+ * Format bytes to human readable format
+ */
+export const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 };
