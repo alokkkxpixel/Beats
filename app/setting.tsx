@@ -13,7 +13,7 @@ import {
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, ToastAndroid, View } from "react-native";
+import { Linking, Pressable, ScrollView, Text, ToastAndroid, View } from "react-native";
 export default function SettingsScreen() {
   const router = useRouter();
   const [audioQuality, setAudioQuality] = useState<string>(getAudioQualityLabel(getAudioQualityPreference()));
@@ -66,7 +66,7 @@ export default function SettingsScreen() {
       className="flex-row items-center justify-between py-3 border-b border-zinc-800 px-3"
     >
       <Text className="text-zinc-300 text-base font-sans-medium">{label}</Text>
-      <Text className="text-red-500 text-sm">Clear</Text>
+      <Text className="text-red-500 text-sm px-2 py-1 rounded-xl border-zinc-600 border">Clear</Text>
     </Pressable>
   );
 
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
           <Text className="text-white text-base font-sans-medium">Version</Text>
           <Text className="text-zinc-400 text-base">{appVersion}</Text>
         </View>
-
+        <SettingItem label="Check for updates" onPress={() => Linking.openURL("https://github.com/alokkkxpixel/Beats")} />
         <SettingItem label="About" onPress={() => router.push("/about")} />
 
         {/* Logout Button */}

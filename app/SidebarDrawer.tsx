@@ -77,7 +77,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
                 style={{ width: 32, height: 32, borderRadius: 0 }}
               />
               <Text
-                className="text-white text-2xl font-bold tracking-tight"
+                className="text-white text-2xl font-sans-semibold tracking-tight"
                 style={styles.brandText}
                 numberOfLines={1}
                 ellipsizeMode="tail"

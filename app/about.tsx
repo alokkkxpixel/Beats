@@ -70,11 +70,11 @@ export default function AboutScreen() {
         <View className="mt-5 mb-20  pt-6">
           <Text className="text-zinc-200 text-sm font-sans-bold uppercase mb-1">Credits</Text>
           <Text className="text-zinc-400 text-xs font-sans-regular uppercase mb-4">Connect with me</Text>
-          <SocialIcon icon={"logo-x"} title="X (Twitter)" url="https://x.com/AlokkxPithale_" />
-          <SocialIcon icon="logo-linkedin" title="LinkedIn" url="https://www.linkedin.com/in/alokk-pithale/" />
-          <SocialIcon icon="logo-instagram" title="Instagram" url="https://instagram.com/alokkxx__" />
-          <SocialIcon icon="logo-github" title="GitHub" url="https://github.com/alokkkxpixel/Beats" />
-          <SocialIcon icon="mail" title="Email" url="mailto:alokpithale386@gmail.com" />
+          <SocialIcon icon={"logo-x"} title="Follow me on X (Twitter)" url="https://x.com/AlokkxPithale_" />
+          <SocialIcon icon="logo-linkedin" title="Connect on LinkedIn" url="https://www.linkedin.com/in/alokk-pithale/" />
+          <SocialIcon icon="logo-instagram" title="Follow me on Instagram" url="https://instagram.com/alokkxx__" />
+          <SocialIcon icon="logo-github" title="Follow me on GitHub" url="https://github.com/alokkkxpixel/Beats" />
+          <SocialIcon icon="mail" title="Email me" url="mailto:alokpithale386@gmail.com" />
         </View>
       </ScrollView>
     </View>
