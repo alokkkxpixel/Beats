@@ -1,10 +1,26 @@
 import BackIcon from "@/assets/app-icons/chevron-left.svg";
 import ForwardArrow from "@/assets/app-icons/chevron-forward.svg";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { useClerk } from "@clerk/expo";
 import { useNavigation } from "@react-navigation/native";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  const router = useRouter();
+  const { user, isSignedIn } = useAuthStore();
+  const { signOut } = useClerk();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace("/sign-in");
+  };
+
+  const displayName = isSignedIn && user?.fullName ? user.fullName : "Guest User";
+  const displayEmail = isSignedIn && user?.emailAddress ? user.emailAddress : "guest@beats.app";
+  const avatarUri = isSignedIn && user?.imageUrl ? user.imageUrl : null;
 
   return (
     <View className="flex-1 bg-black">
@@ -19,27 +35,58 @@ export default function ProfileScreen() {
           <Text className="text-white text-xl font-sans-bold ml-4">Profile</Text>
         </View>
 
+        {/* Avatar + Name */}
         <View className="items-center py-8">
-          <View className="w-24 h-24 rounded-full bg-zinc-800 items-center justify-center">
-            <Text className="text-4xl">👤</Text>
+          <View className="w-24 h-24 rounded-full bg-zinc-800 items-center justify-center overflow-hidden">
+            {avatarUri ? (
+              <Image
+                source={{ uri: avatarUri }}
+                style={{ width: 96, height: 96 }}
+                contentFit="cover"
+              />
+            ) : (
+              <Text className="text-4xl">👤</Text>
+            )}
           </View>
-          <Text className="text-white text-xl font-sans-bold mt-4">User Name</Text>
-          <Text className="text-zinc-400 text-base mt-1">user@email.com</Text>
+          <Text className="text-white text-xl font-sans-bold mt-4">{displayName}</Text>
+          <Text className="text-zinc-400 text-base mt-1">{displayEmail}</Text>
+          {isSignedIn && user?.provider && (
+            <View className="mt-2 px-3 py-1 rounded-full bg-zinc-800">
+              <Text className="text-zinc-400 text-xs font-sans-medium capitalize">
+                Signed in via {user.provider}
+              </Text>
+            </View>
+          )}
         </View>
 
+        {/* Actions */}
         <View className="mt-4">
-          <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
-            <Text className="text-white text-base font-sans-medium">Edit Profile</Text>
-            <ForwardArrow width={20} height={20} fill="#fff" />
-          </Pressable>
-          <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
-            <Text className="text-white text-base font-sans-medium">Change Email</Text>
-            <ForwardArrow width={20} height={20} fill="#fff" />
-          </Pressable>
-          <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
-            <Text className="text-white text-base font-sans-medium">Change Password</Text>
-            <ForwardArrow width={20} height={20} fill="#fff" />
-          </Pressable>
+          {isSignedIn ? (
+            <>
+              <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
+                <Text className="text-white text-base font-sans-medium">Edit Profile</Text>
+                <ForwardArrow width={20} height={20} fill="#fff" />
+              </Pressable>
+              <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
+                <Text className="text-white text-base font-sans-medium">Change Email</Text>
+                <ForwardArrow width={20} height={20} fill="#fff" />
+              </Pressable>
+              <Pressable
+                onPress={handleSignOut}
+                className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+              >
+                <Text className="text-red-500 text-base font-sans-medium">Sign Out</Text>
+                <ForwardArrow width={20} height={20} fill="#ef4444" />
+              </Pressable>
+            </>
+          ) : (
+            <Pressable
+              onPress={() => router.push("/sign-in")}
+              className="bg-white py-3 rounded-full items-center mt-4"
+            >
+              <Text className="text-black font-sans-bold">Sign In</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </View>

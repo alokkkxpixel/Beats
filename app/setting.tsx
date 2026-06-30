@@ -10,12 +10,15 @@ import {
   getAudioQualityPreference,
   getMusicLanguages,
 } from "@/src/lib/storage";
+import { useAuth, useUser } from "@clerk/expo";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, ToastAndroid, View } from "react-native";
 export default function SettingsScreen() {
   const router = useRouter();
+  const { isSignedIn, signOut } = useAuth();
+  const { user } = useUser();
   const [audioQuality, setAudioQuality] = useState<string>(getAudioQualityLabel(getAudioQualityPreference()));
   const [storageUsed, setStorageUsed] = useState<string>("0 B");
   const [musicLanguages, setMusicLanguages] = useState<string>("");
@@ -89,7 +92,41 @@ export default function SettingsScreen() {
 
         {/* Account Section */}
         <SectionHeader title="Account" />
-        <SettingItem label="Profile" onPress={() => router.push("/profile")} />
+        {isSignedIn ? (
+          <>
+            <View className="border-b border-zinc-800 py-4">
+              <Text className="text-white text-base font-sans-medium">
+                {user?.fullName || user?.primaryEmailAddress?.emailAddress || "User"}
+              </Text>
+              <Text className="text-zinc-400 text-sm mt-1">
+                {user?.primaryEmailAddress?.emailAddress}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => signOut()}
+              className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+            >
+              <Text className="text-red-500 text-base font-sans-medium">Sign Out</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Pressable
+              onPress={() => router.push("/sign-in")}
+              className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+            >
+              <Text className="text-white text-base font-sans-medium">Sign In</Text>
+              <ForwardArrow width={20} height={20} fill="#fff" />
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/sign-up")}
+              className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+            >
+              <Text className="text-white text-base font-sans-medium">Sign Up</Text>
+              <ForwardArrow width={20} height={20} fill="#fff" />
+            </Pressable>
+          </>
+        )}
 
 
         {/* Playback Section */}

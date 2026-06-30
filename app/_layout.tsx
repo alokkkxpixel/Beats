@@ -1,16 +1,19 @@
+import { AuthSync } from "@/components/AuthSync";
 import GlobalAudioPlayer from "@/components/GlobalAudioPlayer";
 import { PlayerWrapper } from "@/components/PlayerWrapper";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
 import { configureDownloadManager } from "@/src/lib/downloadManager";
-import { persister, queryClient } from "@/src/lib/query-client";
+import { queryClient } from "@/src/lib/query-client";
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from '@clerk/expo/token-cache';
 import { useFonts } from "@expo-google-fonts/inter";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
@@ -77,35 +80,43 @@ export default function RootLayout() {
     },
   };
 
-  return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister }}
-    >
-      <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
-        >
-          <PlayerWrapper>
-            {isPlayerReady && <GlobalAudioPlayer />}
-            <Stack
-              screenOptions={{
-                contentStyle: { backgroundColor: "#050505" },
-                headerShown: false,
-              }}
-            >
-              <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-              <Stack.Screen name="audio-quality" />
-              <Stack.Screen name="about" />
-              <Stack.Screen name="music-lang-change" />
-              <Stack.Screen name="setting" />
-            </Stack>
-          </PlayerWrapper>
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-          <StatusBar style="light" translucent={true} />
-          <Toast />
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    </PersistQueryClientProvider>
+  if (!publishableKey) {
+    throw new Error(
+      "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env file"
+    );
+  }
+
+  return (
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <AuthSync />
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#050505" }}>
+          <ThemeProvider
+            value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
+          >
+            <PlayerWrapper>
+              {isPlayerReady && <GlobalAudioPlayer />}
+              <Stack
+                screenOptions={{
+                  contentStyle: { backgroundColor: "#050505" },
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+                <Stack.Screen name="audio-quality" />
+                <Stack.Screen name="about" />
+                <Stack.Screen name="music-lang-change" />
+                <Stack.Screen name="setting" />
+              </Stack>
+            </PlayerWrapper>
+
+            <StatusBar style="light" translucent={true} />
+            <Toast />
+          </ThemeProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }

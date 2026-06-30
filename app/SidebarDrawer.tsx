@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/src/store/useAuthStore";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import {
   DrawerContentComponentProps,
@@ -6,6 +7,7 @@ import {
 } from "@react-navigation/drawer";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+
 import { useEffect } from "react";
 import {
   Pressable,
@@ -28,6 +30,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const insets = useSafeAreaInsets();
   const setDrawerOpen = usePlayerStore((s) => s.setDrawerOpen);
   const status = useDrawerStatus();
+  const { user, isSignedIn } = useAuthStore();
 
   useEffect(() => {
     setDrawerOpen(status === "open");
@@ -91,20 +94,36 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <UserIcon width={30} height={30} fill="#fff" />
+              {isSignedIn && user?.imageUrl ? (
+                <Image
+                  source={{ uri: user.imageUrl }}
+                  style={{ width: 50, height: 50, borderRadius: 25 }}
+                  contentFit="cover"
+                />
+              ) : (
+                <UserIcon width={30} height={30} fill="#fff" />
+              )}
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.userName} className="font-sans-bold">
-                Guest User
+                {isSignedIn && user?.fullName ? user.fullName : "Guest User"}
               </Text>
               <Text style={styles.userEmail} className="font-sans-regular">
-                guest@beats.app
+                {isSignedIn && user?.emailAddress
+                  ? user.emailAddress
+                  : "guest@beats.app"}
               </Text>
             </View>
           </View>
-          <Pressable style={styles.manageAccountBtn}>
+          <Pressable
+            style={styles.manageAccountBtn}
+            onPress={() => {
+              props.navigation.closeDrawer();
+              setTimeout(() => router.push("/profile"), 120);
+            }}
+          >
             <Text style={styles.manageAccountText} className="font-sans-medium">
-              Manage your Google Account
+              {isSignedIn ? "View Profile" : "Sign In"}
             </Text>
           </Pressable>
         </View>

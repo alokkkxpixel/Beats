@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/src/store/useAuthStore";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -20,6 +21,7 @@ const HEADER_HEIGHT = 40;
 export default function Header({ title }: { title: string }) {
   const router = useRouter();
   const navigation = useNavigation<DrawerNavigationProp<any>>();
+  const { user, isSignedIn } = useAuthStore();
   const translateY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
   const isScrolling = useSharedValue(false);
@@ -80,13 +82,19 @@ export default function Header({ title }: { title: string }) {
             </Pressable>
             <Pressable onPress={() => navigation.openDrawer()}>
               <View className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/20">
-                <Image
-                  source={{
-                    uri: "https://avatars.githubusercontent.com/u/132479455?v=4",
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                  contentFit="cover"
-                />
+                {isSignedIn && user?.imageUrl ? (
+                  <Image
+                    source={{ uri: user.imageUrl }}
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <Image
+                    source={require("../assets/icons/appIcon.png")}
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="cover"
+                  />
+                )}
               </View>
             </Pressable>
           </View>
