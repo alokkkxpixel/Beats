@@ -9,15 +9,16 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, Pressable, StyleSheet, View } from "react-native";
+import { BackHandler, Pressable, StyleSheet, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
+import { useNetInfo } from "@react-native-community/netinfo";
 import QueueSheet from "./QueueSheet";
 // --- Sub-components for better isolation ---
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
+import AudioDeviceBottomSheet from "./AudioDeviceBottomSheet";
 import LyricsScreen from "./LyricsScreen";
 import PlaylistModal from "./PlaylistModal";
-import AudioDeviceBottomSheet from "./AudioDeviceBottomSheet";
 const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
   const { hasTrack, isDrawerOpen, expandFullPlayer } = usePlayerStore(
     useShallow((s) => ({
@@ -120,7 +121,7 @@ const MoreOptionsSheetLayer = React.memo(() => {
     })),
   );
   const moreSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = React.useMemo(() => ["70%"], []);
+  const snapPoints = React.useMemo(() => ["70%", "100%"], []);
 
   useEffect(() => {
     if (isMoreOptionOpen) moreSheetRef.current?.snapToIndex(0);
@@ -202,10 +203,7 @@ const AudioDeviceSheetLayer = React.memo(() => {
 
   return (
     <View
-      style={[
-        styles.sheetContainer,
-        { zIndex: isAudioDeviceOpen ? 2100 : -1 },
-      ]}
+      style={[styles.sheetContainer, { zIndex: isAudioDeviceOpen ? 2100 : -1 }]}
       pointerEvents={isAudioDeviceOpen ? "auto" : "none"}
     >
       <BottomSheet
@@ -361,6 +359,25 @@ PlaylistModalLayer.displayName = "PlaylistModalLayer";
 export function PlayerWrapper({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const TABBAR_HEIGHT = 55 + insets.bottom;
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false || (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
+
+  const { hasTrack, isDrawerOpen } = usePlayerStore(
+    useShallow((s) => ({
+      hasTrack: !!s.currentTrack,
+      isDrawerOpen: s.isDrawerOpen,
+    })),
+  );
+  const segments = useSegments();
+  const isMiniPlayerShowing =
+    segments.length > 0 &&
+    (segments as string[]).includes("(tabs)") &&
+    hasTrack &&
+    !isDrawerOpen;
+
+  const bannerBottom = isMiniPlayerShowing
+    ? TABBAR_HEIGHT + 80 // height of miniplayer (h-20 is 80px)
+    : TABBAR_HEIGHT;
 
   useEffect(() => {
     const backAction = () => {
@@ -408,6 +425,12 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
       <QueueSheetLayer />
       <LyricsSheetLayer />
       <PlaylistModalLayer />
+
+      {isOffline && (
+        <View style={[styles.offlineBanner, { bottom: bannerBottom }]}>
+          <Text style={styles.offlineText}>No internet connection</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -444,5 +467,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     width: "100%",
     paddingVertical: 10,
+  },
+  offlineBanner: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    backgroundColor: "#2e77d0",
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  },
+  offlineText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "sans-semibold",
   },
 });

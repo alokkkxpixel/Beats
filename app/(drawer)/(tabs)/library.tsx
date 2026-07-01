@@ -30,6 +30,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
+import { useNetInfo } from "@react-native-community/netinfo";
+
 interface LibraryItemData {
   id: string;
   title: string;
@@ -61,7 +63,7 @@ const getImageUri = (img: any): string => {
   return imageUrl;
 };
 
-const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
+const LibraryItem = memo(({ item, disabled }: { item: LibraryItemData; disabled?: boolean }) => {
   const router = useRouter();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
@@ -69,6 +71,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
   const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
   const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
   const handleOption = async (item: any) => {
+    if (disabled) return;
     const response = await jioSaavnService.getSongByIdandLink(
       item.id,
       item.url,
@@ -81,6 +84,7 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
     expandMoreOption();
   };
   const handlePress = () => {
+    if (disabled) return;
     if (item.type === "song") {
       setCurrentTrack(item as any);
     } else if (item.type === "album") {
@@ -105,8 +109,8 @@ const LibraryItem = memo(({ item }: { item: LibraryItemData }) => {
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      className="flex-row items-center px-4 py-3"
+      activeOpacity={disabled ? 1 : 0.7}
+      className={`flex-row items-center px-4 py-3 ${disabled ? "opacity-40" : ""}`}
       onPress={handlePress}
     >
       <View
@@ -144,6 +148,8 @@ LibraryItem.displayName = "LibraryItem";
 
 export default function LibraryScreen() {
   const router = useRouter();
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
   const [recentActivity, setRecentActivity] = useState<LibraryItemData[]>([]);
   const insets = useSafeAreaInsets();
   const playlists = usePlaylistStore((s) => s.playlists);
@@ -318,7 +324,7 @@ export default function LibraryScreen() {
         data={recentActivity}
         renderItem={({ item }: any) => (
           <>
-            <LibraryItem item={item} />
+            <LibraryItem item={item} disabled={isOffline} />
           </>
         )}
         estimatedItemSize={88}

@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import TextTicker from "react-native-text-ticker";
+import PlayingIndicator from "./PlayingIndicator";
 
 // Helper function to calculate color brightness for text protection
 function getLuminance(hex: string): number {
@@ -119,7 +120,9 @@ const QueueSheet = () => {
 
   // FIX 3: Safety shield overlay calculation for white/light album covers
   const overlayColor = useMemo(() => {
-    const brightness = getLuminance(accentColor.average || accentColor.dominant);
+    const brightness = getLuminance(
+      accentColor.average || accentColor.dominant,
+    );
     if (brightness > 0.8) return "rgba(0, 0, 0, 0.65)"; // Protects text on pure white covers
     if (brightness > 0.5) return "rgba(0, 0, 0, 0.35)"; // Protects text on medium bright covers
     return "transparent";
@@ -154,10 +157,20 @@ const QueueSheet = () => {
         style={[styles.trackItem, isCurrent && styles.currentTrackItem]}
         onPress={() => !isCurrent && setCurrentTrack(item)}
       >
-        <Image
-          source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
-          style={styles.trackArt}
-        />
+        {/* Cover */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
+            style={styles.trackArt}
+          />
+
+          {isCurrent && (
+            <View style={styles.playingOverlay}>
+              <PlayingIndicator />
+            </View>
+          )}
+        </View>
+
         <View style={styles.trackInfo}>
           {isCurrent ? (
             <TextTicker
@@ -215,48 +228,46 @@ const QueueSheet = () => {
         ]}
       />
 
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <Text style={styles.playingFrom}>Playing from</Text>
+        <TextTicker
+          style={[styles.title]}
+          duration={15000}
+          animationType="scroll"
+          loop
+          bounce={false}
+          repeatSpacer={50}
+          marqueeDelay={1000}
+          easing={Easing.linear}
+        >
+          {albumName.toUpperCase()}
+        </TextTicker>
+      </View>
+
       <FlashList
         ref={flatListRef}
         data={queue}
         renderScrollComponent={renderScrollComponent}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         renderItem={renderTrackItem}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={styles.playingFrom}>Playing from</Text>
-            <TextTicker
-              style={[styles.title]}
-              duration={15000}
-              animationType="scroll"
-              loop
-              bounce={false}
-              repeatSpacer={50}
-              marqueeDelay={1000}
-              easing={Easing.linear}
-            >
-              {albumName.toUpperCase()}
-            </TextTicker>
-          </View>
-        }
-        ListFooterComponent={
-          <View style={styles.ListFooterComponent}>
-            {isFetchingSuggestions && (
-              <View style={styles.ListFooterComponentFetching}>
-                <ActivityIndicator
-                  size="small"
-                  color="#1DB954"
-                  style={{ marginRight: 10 }}
-                />
-                <Text style={{ color: "#eee", fontSize: 13 }}>
-                  Fetching suggestions...
-                </Text>
-              </View>
-            )}
-          </View>
-        }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
+
+      {/* Fixed suggestion loading indicator */}
+      {isFetchingSuggestions && (
+        <View style={styles.ListFooterComponentFixed}>
+          <ActivityIndicator
+            size="small"
+            color="#1DB954"
+            style={{ marginRight: 10 }}
+          />
+          <Text style={{ color: "#eee", fontSize: 13 }}>
+            Fetching suggestions...
+          </Text>
+        </View>
+      )}
 
       {/* Styled the bottom controller bar background to blend properly with the dynamic layout */}
       <View
@@ -299,14 +310,31 @@ const styles = StyleSheet.create({
     flex: 1,
     // backgroundColor: "#121212",
   },
-  ListFooterComponent: {
-    height: 120,
-    alignItems: "center",
-    paddingTop: 20,
-  },
-  ListFooterComponentFetching: {
+  ListFooterComponentFixed: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    marginBottom: 90,
+  },
+  playingOverlay: {
+    height: "100%",
+    width: "86%",
+    position: "absolute",
+    top: 0,
+    overflow: "hidden",
+    left: 0,
+    // backgroundColor: "rgba(230, 225, 225, 0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    zIndex: 999,
+    overflow: "hidden",
+    position: "relative",
   },
   header: {
     paddingHorizontal: 20,
@@ -328,7 +356,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 120,
   },
   trackItem: {
     flexDirection: "row",
@@ -358,7 +386,7 @@ const styles = StyleSheet.create({
     fontFamily: "sans-semibold",
   },
   currentTrackTitle: {
-    color: "#1DB954",
+    // color: "#1DB954",
   },
   trackArtist: {
     color: "#fdfdfdff",

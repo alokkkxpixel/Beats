@@ -21,7 +21,6 @@ import DownloadIcon from "@/assets/app-icons/download.svg";
 import ShareIcon from "@/assets/app-icons/more.svg";
 import SaveIcon from "@/assets/app-icons/playlist-add.svg";
 import PlayNextIcon from "@/assets/app-icons/playlist-next.svg";
-import RadioIcon from "@/assets/app-icons/radio.svg";
 import { useDownloadStore } from "@/src/store/useDownloadStore";
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
 import { Trash2 } from "lucide-react-native";
@@ -178,7 +177,6 @@ export default function MusicBottomSheet() {
     );
   };
   const menuItems = [
-    { icon: RadioIcon, label: "Start radio" },
     { icon: PlayNextIcon, label: "Play next", fnx: handlePlayNext },
     { icon: AddQueueIcon, label: "Add to queue", fnx: handleAddToQueue },
     // Always allow adding to a (new) playlist
