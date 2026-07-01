@@ -4,125 +4,145 @@ import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { MoveLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Image as RNImage, Text, View } from "react-native";
 const LANGUAGES = [
   {
     id: "hindi",
     name: "Hindi",
     native: "हिंदी",
-    image: "https://i.scdn.co/image/ab6761610000e5eb5ba2d75eb08a2d672f9b69b7",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/hindi.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "english",
     name: "English",
     native: "English",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_qydwbyfzBseOkXvF2to4jax9f5yN6unb5g&s",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/english.jpg"))
+      .uri,
     color: "#3C3B6E",
   },
   {
     id: "marathi",
     name: "Marathi",
     native: "मराठी",
-    image: "https://blackhattalent.com/wp-content/uploads/2025/03/AJAY-ATUL-e1742214543116.jpg",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/marathi.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "punjabi",
     name: "Punjabi",
     native: "ਪੰਜਾਬੀ",
-    image: "https://yt3.googleusercontent.com/ytc/AIdro_kiQJ0Hhp0O-tdaY1dy81-gSNujjccUlWstnpFr686ZlMk=s900-c-k-c0x00ffffff-no-rj",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/punjabi.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "tamil",
     name: "Tamil",
     native: "தமிழ்",
-    image: "https://i.scdn.co/image/ab67616d0000b2731edf696a64afb583b45e0f93",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/tamil.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "telugu",
     name: "Telugu",
     native: "తెలుగు",
-    image: "https://c.files.bbci.co.uk/73e4/live/01a3c3c0-800b-11ef-9e86-a5d5544cf0ba.png",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/telugu.png"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "haryanvi",
     name: "Haryanvi",
     native: "हरयाणवी",
-    image: "https://a10.gaanacdn.com/gn_img/artists/DwPKOxB3qV/wPKOk42BKq/size_m_1717410103.jpg",
+    image: RNImage.resolveAssetSource(
+      require("@/assets/musicLang/haryanvi.jpg"),
+    ).uri,
     color: "#FF9933",
   },
   {
     id: "kannada",
     name: "Kannada",
     native: "ಕನ್ನಡ",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI1OcodyrzsYL7pYd0kYOvadGTZ0X5Vz8mcQ&s",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/kannada.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "malayalam",
     name: "Malayalam",
     native: "മലയാളം",
-    image: "https://punjabiweddingsongs.in/wp-content/uploads/2025/01/CHITRA-7.jpg",
+    image: RNImage.resolveAssetSource(
+      require("@/assets/musicLang/malayalam.jpg"),
+    ).uri,
     color: "#FF9933",
   },
   {
     id: "bengali",
     name: "Bengali",
     native: "বাংলা",
-    image: "https://assets.telegraphindia.com/telegraph/2021/Jun/1622652635_dg1411773m.jpg",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/bengali.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
-    "id": "rajasthani",
-    "name": "Rajasthani",
-    "native": "રાજસ્થાની / राजस्थानी",
-    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGNNUB3Qu5ghFMGwGCgEBy4XLggjozH4-n1w&s",
-    "color": "#FF4500"
+    id: "rajasthani",
+    name: "Rajasthani",
+    native: "રાજસ્થાની / राजस्थानी",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/bengali.jpg"))
+      .uri,
+    color: "#FF4500",
   },
   {
-    "id": "bhojpuri",
-    "name": "Bhojpuri",
-    "native": "भोजपुरी",
-    "image": "https://pbs.twimg.com/profile_images/1932692408447176704/9e_dj4V2.jpg",
-    "color": "#E60000"
+    id: "bhojpuri",
+    name: "Bhojpuri",
+    native: "भोजपुरी",
+    image: RNImage.resolveAssetSource(
+      require("@/assets/musicLang/bhojpuri.jpg"),
+    ).uri,
+    color: "#E60000",
   },
   {
-    "id": "odia",
-    "name": "Odia",
-    "native": "ଓଡ଼ିଆ",
-    "image": "https://yt3.googleusercontent.com/ytc/AIdro_kr_7hXS2Zpnqengg9mbRktyquBfE639BNt2nwwU3zFN0I=s900-c-k-c0x00ffffff-no-rj",
-    "color": "#008080"
+    id: "odia",
+    name: "Odia",
+    native: "ଓଡ଼ିଆ",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/odia.jpg"))
+      .uri,
+    color: "#008080",
   },
   {
     id: "gujarati",
     name: "Gujarati",
     native: "ગુજરાતી",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQv6MToUCQUwjwVY9AUKbcj04tSyWuSXvTFGXiL0fMHVwsNvk5o1W8FhSaktKguAFOBbyv59YBA3i09m7k19a4BElz-ukFdj5sXVZye6yU&s=10",
+    image: RNImage.resolveAssetSource(require("@/assets/musicLang/guju.jpg"))
+      .uri,
     color: "#FF9933",
   },
   {
     id: "assamese",
     name: "Assamese",
     native: "অসমীয়া",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT82stfGHl2eBMXvyNwYxV4TzozDyJwrfllxQ&s",
+    image: RNImage.resolveAssetSource(
+      require("@/assets/musicLang/assamese.jpg"),
+    ).uri,
     color: "#FF9933",
   },
   {
     id: "sanskrit",
     name: "Sanskrit",
     native: "संस्कृत",
-    image: "https://www.globalswasthyam.com/wp-content/uploads/2023/10/gaiea-sanskrit.png",
+    image: RNImage.resolveAssetSource(
+      require("@/assets/musicLang/sanskrit.png"),
+    ).uri,
     color: "#FF9933",
   },
-
 ];
 
 export default function LanguageSelectionScreen() {
@@ -184,9 +204,9 @@ export default function LanguageSelectionScreen() {
             <Pressable
               onPress={() => toggleLanguage(item.id)}
               style={{
-                flex: 1,              // Makes the card fill 50% of the screen width evenly
-                margin: 6,            // Controls the gap size between cards cleanly
-                aspectRatio: 1.2,    // Keeps your desired card proportion perfectly scaled
+                flex: 1, // Makes the card fill 50% of the screen width evenly
+                margin: 6, // Controls the gap size between cards cleanly
+                aspectRatio: 1.2, // Keeps your desired card proportion perfectly scaled
               }}
             >
               <View
@@ -194,7 +214,6 @@ export default function LanguageSelectionScreen() {
                   flex: 1,
                   borderRadius: 20,
                   overflow: "hidden",
-
                 }}
               >
                 {/* Background */}
@@ -247,11 +266,7 @@ export default function LanguageSelectionScreen() {
                       alignItems: "center",
                     }}
                   >
-                    <Ionicons
-                      name="checkmark"
-                      size={18}
-                      color="#000"
-                    />
+                    <Ionicons name="checkmark" size={18} color="#000" />
                   </View>
                 )}
 
@@ -292,8 +307,9 @@ export default function LanguageSelectionScreen() {
       <Pressable
         disabled={selected.length === 0}
         onPress={handleDone}
-        className={`absolute bottom-10 left-4 right-4 py-4 rounded-xl ${selected.length === 0 ? "bg-zinc-700" : "bg-green-500"
-          }`}
+        className={`absolute bottom-10 left-4 right-4 py-4 rounded-xl ${
+          selected.length === 0 ? "bg-zinc-700" : "bg-green-500"
+        }`}
       >
         <Text className="text-center font-sans-bold text-black text-lg">
           Done
