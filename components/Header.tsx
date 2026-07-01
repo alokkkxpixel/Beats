@@ -15,7 +15,7 @@ import Animated, {
 
 // Import SVGs
 import SearchIcon from "@/assets/app-icons/search.svg";
-
+import AppLogo from "@/assets/icons/appLogo.svg";
 const HEADER_HEIGHT = 40;
 
 export default function Header({ title }: { title: string }) {
@@ -70,11 +70,7 @@ export default function Header({ title }: { title: string }) {
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
         <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
-         <Image
-            source={require("../assets/icons/Vector.png")}
-            style={{ width: 40, height: 40 }}
-            contentFit="contain"
-          />
+          <AppLogo width={40} height={40} fill="#ffffff" />
 
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>

@@ -1,5 +1,5 @@
-import BackIcon from "@/assets/app-icons/chevron-left.svg";
 import ForwardArrow from "@/assets/app-icons/chevron-forward.svg";
+import BackIcon from "@/assets/app-icons/chevron-left.svg";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { useClerk } from "@clerk/expo";
 import { useNavigation } from "@react-navigation/native";
@@ -15,11 +15,13 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace("/sign-in");
+    router.replace("/");
   };
 
-  const displayName = isSignedIn && user?.fullName ? user.fullName : "Guest User";
-  const displayEmail = isSignedIn && user?.emailAddress ? user.emailAddress : "guest@beats.app";
+  const displayName =
+    isSignedIn && user?.fullName ? user.fullName : "Guest User";
+  const displayEmail =
+    isSignedIn && user?.emailAddress ? user.emailAddress : "guest@beats.app";
   const avatarUri = isSignedIn && user?.imageUrl ? user.imageUrl : null;
 
   return (
@@ -32,7 +34,9 @@ export default function ProfileScreen() {
           >
             <BackIcon width={22} height={22} fill="#fff" />
           </Pressable>
-          <Text className="text-white text-xl font-sans-bold ml-4">Profile</Text>
+          <Text className="text-white text-xl font-sans-bold ml-4">
+            Profile
+          </Text>
         </View>
 
         {/* Avatar + Name */}
@@ -48,7 +52,9 @@ export default function ProfileScreen() {
               <Text className="text-4xl">👤</Text>
             )}
           </View>
-          <Text className="text-white text-xl font-sans-bold mt-4">{displayName}</Text>
+          <Text className="text-white text-xl font-sans-bold mt-4">
+            {displayName}
+          </Text>
           <Text className="text-zinc-400 text-base mt-1">{displayEmail}</Text>
           {isSignedIn && user?.provider && (
             <View className="mt-2 px-3 py-1 rounded-full bg-zinc-800">
@@ -61,31 +67,18 @@ export default function ProfileScreen() {
 
         {/* Actions */}
         <View className="mt-4">
-          {isSignedIn ? (
+          {isSignedIn && (
             <>
-              <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
-                <Text className="text-white text-base font-sans-medium">Edit Profile</Text>
-                <ForwardArrow width={20} height={20} fill="#fff" />
-              </Pressable>
-              <Pressable className="flex-row items-center justify-between py-4 border-b border-zinc-800">
-                <Text className="text-white text-base font-sans-medium">Change Email</Text>
-                <ForwardArrow width={20} height={20} fill="#fff" />
-              </Pressable>
               <Pressable
                 onPress={handleSignOut}
                 className="flex-row items-center justify-between py-4 border-b border-zinc-800"
               >
-                <Text className="text-red-500 text-base font-sans-medium">Sign Out</Text>
+                <Text className="text-red-500 text-base font-sans-medium">
+                  Sign Out
+                </Text>
                 <ForwardArrow width={20} height={20} fill="#ef4444" />
               </Pressable>
             </>
-          ) : (
-            <Pressable
-              onPress={() => router.push("/sign-in")}
-              className="bg-white py-3 rounded-full items-center mt-4"
-            >
-              <Text className="text-black font-sans-bold">Sign In</Text>
-            </Pressable>
           )}
         </View>
       </ScrollView>

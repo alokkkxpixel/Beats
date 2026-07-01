@@ -140,45 +140,22 @@ export default function SettingsScreen() {
           <>
             {/* Account Section */}
             <SectionHeader title="Account" />
-            {isSignedIn ? (
-              <>
-                <View className="border-b border-zinc-800 py-4">
-                  <Text className="text-white text-base font-sans-medium">
-                    {user?.fullName ||
-                      user?.primaryEmailAddress?.emailAddress ||
-                      "User"}
-                  </Text>
-                  <Text className="text-zinc-400 text-sm mt-1">
-                    {user?.primaryEmailAddress?.emailAddress}
-                  </Text>
-                </View>
-                <Pressable
-                  onPress={() => signOut()}
-                  className="flex-row items-center justify-between py-4 border-b border-zinc-800"
-                >
-                  <Text className="text-red-500 text-base font-sans-medium">
-                    Sign Out
-                  </Text>
-                </Pressable>
-              </>
-            ) : (
+            {isSignedIn && (
               <>
                 <Pressable
-                  onPress={() => router.push("/sign-in")}
-                  className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+                  onPress={() => router.push("/profile")}
+                  className="flex-row items-center justify-between"
                 >
-                  <Text className="text-white text-base font-sans-medium">
-                    Sign In
-                  </Text>
-                  <ForwardArrow width={20} height={20} fill="#fff" />
-                </Pressable>
-                <Pressable
-                  onPress={() => router.push("/sign-up")}
-                  className="flex-row items-center justify-between py-4 border-b border-zinc-800"
-                >
-                  <Text className="text-white text-base font-sans-medium">
-                    Sign Up
-                  </Text>
+                  <View className="border-b border-zinc-800 py-4">
+                    <Text className="text-white text-base font-sans-medium">
+                      {user?.fullName ||
+                        user?.primaryEmailAddress?.emailAddress ||
+                        "User"}
+                    </Text>
+                    <Text className="text-zinc-400 text-sm mt-1">
+                      {user?.primaryEmailAddress?.emailAddress}
+                    </Text>
+                  </View>
                   <ForwardArrow width={20} height={20} fill="#fff" />
                 </Pressable>
               </>

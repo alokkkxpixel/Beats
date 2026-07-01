@@ -9,6 +9,7 @@
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { useAuth, useUser } from "@clerk/expo";
 import { useEffect } from "react";
+import { storage } from "@/src/lib/storage";
 
 export function AuthSync() {
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
@@ -24,6 +25,9 @@ export function AuthSync() {
       isSignedIn: !!isSignedIn,
       clerkUser: user ?? null,
     });
+    if (isLoaded) {
+      storage.set("is-user-signed-in", !!isSignedIn);
+    }
   }, [isLoaded, isSignedIn, user, syncFromClerk]);
 
   return null;

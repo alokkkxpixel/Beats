@@ -16,8 +16,8 @@ import { useShallow } from "zustand/shallow";
 
 // Import SVGs
 import MusicIcon from "@/assets/app-icons/album.svg";
-import PauseIcon from "@/assets/app-icons/pause.svg";
-import PlayIcon from "@/assets/app-icons/play.svg";
+import PauseIcon from "@/assets/app-icons/pause-withoutBg.svg";
+import PlayIcon from "@/assets/app-icons/play-withoutBg.svg";
 
 import TextTicker from "react-native-text-ticker";
 import useTrackAccentColor from "../src/hooks/useTrackAccentColor";
@@ -69,7 +69,10 @@ const MiniPlayer = React.memo(function MiniPlayer() {
     <View
       style={[
         styles.miniContainer,
-        { backgroundColor: accentColor?.average || accentColor?.darkVibrant || "#222222" },
+        {
+          backgroundColor:
+            accentColor?.average || accentColor?.darkVibrant || "#222222",
+        },
       ]}
     >
       {/* <BlurredBackground height={12} accentColor={accentColor} /> */}

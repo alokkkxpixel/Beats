@@ -5,8 +5,9 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSetupPlayer } from "@/hooks/useSetupPlayer";
 import { configureDownloadManager } from "@/src/lib/downloadManager";
 import { queryClient } from "@/src/lib/query-client";
-import { ClerkProvider } from "@clerk/expo";
-import { tokenCache } from '@clerk/expo/token-cache';
+import { storage } from "@/src/lib/storage";
+import { ClerkProvider, useAuth } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "@expo-google-fonts/inter";
 import {
   DarkTheme,
@@ -14,30 +15,69 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
+import { ActivityIndicator, View } from "react-native";
+import { useNetInfo } from "@react-native-community/netinfo";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import Toast from "react-native-toast-message";
 import "../global.css";
-// const queryClient = new QueryClient({
-//   defaultOptions: {
-//     queries: {
-//       gcTime: 1000 * 60 * 60 * 24, // Keep in memory for 24 hours
-//     },
-//   },
-// });
-
-// const asyncStoragePersister = createAsyncStoragePersister({
-//   storage: AsyncStorage,
-//   key: "BEATS_OFFLINE_CACHE",
-// });
 
 export const unstable_settings = {
   anchor: "(drawer)",
 };
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { isSignedIn, isLoaded } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  const netInfo = useNetInfo();
+
+  React.useEffect(() => {
+    if (!isLoaded) return;
+
+    const inAuthGroup = segments[0] === "onboarding";
+    const inLangGroup = segments[0] === "music-lang-change";
+    const hasCompletedOnboarding =
+      storage.getBoolean("has-completed-onboarding") ?? false;
+    const isOffline = netInfo.isConnected === false;
+    const isUserSignedInCached = storage.getBoolean("is-user-signed-in") ?? false;
+
+    // Treat user as signed in if they are offline but were logged in previously.
+    // This protects offline/download playback from auth-checks blocking app access.
+    const effectivelySignedIn = isSignedIn || (isOffline && isUserSignedInCached);
+
+    if (!effectivelySignedIn && !inAuthGroup) {
+      router.replace("/onboarding");
+    } else if (effectivelySignedIn) {
+      if (!hasCompletedOnboarding && !inLangGroup) {
+        router.replace("/music-lang-change");
+      } else if (hasCompletedOnboarding && inAuthGroup) {
+        router.replace("/(drawer)/(tabs)");
+      }
+    }
+  }, [isSignedIn, isLoaded, segments, netInfo.isConnected]);
+
+  if (!isLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#050505",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -84,7 +124,7 @@ export default function RootLayout() {
 
   if (!publishableKey) {
     throw new Error(
-      "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env file"
+      "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env file",
     );
   }
 
@@ -97,19 +137,28 @@ export default function RootLayout() {
             value={colorScheme === "dark" ? customDarkTheme : DefaultTheme}
           >
             <PlayerWrapper>
-              {isPlayerReady && <GlobalAudioPlayer />}
-              <Stack
-                screenOptions={{
-                  contentStyle: { backgroundColor: "#050505" },
-                  headerShown: false,
-                }}
-              >
-                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-                <Stack.Screen name="audio-quality" />
-                <Stack.Screen name="about" />
-                <Stack.Screen name="music-lang-change" />
-                <Stack.Screen name="setting" />
-              </Stack>
+              <AuthGuard>
+                {isPlayerReady && <GlobalAudioPlayer />}
+                <Stack
+                  screenOptions={{
+                    contentStyle: { backgroundColor: "#050505" },
+                    headerShown: false,
+                  }}
+                >
+                  <Stack.Screen
+                    name="(drawer)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="audio-quality" />
+                  <Stack.Screen name="about" />
+                  <Stack.Screen name="music-lang-change" />
+                  <Stack.Screen name="setting" />
+                  <Stack.Screen
+                    name="onboarding"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+              </AuthGuard>
             </PlayerWrapper>
 
             <StatusBar style="light" translucent={true} />

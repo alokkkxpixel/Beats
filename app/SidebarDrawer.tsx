@@ -21,9 +21,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Import SVGs
 import UserIcon from "@/assets/app-icons/artist.svg";
 import CloseIcon from "@/assets/app-icons/close.svg";
+import Downloads from "@/assets/app-icons/Download-done.svg";
 import HistoryIcon from "@/assets/app-icons/history.svg";
 import SettingsIcon from "@/assets/app-icons/settings.svg";
-
 export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const router = useRouter();
   const { height, width } = useWindowDimensions();
@@ -36,10 +36,10 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     setDrawerOpen(status === "open");
   }, [status, setDrawerOpen]);
 
-  const navigateFromDrawer = (path: "/library" | "/setting" | "/about") => {
+  const navigateFromDrawer = (path: string) => {
     props.navigation.closeDrawer();
     setTimeout(() => {
-      router.push(path);
+      router.push(path as any);
     }, 120);
   };
 
@@ -56,6 +56,19 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
       icon: SettingsIcon,
       onPress: () => {
         navigateFromDrawer("/setting");
+      },
+    },
+    {
+      label: "Downloads",
+      icon: Downloads,
+      onPress: () => {
+        props.navigation.closeDrawer();
+        setTimeout(() => {
+          router.push({
+            pathname: "/album-detail",
+            params: { albumId: "downloaded-songs" },
+          });
+        }, 100);
       },
     },
   ];
@@ -140,7 +153,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
                 styles.menuItemRow,
                 pressed && styles.menuItemPressed,
               ]}
-              className="flex flex-row my-2"
+              className="flex flex-row mb-5"
               onPress={item.onPress}
             >
               <item.icon

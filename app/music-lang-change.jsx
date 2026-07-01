@@ -1,4 +1,9 @@
-import { getMusicLanguages, setMusicLanguages } from "@/src/lib/storage";
+import BackIcon from "@/assets/app-icons/chevron-left.svg";
+import {
+  getMusicLanguages,
+  setMusicLanguages,
+  storage,
+} from "@/src/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
@@ -6,7 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { MoveLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, Image as RNImage, Text, View } from "react-native";
 const LANGUAGES = [
@@ -174,6 +178,9 @@ export default function LanguageSelectionScreen() {
     queryClient.invalidateQueries({ queryKey: ["home-previews"] });
     queryClient.invalidateQueries({ queryKey: ["special-for-you"] });
 
+    // Mark onboarding as completed
+    storage.set("has-completed-onboarding", true);
+
     // Navigate back to home
     router.replace("/");
   };
@@ -322,20 +329,26 @@ export default function LanguageSelectionScreen() {
 export function LanguageHeader() {
   const router = useRouter();
   const navigation = useNavigation();
+  const hasCompletedOnboarding =
+    storage.getBoolean("has-completed-onboarding") ?? false;
+
   return (
     <View className="bg-black px-4  pb-4">
       {/* Header Row */}
-      <View className="flex-row items-center">
-        {/* Back Button */}
+      {/* Back Button */}
+      {hasCompletedOnboarding && (
         <Pressable
           onPress={() => navigation.goBack()}
-          className="w-10 h-10 items-center justify-center rounded-full bg-zinc-800"
+          className="w-10 h-10 absolute top-5 left-5 items-center justify-center rounded-full bg-zinc-800"
         >
-          <MoveLeft size={22} color="#fff" />
+          <BackIcon width={22} height={22} fill="#fff" />
         </Pressable>
-
+      )}
+      <View className="flex-row items-center justify-center  ">
         {/* Title */}
-        <Text className="text-white text-xl font-sans-bold ml-4">
+        <Text
+          className={`text-white text-xl self-center font-sans-bold ${hasCompletedOnboarding ? "ml-4" : ""}`}
+        >
           Choose your music languages
         </Text>
       </View>
