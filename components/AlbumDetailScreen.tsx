@@ -23,6 +23,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -183,6 +184,62 @@ const AlbumDetailScreen = ({
     "#000",
   );
 
+  const downloadedTracks = useDownloadStore((s) => s.downloadedTracks);
+  const downloadProgress = useDownloadStore((s) => s.downloadProgress);
+  const downloadPlaylistAction = useDownloadStore((s) => s.downloadPlaylist);
+
+  const downloadStats = React.useMemo(() => {
+    if (!songs || songs.length === 0) {
+      return { isAllDownloaded: false, isDownloading: false, progress: 0 };
+    }
+
+    let downloadedCount = 0;
+    let downloadingCount = 0;
+    let totalProgress = 0;
+
+    songs.forEach((song) => {
+      if (downloadedTracks.has(song.id)) {
+        downloadedCount++;
+        totalProgress += 1;
+      } else {
+        const prog = downloadProgress.get(song.id);
+        if (prog) {
+          if (prog.state === "downloading" || prog.state === "pending") {
+            downloadingCount++;
+            totalProgress += prog.progress;
+          }
+        }
+      }
+    });
+
+    const isAllDownloaded = downloadedCount === songs.length;
+    const isDownloading = downloadingCount > 0;
+    const avgProgress = songs.length > 0 ? totalProgress / songs.length : 0;
+
+    return {
+      isAllDownloaded,
+      isDownloading,
+      progress: avgProgress,
+    };
+  }, [songs, downloadedTracks, downloadProgress]);
+
+  const handleDownloadPlaylist = () => {
+    if (!album || !songs || songs.length === 0) return;
+    Alert.alert(
+      "Download Playlist",
+      `Are you sure you want to download the whole playlist "${album.name || album.title}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Download",
+          onPress: () => {
+            downloadPlaylistAction(album.id, songs);
+          },
+        },
+      ],
+    );
+  };
+
   useEffect(() => {
     loadSavedAlbums();
   }, []);
@@ -281,14 +338,26 @@ const AlbumDetailScreen = ({
               : ""}
           </Text>
         </View>
-        {!(
-          album?.id === "downloaded-songs" ||
-          album?.id === "liked-songs" ||
-          album?.id.startsWith("playlist-")
-        ) && (
+        {album?.id !== "downloaded-songs" && (
           <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.actionCircleBtn}>
-              <DownloadIcon fill="white" width={24} height={24} />
+            <TouchableOpacity
+              style={styles.actionCircleBtn}
+              onPress={handleDownloadPlaylist}
+              disabled={
+                downloadStats.isAllDownloaded || downloadStats.isDownloading
+              }
+            >
+              {downloadStats.isAllDownloaded ? (
+                <DownloadOffline fill="white" width={24} height={24} />
+              ) : downloadStats.isDownloading ? (
+                <Text
+                  style={{ color: "#3b82f6", fontSize: 11, fontWeight: "bold" }}
+                >
+                  {Math.round(downloadStats.progress * 100)}%
+                </Text>
+              ) : (
+                <DownloadIcon fill="white" width={24} height={24} />
+              )}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.mainPlayBtn}
@@ -296,21 +365,35 @@ const AlbumDetailScreen = ({
             >
               <PlayIcon fill="white" width={50} height={50} />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionCircleBtn}
-              onPress={handleSaveAlbum}
-            >
-              {isSaved ? (
-                <SaveToLibraryIcon fill="white" width={24} height={24} />
-              ) : (
-                <AddLibraryIcon fill="white" width={24} height={24} />
-              )}
-            </TouchableOpacity>
+            {!(
+              album?.id === "liked-songs" || album?.id.startsWith("playlist-")
+            ) ? (
+              <TouchableOpacity
+                style={styles.actionCircleBtn}
+                onPress={handleSaveAlbum}
+              >
+                {isSaved ? (
+                  <SaveToLibraryIcon fill="white" width={24} height={24} />
+                ) : (
+                  <AddLibraryIcon fill="white" width={24} height={24} />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 44 }} />
+            )}
           </View>
         )}
       </View>
     ),
-    [highResCover, album, setQueue, songs, isSaved],
+    [
+      highResCover,
+      album,
+      setQueue,
+      songs,
+      isSaved,
+      downloadStats,
+      handleDownloadPlaylist,
+    ],
   );
 
   const renderFooter = React.useMemo(

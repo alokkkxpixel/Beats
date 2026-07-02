@@ -87,20 +87,6 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
               fill={"#fff"}
               onPress={() => props.navigation.closeDrawer()}
             />
-            <View className="flex-row items-center gap-3">
-              <Image
-                source={require("../assets/icons/logo-group.png")}
-                style={{ width: 32, height: 32, borderRadius: 0 }}
-              />
-              <Text
-                className="text-white text-2xl font-sans-semibold tracking-tight"
-                style={styles.brandText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                Beats
-              </Text>
-            </View>
           </View>
         </View>
         {/* User Profile Section */}

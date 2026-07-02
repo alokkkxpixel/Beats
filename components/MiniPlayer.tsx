@@ -135,14 +135,14 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           >
             {isPlaying ? (
               <PauseIcon
-                width={35}
-                height={35}
+                width={30}
+                height={30}
                 fill={isLoaded ? "white" : "#444"}
               />
             ) : (
               <PlayIcon
-                width={35}
-                height={35}
+                width={30}
+                height={30}
                 fill={isLoaded ? "white" : "#444"}
               />
             )}

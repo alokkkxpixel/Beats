@@ -25,6 +25,7 @@ interface DownloadState {
 
   // Actions
   downloadTrack: (track: SongDetail, playlistId?: string) => Promise<void>;
+  downloadPlaylist: (playlistId: string, tracks: SongDetail[]) => Promise<void>;
   cancelDownload: (downloadId: string) => Promise<void>;
   pauseDownload: (downloadId: string) => Promise<void>;
   resumeDownload: (downloadId: string) => Promise<void>;
@@ -236,6 +237,96 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
           isDownloading: computeIsDownloading(newProgress),
         };
       });
+    }
+  },
+
+  downloadPlaylist: async (playlistId: string, tracks: SongDetail[]) => {
+    try {
+      console.log("Starting download for playlist:", playlistId);
+
+      await requestNotificationPermission();
+
+      const downloadedTracks = get().downloadedTracks;
+      const downloadProgress = get().downloadProgress;
+      const tracksToDownload = tracks.filter(
+        (t) =>
+          !downloadedTracks.has(t.id) &&
+          downloadProgress.get(t.id)?.state !== "downloading" &&
+          downloadProgress.get(t.id)?.state !== "pending"
+      );
+
+      if (tracksToDownload.length === 0) {
+        console.log("All tracks in playlist are already downloaded or downloading.");
+        return;
+      }
+
+      const resolvedTracks = await Promise.all(
+        tracksToDownload.map(async (track) => {
+          let fullTrack = track;
+          const isPartial = !track.downloadUrl || track.downloadUrl.length === 0;
+          if (isPartial) {
+            try {
+              const response = await jioSaavnService.getSongByIdandLink(
+                track.id,
+                track.url || (track as any).perma_url || ""
+              );
+              if (response.success && response.data[0]) {
+                fullTrack = response.data[0];
+              }
+            } catch (err) {
+              console.warn("Failed to fetch full track details for", track.id, err);
+            }
+          }
+          return fullTrack;
+        })
+      );
+
+      const trackItems = resolvedTracks.map((track) => {
+        saveDownloadedTrackMetadata(track.id, track);
+        return mapToTrackItem(track);
+      });
+
+      set((state) => {
+        const newProgress = new Map(state.downloadProgress);
+        for (const track of resolvedTracks) {
+          newProgress.set(track.id, {
+            downloadId: track.id,
+            trackId: track.id,
+            progress: 0,
+            state: "pending",
+          });
+        }
+        return {
+          isDownloading: true,
+          downloadProgress: newProgress,
+        };
+      });
+
+      const downloadIds = await DownloadManager.downloadPlaylist(
+        playlistId || "playlist",
+        trackItems
+      );
+
+      console.log("Playlist downloads started with IDs:", downloadIds);
+
+      set((state) => {
+        const newProgress = new Map(state.downloadProgress);
+        resolvedTracks.forEach((track, index) => {
+          const downloadId = downloadIds[index] || track.id;
+          newProgress.set(track.id, {
+            downloadId,
+            trackId: track.id,
+            progress: 0,
+            state: "pending",
+          });
+        });
+        return {
+          isDownloading: true,
+          downloadProgress: newProgress,
+        };
+      });
+    } catch (error) {
+      console.error("Error downloading playlist:", error);
     }
   },
 

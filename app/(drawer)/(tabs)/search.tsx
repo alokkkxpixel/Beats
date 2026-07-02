@@ -1,12 +1,7 @@
 import { useGlobalSearch, useSearchSuggestions } from "@/src/hooks/useQueries";
-import { jioSaavnService } from "@/src/services/jioSaavnService";
+import { getSearchHistory, setSearchHistory } from "@/src/lib/storage";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
-import {
-  getSearchHistory,
-  setSearchHistory,
-  addToRecentActivity,
-} from "@/src/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -98,8 +93,6 @@ export default function SearchScreen() {
     if (item.type === "song") {
       setCurrentTrack(item);
     } else {
-     
-
       if (item.type === "album") {
         router.push({
           pathname: "/album-detail",
@@ -362,6 +355,7 @@ const styles = StyleSheet.create({
   resultSubtitle: {
     color: "#888",
     fontSize: 13,
+    fontFamily: "sans-regular",
     marginTop: 2,
   },
 });

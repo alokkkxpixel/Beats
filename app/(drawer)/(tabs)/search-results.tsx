@@ -1,5 +1,4 @@
 import { useDetailedSearch, useSearchInfinite } from "@/src/hooks/useQueries";
-import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useSearchStore } from "@/src/store/useSearchStore";
 import { SongDetail } from "@/types/jiosaavn";
@@ -8,7 +7,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Mic, PlayCircle } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -37,12 +36,16 @@ const getArtistNames = (item: any) => {
   if (typeof item?.artists === "string") return item.artists;
 
   const names =
-    item?.artists?.primary?.map((artist: any) => artist?.name).filter(Boolean) ||
+    item?.artists?.primary
+      ?.map((artist: any) => artist?.name)
+      .filter(Boolean) ||
     item?.artists?.all?.map((artist: any) => artist?.name).filter(Boolean) ||
     item?.artistMap?.primary_artists
       ?.map((artist: any) => artist?.name)
       .filter(Boolean) ||
-    item?.artistMap?.artists?.map((artist: any) => artist?.name).filter(Boolean) ||
+    item?.artistMap?.artists
+      ?.map((artist: any) => artist?.name)
+      .filter(Boolean) ||
     [];
 
   return names.join(", ");
@@ -427,6 +430,7 @@ const styles = StyleSheet.create({
   resultSubtitle: {
     color: "#888",
     fontSize: 13,
+    fontFamily: "sans-regular",
     marginTop: 2,
   },
   sectionHeader: {

@@ -63,87 +63,91 @@ const getImageUri = (img: any): string => {
   return imageUrl;
 };
 
-const LibraryItem = memo(({ item, disabled }: { item: LibraryItemData; disabled?: boolean }) => {
-  const router = useRouter();
-  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
-  const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
-  // Fix #4: Only subscribe to whether THIS row is active, not the entire currentTrack object
-  const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
-  const setSelectedSongOption = usePlayerStore((s) => s.setSelectedSongOption);
-  const handleOption = async (item: any) => {
-    if (disabled) return;
-    const response = await jioSaavnService.getSongByIdandLink(
-      item.id,
-      item.url,
+const LibraryItem = memo(
+  ({ item, disabled }: { item: LibraryItemData; disabled?: boolean }) => {
+    const router = useRouter();
+    const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+    const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
+    // Fix #4: Only subscribe to whether THIS row is active, not the entire currentTrack object
+    const isActive = usePlayerStore((s) => s.currentTrack?.id === item.id);
+    const setSelectedSongOption = usePlayerStore(
+      (s) => s.setSelectedSongOption,
     );
-    if (response.success && response.data[0]) {
-      setSelectedSongOption(response.data[0]);
-    } else {
-      setSelectedSongOption(item);
-    }
-    expandMoreOption();
-  };
-  const handlePress = () => {
-    if (disabled) return;
-    if (item.type === "song") {
-      setCurrentTrack(item as any);
-    } else if (item.type === "album") {
-      router.push({
-        pathname: "/album-detail",
-        params: { albumId: item.id },
-      });
-    } else if (item.type === "playlist") {
-      router.push({
-        pathname: "/playlist-detail",
-        params: { playlistId: item.id },
-      });
-    } else if (item.type === "artist") {
-      router.push({
-        pathname: "/artist/[id]",
-        params: { id: item.id },
-      });
-    }
-  };
+    const handleOption = async (item: any) => {
+      if (disabled) return;
+      const response = await jioSaavnService.getSongByIdandLink(
+        item.id,
+        item.url,
+      );
+      if (response.success && response.data[0]) {
+        setSelectedSongOption(response.data[0]);
+      } else {
+        setSelectedSongOption(item);
+      }
+      expandMoreOption();
+    };
+    const handlePress = () => {
+      if (disabled) return;
+      if (item.type === "song") {
+        setCurrentTrack(item as any);
+      } else if (item.type === "album") {
+        router.push({
+          pathname: "/album-detail",
+          params: { albumId: item.id },
+        });
+      } else if (item.type === "playlist") {
+        router.push({
+          pathname: "/playlist-detail",
+          params: { playlistId: item.id },
+        });
+      } else if (item.type === "artist") {
+        router.push({
+          pathname: "/artist/[id]",
+          params: { id: item.id },
+        });
+      }
+    };
 
-  const imageUri = getImageUri(item.image);
+    const imageUri = getImageUri(item.image);
 
-  return (
-    <TouchableOpacity
-      activeOpacity={disabled ? 1 : 0.7}
-      className={`flex-row items-center px-4 py-3 ${disabled ? "opacity-40" : ""}`}
-      onPress={handlePress}
-    >
-      <View
-        className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
-        style={{ borderRadius: item.type === "artist" ? 32 : 12 }}
+    return (
+      <TouchableOpacity
+        activeOpacity={disabled ? 1 : 0.7}
+        className={`flex-row items-center px-4 py-3 ${disabled ? "opacity-40" : ""}`}
+        onPress={handlePress}
       >
-        <Image
-          source={
-            typeof item.image === "number" ? item.image : { uri: imageUri }
-          }
-          style={{ width: "100%", height: "100%" }}
-          contentFit="cover"
-          transition={400}
-        />
-      </View>
+        <View
+          className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
+          style={{ borderRadius: item.type === "artist" ? 32 : 12 }}
+        >
+          <Image
+            source={
+              typeof item.image === "number" ? item.image : { uri: imageUri }
+            }
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            transition={400}
+          />
+        </View>
 
-      <View className="flex-1 justify-center">
-        <Text
-          className="text-white text-[17px] font-sans-medium tracking-tight"
-          numberOfLines={1}
-        >
-          {item.title}
-        </Text>
-        <Text
-          className="text-gray-400 text-[13px] mt-1 capitalize"
-          numberOfLines={1}
-        >
-          {item.subtitle || item.type}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-});
+        <View className="flex-1 justify-center">
+          <Text
+            className="text-white text-[17px] font-sans-medium tracking-tight"
+            numberOfLines={1}
+          >
+            {item.title}
+          </Text>
+          <Text
+            className="text-gray-400 text-[13px] mt-1 capitalize"
+            numberOfLines={1}
+          >
+            {item.subtitle || item.type}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  },
+);
 LibraryItem.displayName = "LibraryItem";
 
 export default function LibraryScreen() {
@@ -340,8 +344,8 @@ export default function LibraryScreen() {
             {/* User Playlists Section */}
             {combinedPlaylistsAndAlbums.length > 0 && (
               <View className="px-4 pb-6 mt-4">
-                <Text className="text-white text-3xl font-sans-medium tracking-tighter mb-4">
-                  Your Playlists
+                <Text className="text-white text-2xl font-sans-medium tracking-tighter mb-4">
+                  Your Recents & Saved
                 </Text>
                 {combinedPlaylistsAndAlbums.map((item, idx) => {
                   const imageUri = getImageUri(item.image);

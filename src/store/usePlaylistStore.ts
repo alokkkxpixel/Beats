@@ -1,14 +1,15 @@
 import {
-    addSongToPlaylist,
-    createPlaylist as createPlaylistStorage,
-    deletePlaylist as deletePlaylistStorage,
-    getPlaylists,
-    getSavedAlbums,
-    removeSongFromPlaylist,
-    saveSavedAlbums,
-    updatePlaylist as updatePlaylistStorage
+  addSongToPlaylist,
+  createPlaylist as createPlaylistStorage,
+  deletePlaylist as deletePlaylistStorage,
+  getPlaylists,
+  getSavedAlbums,
+  removeSongFromPlaylist,
+  saveSavedAlbums,
+  updatePlaylist as updatePlaylistStorage,
 } from "@/src/lib/storage";
 import { Playlist, SongDetail } from "@/types/jiosaavn";
+import { ToastAndroid } from "react-native";
 import Toast from "react-native-toast-message";
 import { create } from "zustand";
 
@@ -17,7 +18,7 @@ interface PlaylistState {
   savedAlbums: any[];
   isPlaylistModalOpen: boolean;
   selectedSongForPlaylist: SongDetail | null;
-  
+
   // Actions
   loadPlaylists: () => void;
   loadSavedAlbums: () => void;
@@ -26,7 +27,7 @@ interface PlaylistState {
   removeSongFromPlaylist: (playlistId: string, songId: string) => void;
   deletePlaylist: (playlistId: string) => void;
   updatePlaylist: (playlistId: string, updates: Partial<Playlist>) => void;
-  
+
   openPlaylistModal: (song: SongDetail) => void;
   closePlaylistModal: () => void;
   addAlbumToLibrary: (album: any) => void;
@@ -95,32 +96,32 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
   openPlaylistModal: (song) => {
     get().loadPlaylists();
-    set({ 
-      isPlaylistModalOpen: true, 
-      selectedSongForPlaylist: song 
+    set({
+      isPlaylistModalOpen: true,
+      selectedSongForPlaylist: song,
     });
   },
 
   closePlaylistModal: () => {
-    set({ 
-      isPlaylistModalOpen: false, 
-      selectedSongForPlaylist: null 
+    set({
+      isPlaylistModalOpen: false,
+      selectedSongForPlaylist: null,
     });
   },
 
   addAlbumToLibrary: (album) => {
     const albums = getSavedAlbums();
     if (albums.some((a) => a.id === album.id)) {
-      Toast.show({
-        type: "info",
-        text1: "Already in library",
-        text2: "This album is already in your library",
-        position: "top",
-      });
+      ToastAndroid.showWithGravity(
+        "Already in library",
+        ToastAndroid.SHORT,
+        ToastAndroid.BOTTOM,
+      );
       return;
     }
 
-    const artistName = album.artists?.primary?.[0]?.name || album.artist || "Various Artists";
+    const artistName =
+      album.artists?.primary?.[0]?.name || album.artist || "Various Artists";
     const yearText = album.year ? ` • ${album.year}` : "";
 
     const newAlbum = {
@@ -135,13 +136,11 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     const updated = [newAlbum, ...albums];
     saveSavedAlbums(updated);
     get().loadSavedAlbums();
-
-    Toast.show({
-      type: "success",
-      text1: "Added to library",
-      text2: album.name || album.title || "Album",
-      position: "top",
-    });
+    ToastAndroid.showWithGravity(
+      "Album added to library",
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   },
 
   removeAlbumFromLibrary: (albumId) => {
@@ -149,5 +148,10 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     const updated = albums.filter((a) => a.id !== albumId);
     saveSavedAlbums(updated);
     get().loadSavedAlbums();
+    ToastAndroid.showWithGravity(
+      "Album removed from library",
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   },
 }));
