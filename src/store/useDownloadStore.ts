@@ -9,6 +9,7 @@ import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
 import { DownloadManager } from "react-native-nitro-player";
 import { create } from "zustand";
+import { ToastAndroid } from "react-native";
 
 interface DownloadProgress {
   downloadId: string;
@@ -101,6 +102,7 @@ const registerDownloadListeners = () => {
 
   DownloadManager.onDownloadComplete((downloadedTrack) => {
     const trackId = downloadedTrack.originalTrack.id;
+    ToastAndroid.show(`Downloaded: ${downloadedTrack.originalTrack.title}`, ToastAndroid.SHORT);
 
     useDownloadStore.setState((state) => {
       const newProgress = new Map(state.downloadProgress);
@@ -308,6 +310,7 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
       );
 
       console.log("Playlist downloads started with IDs:", downloadIds);
+      ToastAndroid.show("Downloading playlist...", ToastAndroid.SHORT);
 
       set((state) => {
         const newProgress = new Map(state.downloadProgress);
@@ -402,6 +405,7 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
     try {
       await DownloadManager.deleteDownloadedTrack(trackId);
       deleteDownloadedTrackMetadata(trackId);
+      ToastAndroid.show("Download removed", ToastAndroid.SHORT);
       set((state) => {
         const newDownloaded = new Set(state.downloadedTracks);
         newDownloaded.delete(trackId);

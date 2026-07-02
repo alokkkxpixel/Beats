@@ -142,7 +142,7 @@ const TrackItem = React.memo(function TrackItem({
 
       {progress?.state === "downloading" && (
         <View style={{ marginRight: 8, justifyContent: "center" }}>
-          <Text style={{ color: "#3b82f6", fontSize: 12, fontWeight: "bold" }}>
+          <Text style={{ color: "white", fontSize: 12, fontWeight: "bold" }}>
             {Math.round(progress.progress * 100)}%
           </Text>
         </View>
@@ -351,7 +351,7 @@ const AlbumDetailScreen = ({
                 <DownloadOffline fill="white" width={24} height={24} />
               ) : downloadStats.isDownloading ? (
                 <Text
-                  style={{ color: "#3b82f6", fontSize: 11, fontWeight: "bold" }}
+                  style={{ color: "white", fontSize: 11, fontWeight: "bold" }}
                 >
                   {Math.round(downloadStats.progress * 100)}%
                 </Text>

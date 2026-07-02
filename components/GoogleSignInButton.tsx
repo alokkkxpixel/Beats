@@ -10,6 +10,7 @@ import {
     Platform,
     StyleSheet,
     Text,
+    ToastAndroid,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -50,6 +51,7 @@ export function GoogleSignInButton({
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         console.log("[Google Auth] Session activated...");
+        ToastAndroid.show("Signed in successfully!", ToastAndroid.SHORT);
 
         if (onSignInComplete) {
           onSignInComplete();

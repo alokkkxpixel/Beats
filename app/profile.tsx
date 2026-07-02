@@ -5,7 +5,7 @@ import { useClerk } from "@clerk/expo";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View, ToastAndroid } from "react-native";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -15,6 +15,7 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     await signOut();
+    ToastAndroid.show("Signed out successfully", ToastAndroid.SHORT);
     router.replace("/");
   };
 
