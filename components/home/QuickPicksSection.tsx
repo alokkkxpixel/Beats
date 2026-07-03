@@ -72,7 +72,8 @@ export default function QuickPicksSection({
   subtitle = "Start a queue full of your favorites",
   onMorePress,
 }: QuickPicksSectionProps) {
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isShortScreen = screenHeight < 700;
   // console.log("quick picks", data);
   const padding = 16;
   const columnGap = 12;
@@ -122,10 +123,9 @@ export default function QuickPicksSection({
 
   return (
     <View style={styles.section}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.heading} className="text-2xl font-sans-medium ">
+          <Text style={[styles.heading, isShortScreen && { fontSize: 18, lineHeight: 22 }]} className="text-2xl font-sans-medium ">
             {title}
           </Text>
           {subtitle ? (
@@ -230,7 +230,7 @@ export default function QuickPicksSection({
 // });
 const styles = StyleSheet.create({
   section: {
-    marginTop: 24,
+    marginTop: 18,
   },
   contentContainer: {
     paddingLeft: 16,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 12,
   },
 
   headerTitleContainer: {

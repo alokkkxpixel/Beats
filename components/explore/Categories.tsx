@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 // Import SVGs
 import MoodsIcon from "@/assets/app-icons/album.svg"; // Fallback
@@ -7,8 +7,10 @@ import PodcastIcon from "@/assets/app-icons/artist.svg"; // Fallback
 import ExploreIcon from "@/assets/app-icons/explore-fill.svg";
 import ChartsIcon from "@/assets/app-icons/history.svg"; // Fallback
 
-const { width } = Dimensions.get("window");
 const Categories = () => {
+  const { width, height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+
   const CATEGORIES = [
     {
       id: "1",
@@ -42,7 +44,14 @@ const Categories = () => {
       {CATEGORIES.map((cat) => (
         <Pressable
           key={cat.id}
-          style={styles.categoryCard}
+          style={[
+            styles.categoryCard,
+            {
+              width: (width - 44) / 2,
+              height: isShortScreen ? 76 : 100,
+              padding: isShortScreen ? 12 : 16,
+            },
+          ]}
           onPress={() => {
             router.push({
               pathname: "/category-details",
@@ -51,9 +60,12 @@ const Categories = () => {
           }}
         >
           <View style={styles.iconContainer}>
-            <cat.icon width={24} height={24} fill="white" />
+            <cat.icon width={isShortScreen ? 20 : 24} height={isShortScreen ? 20 : 24} fill="white" />
           </View>
-          <Text style={styles.categoryTitle} className="font-sans-medium">
+          <Text
+            style={[styles.categoryTitle, { fontSize: isShortScreen ? 14 : 16 }]}
+            className="font-sans-medium"
+          >
             {cat.title}
           </Text>
         </Pressable>
@@ -73,11 +85,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   categoryCard: {
-    width: (width - 44) / 2,
-    height: 100,
     backgroundColor: "#1A1A1A",
     borderRadius: 8,
-    padding: 16,
     marginBottom: 12,
     justifyContent: "space-between",
   },
@@ -86,7 +95,6 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     color: "white",
-    fontSize: 16,
     fontWeight: "600",
   },
 });

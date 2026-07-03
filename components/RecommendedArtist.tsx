@@ -2,7 +2,7 @@ import { FlashList as OriginalFlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 interface RecommendedArtistProps {
   title?: string;
@@ -15,6 +15,9 @@ export default function RecommendedArtist({
   subtitle,
   data,
 }: RecommendedArtistProps): React.JSX.Element {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const cardSize = isShortScreen ? 88 : 105;
   const navigation = useNavigation<any>();
 
   if (!data || data.length === 0) return <></>;
@@ -58,8 +61,8 @@ export default function RecommendedArtist({
     };
 
     return (
-      <Pressable style={styles.card} onPress={handlePress}>
-        <View style={styles.imageContainer}>
+      <Pressable style={[styles.card, { width: cardSize }]} onPress={handlePress}>
+        <View style={[styles.imageContainer, { width: cardSize, height: cardSize, borderRadius: cardSize / 2, marginBottom: isShortScreen ? 6 : 10 }]}>
           <Image
             source={{ uri: getImageUri(item.image_url || item.image) }}
             style={styles.image}
@@ -69,14 +72,14 @@ export default function RecommendedArtist({
         </View>
         <View style={styles.textContainer}>
           <Text
-            style={styles.cardTitle}
+            style={[styles.cardTitle, isShortScreen && { fontSize: 12, lineHeight: 15 }]}
             className="font-sans-medium text-white"
             numberOfLines={1}
           >
             {displayTitle}
           </Text>
           <Text
-            style={styles.description}
+            style={[styles.description, isShortScreen && { fontSize: 10, lineHeight: 13 }]}
             className="font-sans-light"
             numberOfLines={1}
           >
@@ -88,18 +91,18 @@ export default function RecommendedArtist({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isShortScreen && { marginTop: 16 }]}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text
-            style={styles.title}
+            style={[styles.title, isShortScreen && { fontSize: 18 }]}
             className="font-sans-semibold tracking-tighter text-2xl text-white"
           >
             {title}
           </Text>
           {subtitle && (
             <Text
-              style={styles.subtitle}
+              style={[styles.subtitle, isShortScreen && { fontSize: 11 }]}
               className="font-sans-medium text-zinc-400"
             >
               {subtitle}

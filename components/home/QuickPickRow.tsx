@@ -1,7 +1,7 @@
 
 import { Image } from "expo-image";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
@@ -15,6 +15,10 @@ type QuickPickRowProps = {
   item: QuickPick;
 };
 function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const rowHeight = isShortScreen ? 52 : 56;
+  const coverSize = isShortScreen ? 40 : 44;
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const router = useRouter();
   const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
@@ -68,51 +72,52 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
     return "";
   };
   return (
-    <Pressable
-      style={[styles.row, isActive && styles.activerow]}
-      //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
-      onPress={() => handlePlay(item.id, item.url)}
-    >
-      <View style={styles.cover}>
-        <Image
-          source={{ uri: getImageUri(item.cover) }}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 5,
-          }}
-        />
+    <View style={{ height: rowHeight + (isShortScreen ? 8 : 12) }}>
+      <Pressable
+        style={[styles.row, { height: rowHeight, marginBottom: isShortScreen ? 8 : 12 }, isActive && styles.activerow]}
+        //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
+        onPress={() => handlePlay(item.id, item.url)}
+      >
+        <View style={[styles.cover, { width: coverSize, height: coverSize, marginRight: isShortScreen ? 8 : 12 }]}>
+          <Image
+            source={{ uri: getImageUri(item.cover) }}
+            style={{
+              width: coverSize,
+              height: coverSize,
+              borderRadius: 5,
+            }}
+          />
 
-        {isCurrent && (
-          <View style={styles.playingOverlay}>
-            <PlayingIndicator />
-          </View>
-        )}
-      </View>
-      <View style={styles.meta}>
-        <Text style={styles.title} numberOfLines={1}>
-          {decodeHtmlEntities(item.title)}
-        </Text>
+          {isCurrent && (
+            <View style={[styles.playingOverlay, { width: coverSize, height: coverSize }]}>
+              <PlayingIndicator />
+            </View>
+          )}
+        </View>
+        <View style={styles.meta}>
+          <Text style={[styles.title, isShortScreen && { fontSize: 13, lineHeight: 17 }]} numberOfLines={1}>
+            {decodeHtmlEntities(item.title)}
+          </Text>
         <Pressable
           onPress={handleArtistPress}
           style={{ alignSelf: "flex-start" }}
         >
-          <Text
-            style={styles.artist}
-            className="tracking-tighter "
-            numberOfLines={1}
-          >
-            {decodeHtmlEntities(
-              item.playCount && Number(item.playCount || "") > 0
-                ? item.artist +
-                    " • " +
-                    formatPlayCount(Number(item.playCount || "")) +
-                    " plays"
-                : item.artist,
-            )}
-          </Text>
-        </Pressable>
-      </View>
+            <Text
+              style={[styles.artist, isShortScreen && { fontSize: 11, lineHeight: 14 }]}
+              className="tracking-tighter "
+              numberOfLines={1}
+            >
+              {decodeHtmlEntities(
+                item.playCount && Number(item.playCount || "") > 0
+                  ? item.artist +
+                      " • " +
+                      formatPlayCount(Number(item.playCount || "")) +
+                      " plays"
+                  : item.artist,
+              )}
+            </Text>
+          </Pressable>
+        </View>
 
       {/* <DownloadButton
         track={{
@@ -125,19 +130,20 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
         size={20}
       /> */}
 
-      <Pressable
-        style={{
-          justifyContent: "center",
-          padding: 8,
-          // backgroundColor: "red",
-        }}
-        onPress={() => handleOption(item)}
-      >
-        <View style={[styles.menu]}>
-          <MoreOptionIcon width={20} height={20} fill="#fff" />
-        </View>
+        <Pressable
+          style={{
+            justifyContent: "center",
+            padding: 8,
+            // backgroundColor: "red",
+          }}
+          onPress={() => handleOption(item)}
+        >
+          <View style={[styles.menu]}>
+            <MoreOptionIcon width={20} height={20} fill="#fff" />
+          </View>
+        </Pressable>
       </Pressable>
-    </Pressable>
+    </View>
   );
 }
 

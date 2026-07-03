@@ -11,7 +11,7 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions
+  useWindowDimensions,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useShallow } from "zustand/shallow";
@@ -35,17 +35,15 @@ const fallbackAccentColor = "#050505";
 
 type ImageColorsResult =
   | {
-    platform: "ios";
-    background?: string;
-    primary?: string;
-  }
+      platform: "ios";
+      background?: string;
+      primary?: string;
+    }
   | {
-    platform: "android" | "web";
-    dominant?: string;
-    vibrant?: string;
-  };
-
-
+      platform: "android" | "web";
+      dominant?: string;
+      vibrant?: string;
+    };
 
 const FullPlayer = React.memo(
   ({
@@ -55,7 +53,12 @@ const FullPlayer = React.memo(
     handleCloseSheet: () => void;
     handleCloseMoreSheet: () => void;
   }) => {
-    const { height } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
+    const isShortScreen = height < 700;
+    const artworkSize = Math.min(
+      width * 0.82,
+      isShortScreen ? height * 0.35 : height * 0.42,
+    );
     // const [accentColor, setAccentColor] = React.useState(fallbackAccentColor);
     const accentColor = usePlayerStore((state) => state.accentColor);
     const [imageError, setImageError] = React.useState(false);
@@ -115,9 +118,11 @@ const FullPlayer = React.memo(
       if (currentIndex > 0 && queue[currentIndex - 1]) {
         const prevSong = queue[currentIndex - 1];
         const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
-        return prevOriginal?.image?.[3]?.url ||
+        return (
+          prevOriginal?.image?.[3]?.url ||
           (prevSong as any)?.image?.[2]?.url ||
-          prevOriginal?.image?.[0]?.url;
+          prevOriginal?.image?.[0]?.url
+        );
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -126,9 +131,11 @@ const FullPlayer = React.memo(
       if (currentIndex < queue.length - 1 && queue[currentIndex + 1]) {
         const nextSong = queue[currentIndex + 1];
         const nextOriginal = (nextSong as any)?.extraPayload?.song || nextSong;
-        return nextOriginal?.image?.[3]?.url ||
+        return (
+          nextOriginal?.image?.[3]?.url ||
           (nextSong as any)?.image?.[2]?.url ||
-          nextOriginal?.image?.[0]?.url;
+          nextOriginal?.image?.[0]?.url
+        );
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -194,7 +201,10 @@ const FullPlayer = React.memo(
     return (
       <GestureHandlerRootView
         style={[
-          { backgroundColor: accentColor?.dominant || accentColor?.average || "#222222" },
+          {
+            backgroundColor:
+              accentColor?.dominant || accentColor?.average || "#222222",
+          },
           //   styles.container,
           { flex: 1 },
         ]}
@@ -202,7 +212,10 @@ const FullPlayer = React.memo(
         <ScrollView
           style={[
             styles.container,
-            { backgroundColor: accentColor?.average || accentColor?.dominant || "#222222" },
+            {
+              backgroundColor:
+                accentColor?.average || accentColor?.dominant || "#222222",
+            },
           ]}
           bounces={true}
           showsVerticalScrollIndicator={false}
@@ -241,9 +254,21 @@ const FullPlayer = React.memo(
           </View>
 
           {/* --- Album Artwork --- */}
-          <View style={styles.artWrapper}>
+          <View
+            style={[
+              styles.artWrapper,
+              {
+                width: artworkSize,
+                height: artworkSize,
+                marginTop: isShortScreen ? 16 : Math.max(height * 0.05, 32),
+                marginBottom: isShortScreen ? 14 : Math.max(height * 0.04, 28),
+              },
+            ]}
+          >
             <SwipeArtwork
-              currentImage={trackImage && !imageError ? trackImage : defaultCover}
+              currentImage={
+                trackImage && !imageError ? trackImage : defaultCover
+              }
               previousImage={previousTrackImage}
               nextImage={nextTrackImage}
               onNext={next}
@@ -328,7 +353,12 @@ const FullPlayer = React.memo(
           {/* </Pressable> */}
           {/* --- Artist Card --- */}
           <Pressable style={styles.artistCard} onPress={handleArtistPress}>
-            <View style={styles.artistHeader}>
+            <View
+              style={[
+                styles.artistHeader,
+                { height: Math.min(height * 0.22, 200) },
+              ]}
+            >
               <Image
                 source={{ uri: getArtistImage() }}
                 style={styles.artistPhoto}
@@ -462,11 +492,7 @@ const styles = StyleSheet.create({
   artWrapper: {
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 50,
-    marginBottom: 40,
     position: "relative",
-    width: width * 0.88,
-    height: width * 0.88,
     alignSelf: "center",
   },
   imageLoaderContainer: {

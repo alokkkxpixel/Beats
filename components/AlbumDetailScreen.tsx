@@ -28,6 +28,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PlayingIndicator from "./PlayingIndicator";
@@ -180,6 +181,10 @@ const AlbumDetailScreen = ({
     (s) => s.removeAlbumFromLibrary,
   );
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
+  const { width, height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const coverSize = isShortScreen ? Math.min(width * 0.45, 160) : Math.min(width * 0.55, 220);
+  const backdropHeight = isShortScreen ? 280 : Math.min(height * 0.45, 380);
   const [albumBgColor, setAlbumBgColor] = useState<ExtractedColors | string>(
     "#000",
   );
@@ -318,7 +323,7 @@ const AlbumDetailScreen = ({
           source={{
             uri: highResCover ? highResCover : songs?.[0]?.image?.[2]?.url,
           }}
-          style={styles.mainCover}
+          style={[styles.mainCover, { width: coverSize, height: coverSize }]}
           contentFit="cover"
           transition={500}
         />
@@ -421,7 +426,7 @@ const AlbumDetailScreen = ({
   return (
     <View style={styles.container}>
       <View
-        style={{ height: 450, position: "absolute", top: 0, left: 0, right: 0 }}
+        style={{ height: backdropHeight, position: "absolute", top: 0, left: 0, right: 0 }}
       >
         {/* <Image
           source={{ uri: highResCover }}
@@ -563,8 +568,6 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   mainCover: {
-    width: 240,
-    height: 240,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
@@ -572,8 +575,6 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
   },
   miniArt: {
-    width: 240,
-    height: 240,
     borderRadius: 4,
   },
   mainTitle: {

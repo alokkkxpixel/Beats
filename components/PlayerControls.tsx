@@ -6,6 +6,7 @@ import {
   Text,
   ToastAndroid,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { useDownloadStore } from "@/src/store/useDownloadStore";
@@ -34,6 +35,9 @@ import SpeckerGroup from "@/assets/app-icons/speaker-group.svg";
 import Toast from "react-native-toast-message";
 
 const PlayerControls = React.memo(() => {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const responsiveMargin = isShortScreen ? 10 : Math.max(height * 0.02, 16);
   // FIX: Removed native hooks (useOnPlaybackStateChange).
   // We now use the synced `isPlaying` state from the store.
   const {
@@ -241,7 +245,7 @@ const PlayerControls = React.memo(() => {
 
   return (
     <>
-      <View style={styles.mainControls}>
+      <View style={[styles.mainControls, { marginVertical: responsiveMargin }]}>
         <Pressable onPress={toggleShuffle} hitSlop={15}>
           <ShuffleIcon
             width={25}
@@ -277,7 +281,7 @@ const PlayerControls = React.memo(() => {
         </Pressable>
       </View>
 
-      <View style={styles.footerControls}>
+      <View style={[styles.footerControls, { marginVertical: responsiveMargin }]}>
         <Pressable
           style={styles.deviceIndicator}
           onPress={handleDownloadPress}
@@ -316,7 +320,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 25,
-    marginVertical: 20,
   },
   playButton: {
     // width: 75,
@@ -333,7 +336,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 25,
-    marginVertical: 20,
   },
   deviceIndicator: {
     flexDirection: "row",

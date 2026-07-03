@@ -16,6 +16,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   interpolateColor,
@@ -36,6 +37,8 @@ const getImageUri = (img: any): string => {
 };
 
 export default function ExploreScreen() {
+  const { width, height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 54;
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
@@ -126,22 +129,31 @@ export default function ExploreScreen() {
           } as any);
         }
       }}
-      style={styles.albumCard}
+      style={[
+        styles.albumCard,
+        { width: isShortScreen ? width * 0.38 : width * 0.45 },
+      ]}
     >
       <Image
         source={{ uri: getImageUri(item.image) }}
-        style={styles.albumImage}
+        style={[styles.albumImage, isShortScreen && { marginBottom: 4 }]}
         contentFit="cover"
       />
       <Text
-        style={styles.albumTitle}
+        style={[
+          styles.albumTitle,
+          isShortScreen && { fontSize: 12, lineHeight: 15 },
+        ]}
         className="font-sans-medium"
         numberOfLines={1}
       >
         {item.title}
       </Text>
       <Text
-        style={styles.albumSubtitle}
+        style={[
+          styles.albumSubtitle,
+          isShortScreen && { fontSize: 10, lineHeight: 13 },
+        ]}
         className="capitalize font-sans-light"
         numberOfLines={2}
       >
@@ -177,8 +189,13 @@ export default function ExploreScreen() {
         <Categories />
 
         {/* New Albums Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle} className="font-sans-semibold">
+        <View
+          style={[styles.sectionHeader, isShortScreen && { marginBottom: 10 }]}
+        >
+          <Text
+            style={[styles.sectionTitle, { fontSize: isShortScreen ? 18 : 22 }]}
+            className="font-sans-semibold"
+          >
             New albums and singles
           </Text>
           <ChevronIcon
@@ -189,7 +206,7 @@ export default function ExploreScreen() {
           />
         </View>
 
-        <View style={{ height: 280, marginBottom: 10 }}>
+        <View style={{ height: isShortScreen ? 200 : 240, marginBottom: 4 }}>
           <FlatList
             data={data?.raw_new_releases || []}
             horizontal
@@ -222,68 +239,6 @@ export default function ExploreScreen() {
             ) || []
           }
         />
-        {/* <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle} className="font-sans-medium">
-              {data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"}
-            </Text>
-            {data?.modules?.["promo:vx:data:76"]?.subtitle && (
-              <Text style={styles.sectionSubtitle}>
-                {data.modules["promo:vx:data:76"].subtitle}
-              </Text>
-            )}
-          </View>
-          <ChevronIcon
-            width={20}
-            height={20}
-            fill="#999"
-            style={{ transform: [{ rotate: "180deg" }] }}
-          />
-        </View>
-
-        <View style={{ height: 280, marginBottom: 20 }}>
-          <FlashList
-            data={
-              Array.from(
-                {
-                  length: Math.ceil(moodsAndGenres.length / 3),
-                },
-                (_, i) => moodsAndGenres.slice(i * 3, i * 3 + 3),
-              ) || []
-            }
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            renderItem={({ item: columnItems }) => (
-              <View style={{ marginRight: 12 }}>
-                {columnItems?.map((mood: any) => (
-                  <Pressable
-                    key={mood.id}
-                    style={styles.moodItemRow}
-                    onPress={() => {
-                      router.push({
-                        pathname: "/playlist-detail",
-                        params: { playlistId: mood.id, playlistUrl: mood.url },
-                      });
-                    }}
-                  >
-                    <Image
-                      source={{ uri: getImageUri(mood.image) }}
-                      style={styles.moodRowImage}
-                    />
-                    <Text
-                      style={styles.moodRowTitle}
-                      className="font-sans-medium"
-                      numberOfLines={1}
-                    >
-                      {mood.title}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          />
-        </View> */}
       </Animated.ScrollView>
     </View>
   );
@@ -298,16 +253,31 @@ export function TopGenre({
   subtitle?: string;
   data: any[];
 }) {
+  const { width, height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   const router = useRouter();
   return (
-    <View style={styles.container} className="mt-10">
+    <View style={styles.container} className={isShortScreen ? "mt-1" : "mt-4"}>
       {/* Moods and Genres Section */}
       <View style={styles.sectionHeader}>
         <View>
-          <Text style={styles.sectionTitle} className="font-sans-medium">
+          <Text
+            style={[styles.sectionTitle, { fontSize: isShortScreen ? 18 : 22 }]}
+            className="font-sans-medium"
+          >
             {title || "Moods and genres"}
           </Text>
-          {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
+          {subtitle && (
+            <Text
+              style={[
+                styles.sectionSubtitle,
+                { fontSize: isShortScreen ? 11 : 13 },
+              ]}
+              className="font-sans-light text-gray-400"
+            >
+              {subtitle}
+            </Text>
+          )}
         </View>
         <ChevronIcon
           width={20}
@@ -317,7 +287,7 @@ export function TopGenre({
         />
       </View>
 
-      <View style={{ height: 280, marginBottom: 0 }}>
+      <View style={{ height: isShortScreen ? 230 : 280, marginBottom: 0 }}>
         <FlashList
           data={data}
           horizontal
@@ -328,7 +298,14 @@ export function TopGenre({
               {columnItems?.map((mood: any) => (
                 <Pressable
                   key={mood.id}
-                  style={styles.moodItemRow}
+                  style={[
+                    styles.moodItemRow,
+                    {
+                      width: width * 0.7,
+                      padding: isShortScreen ? 6 : 8,
+                      marginBottom: isShortScreen ? 6 : 8,
+                    },
+                  ]}
                   onPress={() => {
                     router.push({
                       pathname: "/playlist-detail",
@@ -338,10 +315,21 @@ export function TopGenre({
                 >
                   <Image
                     source={{ uri: getImageUri(mood.image) }}
-                    style={styles.moodRowImage}
+                    style={[
+                      styles.moodRowImage,
+                      {
+                        width: isShortScreen ? 44 : 56,
+                        height: isShortScreen ? 44 : 56,
+                        borderRadius: isShortScreen ? 4 : 6,
+                        marginRight: isShortScreen ? 8 : 12,
+                      },
+                    ]}
                   />
                   <Text
-                    style={styles.moodRowTitle}
+                    style={[
+                      styles.moodRowTitle,
+                      isShortScreen && { fontSize: 13 },
+                    ]}
                     className="font-sans-medium"
                     numberOfLines={1}
                   >
@@ -439,17 +427,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1A1A1A",
-    width: width * 0.7,
-    padding: 8,
     borderRadius: 8,
-    marginBottom: 8,
   },
-  moodRowImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 6,
-    marginRight: 12,
-  },
+  moodRowImage: {},
   moodRowTitle: {
     color: "white",
     fontSize: 15,

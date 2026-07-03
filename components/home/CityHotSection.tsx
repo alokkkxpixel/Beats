@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
@@ -18,6 +18,9 @@ export default function CityHotSection({
   subtitle,
   data,
 }: CityHotSectionProps): React.JSX.Element {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const cardSize = isShortScreen ? 110 : 135;
   const navigation = useNavigation<any>();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
@@ -65,8 +68,12 @@ export default function CityHotSection({
     };
 
     return (
-      <Pressable style={styles.card} onPress={handlePress}>
-        <View style={[styles.imageContainer, isArtist && styles.artistCircle]}>
+      <Pressable style={[styles.card, { width: cardSize }]} onPress={handlePress}>
+        <View style={[
+          styles.imageContainer,
+          { width: cardSize, height: cardSize, marginBottom: isShortScreen ? 6 : 10 },
+          isArtist ? { borderRadius: cardSize / 2 } : { borderRadius: isShortScreen ? 6 : 8 }
+        ]}>
           <Image
             source={{ uri: getImageUri(displayImage) }}
             style={styles.image}
@@ -75,14 +82,18 @@ export default function CityHotSection({
           />
         </View>
         <Text
-          style={[styles.cardTitle, isArtist && styles.artistTitle]}
+          style={[
+            styles.cardTitle,
+            isArtist && styles.artistTitle,
+            isShortScreen && { fontSize: 12, lineHeight: 15 }
+          ]}
           className="font-sans-medium text-white"
           numberOfLines={1}
         >
           {displayTitle}
         </Text>
         <Text
-          style={styles.description}
+          style={[styles.description, isShortScreen && { fontSize: 10, lineHeight: 13 }]}
           className="font-sans-light"
           numberOfLines={1}
         >
@@ -108,10 +119,10 @@ export default function CityHotSection({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isShortScreen && { marginTop: 15 }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title} className="font-sans-semibold">
+          <Text style={[styles.title, isShortScreen && { fontSize: 18, lineHeight: 22 }]} className="font-sans-semibold">
             {title}
           </Text>
           {subtitle && (

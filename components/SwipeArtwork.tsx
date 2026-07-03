@@ -1,4 +1,4 @@
-import { Dimensions, Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Easing,
@@ -9,8 +9,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const ARTWORK_SIZE = SCREEN_WIDTH * 0.88;
 const SPACING = 60;
 
 interface SwipeArtworkProps {
@@ -28,6 +26,10 @@ export default function SwipeArtwork({
   onNext,
   onPrevious,
 }: SwipeArtworkProps) {
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
+  const isShortScreen = SCREEN_HEIGHT < 700;
+  const artworkSize = Math.min(SCREEN_WIDTH * 0.82, isShortScreen ? SCREEN_HEIGHT * 0.32 : SCREEN_HEIGHT * 0.42);
+
   const translateX = useSharedValue(0);
   const currentIndex = useSharedValue(0);
   const isAnimating = useSharedValue(false);
@@ -100,7 +102,7 @@ export default function SwipeArtwork({
     });
 
   const previousStyle = useAnimatedStyle(() => {
-    const baseOffset = -ARTWORK_SIZE - SPACING;
+    const baseOffset = -artworkSize - SPACING;
     return {
       transform: [
         {
@@ -125,7 +127,7 @@ export default function SwipeArtwork({
   });
 
   const nextStyle = useAnimatedStyle(() => {
-    const baseOffset = ARTWORK_SIZE + SPACING;
+    const baseOffset = artworkSize + SPACING;
     return {
       transform: [
         {
@@ -139,7 +141,7 @@ export default function SwipeArtwork({
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={styles.container}>
+      <View style={[styles.container, { width: artworkSize, height: artworkSize }]}>
         {/* <Animated.View style={[styles.artwork, previousStyle]}>
           {previousImage && (
             <Image
@@ -150,7 +152,7 @@ export default function SwipeArtwork({
           )}
         </Animated.View> */}
 
-        <Animated.View style={[styles.artwork, currentStyle]}>
+        <Animated.View style={[styles.artwork, { width: artworkSize, height: artworkSize }, currentStyle]}>
           <Image
             source={typeof currentImage === 'number' ? currentImage : { uri: currentImage }}
             style={styles.image}
@@ -158,7 +160,7 @@ export default function SwipeArtwork({
           />
         </Animated.View>
 
-        <Animated.View style={[styles.artwork, nextStyle]}>
+        <Animated.View style={[styles.artwork, { width: artworkSize, height: artworkSize }, nextStyle]}>
           {nextImage && (
             <Image
               source={typeof nextImage === 'number' ? nextImage : { uri: nextImage }}
@@ -174,16 +176,12 @@ export default function SwipeArtwork({
 
 const styles = StyleSheet.create({
   container: {
-    width: ARTWORK_SIZE,
-    height: ARTWORK_SIZE,
     position: "relative",
   },
   artwork: {
     position: "absolute",
     left: 0,
     top: 0,
-    width: ARTWORK_SIZE,
-    height: ARTWORK_SIZE,
     borderRadius: 8,
     overflow: "hidden",
   },

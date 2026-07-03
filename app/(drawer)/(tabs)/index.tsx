@@ -15,6 +15,7 @@ import {
   RefreshControl,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   Extrapolation,
@@ -35,6 +36,7 @@ import { TopGenre } from "./explore";
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
 export default function Index() {
+  const { height } = useWindowDimensions();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 54;
@@ -241,7 +243,7 @@ export default function Index() {
       >
         <Image
           source={bgImage}
-          style={{ width: "100%", height: 550, position: "absolute", top: 0 }}
+          style={{ width: "100%", height: height * 0.6, position: "absolute", top: 0 }}
           contentFit="cover"
           blurRadius={0}
         />
@@ -253,7 +255,7 @@ export default function Index() {
             "#050505",
           ]}
           locations={[0, 0.4, 0.7, 1]}
-          style={{ width: "100%", height: 600, position: "absolute", top: 0 }}
+          style={{ width: "100%", height: height * 0.65, position: "absolute", top: 0 }}
         />
       </Animated.View>
 

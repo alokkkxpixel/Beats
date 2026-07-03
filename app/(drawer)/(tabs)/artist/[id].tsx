@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   Extrapolation,
@@ -78,6 +79,8 @@ const getImageUri = (img: any): string => {
 };
 
 export default function ArtistScreen() {
+  const { width, height } = useWindowDimensions();
+  const imageHeight = height * 0.45;
   const { id, url } = useLocalSearchParams<{ id: string; url: string }>();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -118,7 +121,7 @@ export default function ArtistScreen() {
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       scrollY.value,
-      [IMAGE_HEIGHT - 100, IMAGE_HEIGHT - 50],
+      [imageHeight - 100, imageHeight - 50],
       [0, 1],
       Extrapolation.CLAMP,
     );
@@ -140,7 +143,7 @@ export default function ArtistScreen() {
     );
     const translateY = interpolate(
       scrollY.value,
-      [0, IMAGE_HEIGHT],
+      [0, imageHeight],
       [0, -50],
       Extrapolation.CLAMP,
     );
@@ -245,8 +248,8 @@ export default function ArtistScreen() {
     const artistImage = getImageUri(artist?.image);
 
     return (
-      <View style={styles.headerContent}>
-        <Animated.View style={[styles.imageContainer, imageAnimatedStyle]}>
+      <View style={[styles.headerContent, { height: imageHeight }]}>
+        <Animated.View style={[styles.imageContainer, { height: imageHeight }, imageAnimatedStyle]}>
           <Image
             source={{ uri: artistImage }}
             style={styles.artistImage}
@@ -260,7 +263,7 @@ export default function ArtistScreen() {
         </Animated.View>
 
         <View style={styles.infoContainer}>
-          <Text style={styles.artistName} numberOfLines={2}>
+          <Text style={[styles.artistName, { fontSize: Math.min(width * 0.12, 44), lineHeight: Math.min(width * 0.12, 44) + 4 }]} numberOfLines={2}>
             {decodeHtmlEntities(artist?.name || "")}
           </Text>
 
@@ -464,11 +467,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   headerContent: {
-    height: 450,
   },
   imageContainer: {
     width: "100%",
-    height: 450,
     position: "absolute",
   },
   artistImage: {

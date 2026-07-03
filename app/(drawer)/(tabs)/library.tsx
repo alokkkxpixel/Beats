@@ -17,6 +17,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { DownloadManager } from "react-native-nitro-player";
 import Animated, {
@@ -64,7 +65,7 @@ const getImageUri = (img: any): string => {
 };
 
 const LibraryItem = memo(
-  ({ item, disabled }: { item: LibraryItemData; disabled?: boolean }) => {
+  ({ item, disabled, isShortScreen }: { item: LibraryItemData; disabled?: boolean; isShortScreen?: boolean }) => {
     const router = useRouter();
     const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
     const expandMoreOption = usePlayerStore((s) => s.expandMoreOption);
@@ -113,12 +114,12 @@ const LibraryItem = memo(
     return (
       <TouchableOpacity
         activeOpacity={disabled ? 1 : 0.7}
-        className={`flex-row items-center px-4 py-3 ${disabled ? "opacity-40" : ""}`}
+        className={`flex-row items-center px-4 ${isShortScreen ? "py-2" : "py-3"} ${disabled ? "opacity-40" : ""}`}
         onPress={handlePress}
       >
         <View
-          className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
-          style={{ borderRadius: item.type === "artist" ? 32 : 12 }}
+          className={`${isShortScreen ? "w-12 h-12" : "w-16 h-16"} mr-4 overflow-hidden bg-white/5 shadow-lg`}
+          style={{ borderRadius: item.type === "artist" ? (isShortScreen ? 24 : 32) : (isShortScreen ? 8 : 12) }}
         >
           <Image
             source={
@@ -132,13 +133,13 @@ const LibraryItem = memo(
 
         <View className="flex-1 justify-center">
           <Text
-            className="text-white text-[17px] font-sans-medium tracking-tight"
+            className={`text-white font-sans-medium tracking-tight ${isShortScreen ? "text-[15px]" : "text-[17px]"}`}
             numberOfLines={1}
           >
             {item.title}
           </Text>
           <Text
-            className="text-gray-400 text-[13px] mt-1 capitalize"
+            className={`text-gray-400 mt-1 capitalize ${isShortScreen ? "text-[12px]" : "text-[13px]"}`}
             numberOfLines={1}
           >
             {item.subtitle || item.type}
@@ -151,6 +152,8 @@ const LibraryItem = memo(
 LibraryItem.displayName = "LibraryItem";
 
 export default function LibraryScreen() {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   const router = useRouter();
   const netInfo = useNetInfo();
   const isOffline = netInfo.isConnected === false;
@@ -328,7 +331,7 @@ export default function LibraryScreen() {
         data={recentActivity}
         renderItem={({ item }: any) => (
           <>
-            <LibraryItem item={item} disabled={isOffline} />
+            <LibraryItem item={item} disabled={isOffline} isShortScreen={isShortScreen} />
           </>
         )}
         estimatedItemSize={88}
@@ -381,12 +384,12 @@ export default function LibraryScreen() {
                     <TouchableOpacity
                       key={item.id || idx}
                       activeOpacity={0.7}
-                      className="flex-row items-center py-3"
+                      className={`flex-row items-center ${isShortScreen ? "py-2" : "py-3"}`}
                       onPress={handleItemPress}
                     >
                       <View
-                        className="w-16 h-16 mr-4 overflow-hidden bg-white/5 shadow-lg"
-                        style={{ borderRadius: 12 }}
+                        className={`${isShortScreen ? "w-12 h-12" : "w-16 h-16"} mr-4 overflow-hidden bg-white/5 shadow-lg`}
+                        style={{ borderRadius: isShortScreen ? 8 : 12 }}
                       >
                         {item.image ? (
                           <Image
@@ -410,13 +413,13 @@ export default function LibraryScreen() {
 
                       <View className="flex-1 justify-center">
                         <Text
-                          className="text-white text-[17px] font-sans-medium tracking-tight"
+                          className={`text-white font-sans-medium tracking-tight ${isShortScreen ? "text-[15px]" : "text-[17px]"}`}
                           numberOfLines={1}
                         >
                           {item.title}
                         </Text>
                         <Text
-                          className="text-gray-400 text-[13px] mt-1 capitalize"
+                          className={`text-gray-400 mt-1 capitalize ${isShortScreen ? "text-[12px]" : "text-[13px]"}`}
                           numberOfLines={1}
                         >
                           {item.subtitle}
