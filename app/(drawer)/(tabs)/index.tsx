@@ -29,11 +29,11 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Header from "@/components/Header";
+import OfflineContent from "@/components/OfflineContent";
+import { useNetInfo } from "@react-native-community/netinfo";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { TopGenre } from "./explore";
-import { useNetInfo } from "@react-native-community/netinfo";
-import OfflineContent from "@/components/OfflineContent";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
@@ -319,8 +319,8 @@ export default function Index() {
               onRefresh={handleRefresh}
               progressViewOffset={TOTAL_HEADER_HEIGHT}
               tintColor="#ffffff"
-              colors={["#ffffff"]}
-              progressBackgroundColor="#050505"
+              colors={["#050505"]}
+              progressBackgroundColor="#"
             />
           }
           showsVerticalScrollIndicator={false}

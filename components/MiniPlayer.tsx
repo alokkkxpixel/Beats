@@ -13,6 +13,7 @@ import {
   useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 import { useShallow } from "zustand/shallow";
+import { useWindowDimensions } from "react-native";
 
 // Import SVGs
 import MusicIcon from "@/assets/app-icons/album.svg";
@@ -22,6 +23,9 @@ import PlayIcon from "@/assets/app-icons/play-withoutBg.svg";
 import TextTicker from "react-native-text-ticker";
 import useTrackAccentColor from "../src/hooks/useTrackAccentColor";
 const MiniPlayer = React.memo(function MiniPlayer() {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+
   // FIX: Removed all native hooks (useNowPlaying, useOnPlaybackStateChange)
   // These were likely triggering re-renders every second from the native side.
   // We now rely solely on our stable Zustand store.
@@ -70,23 +74,25 @@ const MiniPlayer = React.memo(function MiniPlayer() {
       style={[
         styles.miniContainer,
         {
+          height: isShortScreen ? 58 : 70,
           backgroundColor:
             accentColor?.average || accentColor?.darkVibrant || "#222222",
         },
       ]}
     >
       {/* <BlurredBackground height={12} accentColor={accentColor} /> */}
-      <View style={styles.miniContent}>
+      <View style={[styles.miniContent, isShortScreen && { paddingVertical: 6 }]}>
         {trackImage ? (
           <Image
             source={{ uri: trackImage }}
-            style={styles.miniArt}
+            style={[styles.miniArt, isShortScreen && { width: 38, height: 38 }]}
             contentFit="cover"
           />
         ) : (
           <View
             style={[
               styles.miniArt,
+              isShortScreen && { width: 38, height: 38 },
               {
                 backgroundColor: "#333",
                 alignItems: "center",
@@ -94,13 +100,13 @@ const MiniPlayer = React.memo(function MiniPlayer() {
               },
             ]}
           >
-            <MusicIcon width={24} height={24} fill="#666" />
+            <MusicIcon width={isShortScreen ? 20 : 24} height={isShortScreen ? 20 : 24} fill="#666" />
           </View>
         )}
         <View style={styles.miniTextContainer}>
-          <View style={{ height: 18, justifyContent: "center" }}>
+          <View style={{ height: isShortScreen ? 16 : 18, justifyContent: "center" }}>
             <TextTicker
-              style={styles.miniTitle}
+              style={[styles.miniTitle, isShortScreen && { fontSize: 12, lineHeight: 14 }]}
               className="tracking-tight"
               duration={15000}
               animationType="scroll"
@@ -119,7 +125,7 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           </View>
 
           <Text
-            style={styles.miniArtist}
+            style={[styles.miniArtist, isShortScreen && { fontSize: 10 }]}
             className="font-sans-medium"
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -135,14 +141,14 @@ const MiniPlayer = React.memo(function MiniPlayer() {
           >
             {isPlaying ? (
               <PauseIcon
-                width={30}
-                height={30}
+                width={isShortScreen ? 24 : 30}
+                height={isShortScreen ? 24 : 30}
                 fill={isLoaded ? "white" : "#444"}
               />
             ) : (
               <PlayIcon
-                width={30}
-                height={30}
+                width={isShortScreen ? 24 : 30}
+                height={isShortScreen ? 24 : 30}
                 fill={isLoaded ? "white" : "#444"}
               />
             )}

@@ -1,18 +1,23 @@
 import BackIcon from "@/assets/app-icons/chevron-left.svg";
 import {
   AUDIO_QUALITY_OPTIONS,
-  getAudioQualityLabel,
 } from "@/src/lib/audioQuality";
 import { getAudioQualityPreference } from "@/src/lib/storage";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 export default function AudioQualityScreen() {
   const [selected, setSelected] = useState(getAudioQualityPreference());
   const router = useRouter();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+
   const audioQuality = usePlayerStore((state) => state.audioQuality);
   const setAudioQuality = usePlayerStore((state) => state.setAudioQuality);
 
@@ -30,27 +35,30 @@ export default function AudioQualityScreen() {
   };
 
   return (
-    <View className="flex-1 bg-black px-4 pt-20">
-      <View className="bg-black px-4 pb-4">
-        <View className="flex-row items-center">
-          <Pressable
-            onPress={() => navigation.goBack()}
-            className="w-10 h-10 items-center justify-center rounded-full bg-zinc-800"
-          >
-            <BackIcon width={22} height={22} fill="#fff" />
-          </Pressable>
+    <View
+      className="flex-1 bg-black px-5"
+      style={{ paddingTop: isShortScreen ? 45 : insets.top + 20 }}
+    >
+      {/* Header */}
+      <View className="flex-row items-center mb-6">
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="w-10 h-10 items-center justify-center rounded-full bg-zinc-900 border border-zinc-800"
+        >
+          <BackIcon width={22} height={22} fill="#fff" />
+        </Pressable>
 
-          <Text className="text-white text-xl font-sans-bold ml-4">
-            Audio quality
-          </Text>
-        </View>
-
-        <Text className="text-zinc-400 text-center mt-4 px-6">
-          Pick your preferred streaming quality.
+        <Text className="text-white text-xl font-sans-bold ml-4">
+          Audio quality
         </Text>
       </View>
 
-      <View className="mt-6 gap-3">
+      <Text className="text-zinc-500 text-sm mb-6">
+        Select your preferred streaming audio quality. Higher quality uses more mobile data.
+      </Text>
+
+      {/* Quality Options List */}
+      <View className="gap-1">
         {AUDIO_QUALITY_OPTIONS.map((option) => {
           const isSelected = selected === option.id;
 
@@ -58,54 +66,74 @@ export default function AudioQualityScreen() {
             <Pressable
               key={option.id}
               onPress={() => setSelected(option.id)}
-              className={`rounded-2xl border px-4 py-4 ${
-                isSelected
-                  ? "border-green-500 bg-green-500/15"
-                  : "border-zinc-800 bg-zinc-900"
+              className={`flex-row items-center justify-between rounded-xl px-4 py-3.5 mb-2 bg-zinc-900/40 border ${
+                isSelected ? "border-zinc-700 bg-zinc-900/80" : "border-transparent"
               }`}
             >
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text
-                    className={`text-base font-sans-semibold ${
-                      isSelected ? "text-green-400" : "text-white"
-                    }`}
-                  >
+              <View className="flex-row items-center flex-1 mr-4">
+                {/* Radio Button */}
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    borderWidth: 2,
+                    borderColor: isSelected ? "#fff" : "#52525b",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 14,
+                  }}
+                >
+                  {isSelected && (
+                    <View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: "#fff",
+                      }}
+                    />
+                  )}
+                </View>
+
+                {/* Text Info */}
+                <View className="flex-1">
+                  <Text className="text-white text-base font-sans-medium">
                     {option.label}
                   </Text>
-                  <Text className="mt-1 text-sm text-zinc-400">
+                  <Text className="text-zinc-500 text-xs mt-0.5 font-sans-light">
                     {option.description}
                   </Text>
                 </View>
-
-                <Text
-                  className={`text-sm font-sans-medium ${
-                    isSelected ? "text-green-400" : "text-zinc-400"
-                  }`}
-                >
-                  {option.targetQuality}
-                </Text>
               </View>
+
+              {/* Bitrate info on right */}
+              <Text className="text-zinc-400 text-sm font-sans-medium">
+                {option.targetQuality}
+              </Text>
             </Pressable>
           );
         })}
       </View>
 
-      <View className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-        <Text className="text-sm text-zinc-400">Current selection</Text>
-        <Text className="mt-1 text-lg font-sans-semibold text-white">
-          {getAudioQualityLabel(selected)}
-        </Text>
-      </View>
-
-      <Pressable
-        onPress={handleDone}
-        className="absolute bottom-10 left-4 right-4 rounded-xl bg-green-500 py-4"
+      {/* Done Button */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: Math.max(insets.bottom, 20),
+          left: 20,
+          right: 20,
+        }}
       >
-        <Text className="text-center text-lg font-sans-bold text-black">
-          Done
-        </Text>
-      </Pressable>
+        <Pressable
+          onPress={handleDone}
+          className="w-full bg-white rounded-full py-3.5 items-center justify-center active:bg-zinc-200"
+        >
+          <Text className="text-black text-base font-sans-bold">
+            Done
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

@@ -10,7 +10,7 @@ import BottomSheet, {
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
+import { BackHandler, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
@@ -27,6 +27,8 @@ const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
       expandFullPlayer: s.expandFullPlayer,
     })),
   );
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   const segments = useSegments();
   const shouldShow =
     segments.length > 0 &&
@@ -39,8 +41,13 @@ const MiniPlayerLayer = React.memo(({ tabHeight }: { tabHeight: number }) => {
   return (
     <Pressable
       onPress={() => expandFullPlayer()}
-      className="absolute w-full z-50 h-20"
-      style={{ bottom: tabHeight }}
+      style={{
+        position: "absolute",
+        width: "100%",
+        zIndex: 50,
+        bottom: tabHeight,
+        height: isShortScreen ? 58 : 70,
+      }}
     >
       <MiniPlayer />
     </Pressable>
@@ -415,8 +422,12 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
     hasTrack &&
     !isDrawerOpen;
 
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const MINIPLAYER_HEIGHT = isShortScreen ? 58 : 70;
+
   const bannerBottom = isMiniPlayerShowing
-    ? TABBAR_HEIGHT + 80 // height of miniplayer (h-20 is 80px)
+    ? TABBAR_HEIGHT + MINIPLAYER_HEIGHT
     : TABBAR_HEIGHT;
 
   useEffect(() => {
