@@ -39,18 +39,18 @@ export function GoogleSignInButton({
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      console.log("[Google Auth] Starting OAuth flow...");
+      // console.log("[Google Auth] Starting OAuth flow...");
       const { createdSessionId, setActive } = await startOAuthFlow({
         redirectUrl: Linking.createURL("/", { scheme: "beats" }),
       });
-      console.log(
-        "[Google Auth] Flow result — createdSessionId:",
-        createdSessionId,
-      );
+      // console.log(
+      //   "[Google Auth] Flow result — createdSessionId:",
+      //   createdSessionId,
+      // );
 
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
-        console.log("[Google Auth] Session activated...");
+        // console.log("[Google Auth] Session activated...");
         ToastAndroid.show("Signed in successfully!", ToastAndroid.SHORT);
 
         if (onSignInComplete) {
@@ -63,7 +63,7 @@ export function GoogleSignInButton({
     } catch (err: any) {
       setIsLoading(false);
       if (err.code === "SIGN_IN_CANCELLED" || err.code === "-5") {
-        console.log("[Google Auth] Cancelled by user");
+        // console.log("[Google Auth] Cancelled by user");
         return;
       }
 

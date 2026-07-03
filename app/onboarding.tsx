@@ -25,9 +25,7 @@ export default function OnboardingScreen() {
       {/* Top 50% Background Image */}
       <View style={styles.imageContainer}>
         <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=80&w=1000",
-          }}
+          source={require("@/assets/images/OnBoarding.png")}
           style={styles.image}
           resizeMode="cover"
         />

@@ -60,16 +60,10 @@ export default function Index() {
       };
     } else if (hour >= 16 && hour < 20) {
       return {
-        // image: require("../../../assets/images/morning_default_image.png"),
-
-        // image: require("../../../assets/images/night_bg.jpg"),
-        // image: "https://lh3.googleusercontent.com/gP-rqVOBO3v93xd1fMYuOHc1iTM28UvQijoh8jhT5OcqC0KfZSrEQ4CXJvMc8W-pkJLUSaPWlDpVr0w=w1500-h844-l90-rj",
         greeting: "Good Evening",
       };
     } else {
       return {
-        // image: require("../../../assets/images/morning_default_image.png"),
-
         greeting: "Good Night",
       };
     }

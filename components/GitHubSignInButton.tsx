@@ -39,18 +39,18 @@ export function GitHubSignInButton({
   const handleGitHubSignIn = async () => {
     try {
       setIsLoading(true);
-      console.log("[GitHub Auth] Starting OAuth flow...");
+      // console.log("[GitHub Auth] Starting OAuth flow...");
       const { createdSessionId, setActive } = await startOAuthFlow({
         redirectUrl: Linking.createURL("/", { scheme: "beats" }),
       });
-      console.log(
-        "[GitHub Auth] Flow result — createdSessionId:",
-        createdSessionId,
-      );
+      // console.log(
+      //   "[GitHub Auth] Flow result — createdSessionId:",
+      //   createdSessionId,
+      // );
 
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
-        console.log("[GitHub Auth] Session activated...");
+        // console.log("[GitHub Auth] Session activated...");
         ToastAndroid.show("Signed in successfully!", ToastAndroid.SHORT);
 
         if (onSignInComplete) {
@@ -63,7 +63,7 @@ export function GitHubSignInButton({
     } catch (err: any) {
       setIsLoading(false);
       if (err.code === "SIGN_IN_CANCELLED" || err.code === "-5") {
-        console.log("[GitHub Auth] Cancelled by user");
+        // console.log("[GitHub Auth] Cancelled by user");
         return;
       }
 

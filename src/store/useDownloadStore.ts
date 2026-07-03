@@ -1,15 +1,15 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
+import { requestNotificationPermission } from "@/src/lib/downloadManager";
 import {
   deleteDownloadedTrackMetadata,
   getAudioQualityPreference,
   saveDownloadedTrackMetadata,
 } from "@/src/lib/storage";
-import { requestNotificationPermission } from "@/src/lib/downloadManager";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { SongDetail } from "@/types/jiosaavn";
+import { ToastAndroid } from "react-native";
 import { DownloadManager } from "react-native-nitro-player";
 import { create } from "zustand";
-import { ToastAndroid } from "react-native";
 
 interface DownloadProgress {
   downloadId: string;
@@ -42,7 +42,9 @@ const mapToTrackItem = (song: SongDetail) => {
     id: song.id,
     title: song.name,
     artist:
-      song.primaryArtists || song.artists?.primary?.[0]?.name || "Unknown Artist",
+      song.primaryArtists ||
+      song.artists?.primary?.[0]?.name ||
+      "Unknown Artist",
     album:
       typeof song.album === "string"
         ? song.album
@@ -102,7 +104,10 @@ const registerDownloadListeners = () => {
 
   DownloadManager.onDownloadComplete((downloadedTrack) => {
     const trackId = downloadedTrack.originalTrack.id;
-    ToastAndroid.show(`Downloaded: ${downloadedTrack.originalTrack.title}`, ToastAndroid.SHORT);
+    ToastAndroid.show(
+      `Downloaded: ${downloadedTrack.originalTrack.title}`,
+      ToastAndroid.SHORT,
+    );
 
     useDownloadStore.setState((state) => {
       const newProgress = new Map(state.downloadProgress);
@@ -170,7 +175,7 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
   downloadTrack: async (track: SongDetail, playlistId?: string) => {
     try {
-      console.log("Starting download for track:", track.id, track.name);
+      // console.log("Starting download for track:", track.id, track.name);
 
       // Request notification permission before downloading
       await requestNotificationPermission();
@@ -178,20 +183,22 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
       let fullTrack = track;
       const isPartial = !track.downloadUrl || track.downloadUrl.length === 0;
       if (isPartial) {
-        console.log("Track details are partial, fetching full details for download...");
+        // console.log("Track details are partial, fetching full details for download...");
         const response = await jioSaavnService.getSongByIdandLink(
           track.id,
-          track.url || (track as any).perma_url || ""
+          track.url || (track as any).perma_url || "",
         );
         if (response.success && response.data[0]) {
           fullTrack = response.data[0];
         } else {
-          console.warn("Failed to fetch full track details for download, using original track metadata");
+          console.warn(
+            "Failed to fetch full track details for download, using original track metadata",
+          );
         }
       }
 
       const trackItem = mapToTrackItem(fullTrack);
-      console.log("Track item mapped:", trackItem);
+      // console.log("Track item mapped:", trackItem);
 
       saveDownloadedTrackMetadata(track.id, fullTrack);
 
@@ -207,10 +214,10 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
       const downloadId = await DownloadManager.downloadTrack(
         trackItem,
-        playlistId || "downloads"
+        playlistId || "downloads",
       );
 
-      console.log("Download started with ID:", downloadId);
+      // console.log("Download started with ID:", downloadId);
 
       set({
         isDownloading: true,
@@ -244,7 +251,7 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
   downloadPlaylist: async (playlistId: string, tracks: SongDetail[]) => {
     try {
-      console.log("Starting download for playlist:", playlistId);
+      // console.log("Starting download for playlist:", playlistId);
 
       await requestNotificationPermission();
 
@@ -254,33 +261,38 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
         (t) =>
           !downloadedTracks.has(t.id) &&
           downloadProgress.get(t.id)?.state !== "downloading" &&
-          downloadProgress.get(t.id)?.state !== "pending"
+          downloadProgress.get(t.id)?.state !== "pending",
       );
 
       if (tracksToDownload.length === 0) {
-        console.log("All tracks in playlist are already downloaded or downloading.");
+        // console.log("All tracks in playlist are already downloaded or downloading.");
         return;
       }
 
       const resolvedTracks = await Promise.all(
         tracksToDownload.map(async (track) => {
           let fullTrack = track;
-          const isPartial = !track.downloadUrl || track.downloadUrl.length === 0;
+          const isPartial =
+            !track.downloadUrl || track.downloadUrl.length === 0;
           if (isPartial) {
             try {
               const response = await jioSaavnService.getSongByIdandLink(
                 track.id,
-                track.url || (track as any).perma_url || ""
+                track.url || (track as any).perma_url || "",
               );
               if (response.success && response.data[0]) {
                 fullTrack = response.data[0];
               }
             } catch (err) {
-              console.warn("Failed to fetch full track details for", track.id, err);
+              console.warn(
+                "Failed to fetch full track details for",
+                track.id,
+                err,
+              );
             }
           }
           return fullTrack;
-        })
+        }),
       );
 
       const trackItems = resolvedTracks.map((track) => {
@@ -306,10 +318,10 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
       const downloadIds = await DownloadManager.downloadPlaylist(
         playlistId || "playlist",
-        trackItems
+        trackItems,
       );
 
-      console.log("Playlist downloads started with IDs:", downloadIds);
+      // console.log("Playlist downloads started with IDs:", downloadIds);
       ToastAndroid.show("Downloading playlist...", ToastAndroid.SHORT);
 
       set((state) => {
@@ -444,7 +456,9 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
   refreshDownloadedTracks: async () => {
     try {
       const allDownloaded = await DownloadManager.getAllDownloadedTracks();
-      const downloadedIds = new Set(allDownloaded.map((t) => t.originalTrack.id));
+      const downloadedIds = new Set(
+        allDownloaded.map((t) => t.originalTrack.id),
+      );
       set({ downloadedTracks: downloadedIds });
     } catch (error) {
       console.error("Error refreshing downloaded tracks:", error);
@@ -458,4 +472,3 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
 registerDownloadListeners();
 useDownloadStore.getState().refreshDownloadedTracks();
-

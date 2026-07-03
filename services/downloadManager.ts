@@ -14,7 +14,7 @@ const DOWNLOAD_TASK = "download-manager-task";
 export async function configureDownloadManager() {
   // Define the task if not already defined.
   TaskManager.defineTask(DOWNLOAD_TASK, async () => {
-    console.log("🔄 Download manager background task triggered");
+    // console.log("🔄 Download manager background task triggered");
     // TODO: Pull pending download queue from persistent storage and process.
     return BackgroundFetch.BackgroundFetchResult.NewData;
   });
@@ -27,7 +27,7 @@ export async function configureDownloadManager() {
       stopOnTerminate: false,
       startOnBoot: true,
     });
-    console.log("✅ Download manager registered");
+    // console.log("✅ Download manager registered");
   } else {
     console.warn("⚠️ Background fetch not available on this device");
   }

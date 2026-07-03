@@ -81,10 +81,10 @@ export async function extractAccentColor({
         fallbackAccentColor: fallbackAccentColor,
       };
     } else if (result.platform === "ios") {
-      console.log("🎨 Background:", result.background);
-      console.log("🎨 Primary:", result.primary);
-      console.log("🎨 Secondary:", result.secondary);
-      console.log("🎨 Detail:", result.detail);
+      // console.log("🎨 Background:", result.background);
+      // console.log("🎨 Primary:", result.primary);
+      // console.log("🎨 Secondary:", result.secondary);
+      // console.log("🎨 Detail:", result.detail);
 
       // FIXED: Maps iOS platform colors cleanly to the same object format
       const iosPrimaryColor =

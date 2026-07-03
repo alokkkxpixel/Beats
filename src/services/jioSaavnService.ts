@@ -287,8 +287,8 @@ export const jioSaavnService = {
   ): Promise<any> => {
     for (const artist of artistCandidates) {
       try {
-        console.log("trackName:", JSON.stringify(trackName));
-        console.log("artist:", JSON.stringify(artist));
+        // console.log("trackName:", JSON.stringify(trackName));
+        // console.log("artist:", JSON.stringify(artist));
         const response = await fetch(
           `https://lrclib.net/api/search?track_name=${encodeURIComponent(
             trackName as string,

@@ -10,7 +10,7 @@ export const useSetupPlayer = () => {
     async function setup() {
       try {
         // ===== NEW: Nitro Player Setup =====
-        console.log("🎵 Setting up Nitro Player...");
+        // console.log("🎵 Setting up Nitro Player...");
 
         // Configure Nitro Player
         await TrackPlayer.configure({
@@ -21,7 +21,7 @@ export const useSetupPlayer = () => {
           ...(Platform.OS === 'android' && { androidNotificationIcon: "ic_notification" }), // Android-only custom notification icon
         } as any);
 
-        console.log("✅ Nitro Player setup complete");
+        // console.log("✅ Nitro Player setup complete");
 
         // Sync liked playlist with Nitro Player on app launch
         await usePlayerStore.getState().syncLikedPlaylist();

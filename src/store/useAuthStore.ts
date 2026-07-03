@@ -18,6 +18,7 @@ export interface AuthUser {
   fullName: string | null;
   emailAddress: string | null;
   imageUrl: string | null;
+  hasImage?: boolean;
   /** "google" | "github" | "email" | null */
   provider: string | null;
 }
@@ -73,6 +74,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           null),
       emailAddress: primaryEmail,
       imageUrl: clerkUser.imageUrl ?? null,
+      hasImage: clerkUser.hasImage,
       provider,
     };
 

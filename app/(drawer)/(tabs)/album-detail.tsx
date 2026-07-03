@@ -30,11 +30,11 @@ export default function AlbumDetailRoute() {
 
   useEffect(() => {
     if (isDownloadedPlaylist) {
-      console.log("📥 Loading downloaded playlist...");
+      // console.log("📥 Loading downloaded playlist...");
       setIsDownloadsLoading(true);
       DownloadManager.getAllDownloadedTracks()
         .then((tracks) => {
-          console.log("📥 Fetched downloaded tracks count:", tracks?.length);
+          // console.log("📥 Fetched downloaded tracks count:", tracks?.length);
           const songsList = tracks.map((t) => {
             const savedMetadata = getDownloadedTrackMetadata(
               t.originalTrack.id,
@@ -64,7 +64,7 @@ export default function AlbumDetailRoute() {
           console.error("📥 Error fetching downloaded tracks:", err),
         )
         .finally(() => {
-          console.log("📥 Finished loading downloaded playlist");
+          // console.log("📥 Finished loading downloaded playlist");
           setIsDownloadsLoading(false);
         });
     }

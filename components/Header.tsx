@@ -3,7 +3,7 @@ import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, Text } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -15,6 +15,7 @@ import Animated, {
 
 // Import SVGs
 import SearchIcon from "@/assets/app-icons/search.svg";
+import SettingsIcon from "@/assets/app-icons/settings.svg";
 import AppLogo from "@/assets/icons/appLogo.svg";
 const HEADER_HEIGHT = 40;
 
@@ -77,19 +78,21 @@ export default function Header({ title }: { title: string }) {
               <SearchIcon width={28} height={28} fill="white" />
             </Pressable>
             <Pressable onPress={() => navigation.openDrawer()}>
-              <View className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/20">
-                {isSignedIn && user?.imageUrl ? (
-                  <Image
-                    source={{ uri: user.imageUrl }}
-                    style={{ width: "100%", height: "100%" }}
-                    contentFit="cover"
-                  />
+              <View className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/20 items-center justify-center bg-zinc-800">
+                {isSignedIn ? (
+                  user?.hasImage && user?.imageUrl ? (
+                    <Image
+                      source={{ uri: user.imageUrl }}
+                      style={{ width: "100%", height: "100%" }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Text className="text-white text-sm font-sans-bold capitalize">
+                      {user?.firstName?.[0] || user?.emailAddress?.[0] || "?"}
+                    </Text>
+                  )
                 ) : (
-                  <Image
-                    source={require("../assets/icons/appIcon.png")}
-                    style={{ width: "100%", height: "100%" }}
-                    contentFit="cover"
-                  />
+                  <SettingsIcon width={18} height={18} fill="white" />
                 )}
               </View>
             </Pressable>
