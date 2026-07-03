@@ -9,6 +9,7 @@ import { storage } from "@/src/lib/storage";
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "@expo-google-fonts/inter";
+import { useNetInfo } from "@react-native-community/netinfo";
 import {
   DarkTheme,
   DefaultTheme,
@@ -19,7 +20,6 @@ import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { ActivityIndicator, View } from "react-native";
-import { useNetInfo } from "@react-native-community/netinfo";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
@@ -36,6 +36,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const netInfo = useNetInfo();
 
+  const isOffline =
+    netInfo.isConnected === false ||
+    (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
+
   React.useEffect(() => {
     if (!isLoaded) return;
 
@@ -43,12 +47,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inLangGroup = segments[0] === "music-lang-change";
     const hasCompletedOnboarding =
       storage.getBoolean("has-completed-onboarding") ?? false;
-    const isOffline = netInfo.isConnected === false;
-    const isUserSignedInCached = storage.getBoolean("is-user-signed-in") ?? false;
+    const isUserSignedInCached =
+      storage.getBoolean("is-user-signed-in") ?? false;
 
     // Treat user as signed in if they are offline but were logged in previously.
     // This protects offline/download playback from auth-checks blocking app access.
-    const effectivelySignedIn = isSignedIn || (isOffline && isUserSignedInCached);
+    const effectivelySignedIn =
+      isSignedIn || (isOffline && isUserSignedInCached);
 
     if (!effectivelySignedIn && !inAuthGroup) {
       router.replace("/onboarding");
@@ -60,6 +65,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     }
   }, [isSignedIn, isLoaded, segments, netInfo.isConnected]);
+
+  if (isOffline) {
+    return <>{children}</>;
+  }
 
   if (!isLoaded) {
     return (

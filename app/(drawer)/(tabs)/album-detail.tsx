@@ -218,9 +218,9 @@ export default function AlbumDetailRoute() {
         route={{ params: { album } } as any}
         navigation={navigation}
         isLoading={isLoading}
-      // ❌ REMOVE THESE (not needed anymore)
-      // onLoadMore
-      // isMoreLoading
+        // ❌ REMOVE THESE (not needed anymore)
+        // onLoadMore
+        // isMoreLoading
       />
     </>
   );

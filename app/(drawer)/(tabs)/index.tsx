@@ -32,6 +32,8 @@ import Header from "@/components/Header";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { TopGenre } from "./explore";
+import { useNetInfo } from "@react-native-community/netinfo";
+import OfflineContent from "@/components/OfflineContent";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
@@ -41,6 +43,10 @@ export default function Index() {
   const insets = useSafeAreaInsets();
   const HEADER_HEIGHT = 54;
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
+  const netInfo = useNetInfo();
+  const isOffline =
+    netInfo.isConnected === false ||
+    (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
 
@@ -281,7 +287,16 @@ export default function Index() {
         <Header title="Beats" />
       </Animated.View>
 
-      {isLoading || !data ? (
+      {isOffline ? (
+        <View
+          style={{
+            flex: 1,
+            paddingTop: TOTAL_HEADER_HEIGHT,
+          }}
+        >
+          <OfflineContent />
+        </View>
+      ) : isLoading || !data ? (
         <View
           style={{
             flex: 1,

@@ -26,6 +26,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNetInfo } from "@react-native-community/netinfo";
+import OfflineContent from "@/components/OfflineContent";
 
 const { width } = Dimensions.get("window");
 
@@ -44,6 +46,10 @@ export default function ExploreScreen() {
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
 
   const router = useRouter();
+  const netInfo = useNetInfo();
+  const isOffline =
+    netInfo.isConnected === false ||
+    (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
   const { data, isLoading } = useHomePreviews();
   const moodsAndGenres = data?.["promo:vx:data:76"] || [];
 
@@ -89,21 +95,6 @@ export default function ExploreScreen() {
   });
 
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
-
-  if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "#000",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="white" />
-      </View>
-    );
-  }
 
   const renderAlbumItem = ({ item }: { item: NewRelease }) => (
     // console.log(item),
@@ -176,70 +167,88 @@ export default function ExploreScreen() {
         <Header title="Explore" />
       </Animated.View>
 
-      <Animated.ScrollView
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: TOTAL_HEADER_HEIGHT + 20,
-          paddingBottom: 250,
-        }}
-      >
-        {/* Category Grid */}
-        <Categories />
-
-        {/* New Albums Section */}
+      {isOffline ? (
+        <View style={{ flex: 1, paddingTop: TOTAL_HEADER_HEIGHT }}>
+          <OfflineContent />
+        </View>
+      ) : isLoading ? (
         <View
-          style={[styles.sectionHeader, isShortScreen && { marginBottom: 10 }]}
+          style={{
+            flex: 1,
+            backgroundColor: "#000",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingTop: TOTAL_HEADER_HEIGHT,
+          }}
         >
-          <Text
-            style={[styles.sectionTitle, { fontSize: isShortScreen ? 18 : 22 }]}
-            className="font-sans-semibold"
+          <ActivityIndicator size="large" color="white" />
+        </View>
+      ) : (
+        <Animated.ScrollView
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: TOTAL_HEADER_HEIGHT + 20,
+            paddingBottom: 250,
+          }}
+        >
+          {/* Category Grid */}
+          <Categories />
+
+          {/* New Albums Section */}
+          <View
+            style={[styles.sectionHeader, isShortScreen && { marginBottom: 10 }]}
           >
-            New albums and singles
-          </Text>
-          <ChevronIcon
-            width={20}
-            height={20}
-            fill="#999"
-            style={{ transform: [{ rotate: "180deg" }] }}
-          />
-        </View>
+            <Text
+              style={[styles.sectionTitle, { fontSize: isShortScreen ? 18 : 22 }]}
+              className="font-sans-semibold"
+            >
+              New albums and singles
+            </Text>
+            <ChevronIcon
+              width={20}
+              height={20}
+              fill="#999"
+              style={{ transform: [{ rotate: "180deg" }] }}
+            />
+          </View>
 
-        <View style={{ height: isShortScreen ? 200 : 240, marginBottom: 4 }}>
-          <FlatList
-            data={data?.raw_new_releases || []}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            keyExtractor={(item: any, index: number) =>
-              item.id || item.listid || item.albumid || index.toString()
+          <View style={{ height: isShortScreen ? 200 : 240, marginBottom: 4 }}>
+            <FlatList
+              data={data?.raw_new_releases || []}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+              keyExtractor={(item: any, index: number) =>
+                item.id || item.listid || item.albumid || index.toString()
+              }
+              renderItem={renderAlbumItem}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={3}
+              updateCellsBatchingPeriod={100}
+              initialNumToRender={3}
+              windowSize={3}
+            />
+          </View>
+
+          {/* Moods and Genres Section */}
+          <TopGenre
+            title={
+              data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"
             }
-            renderItem={renderAlbumItem}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={3}
-            updateCellsBatchingPeriod={100}
-            initialNumToRender={3}
-            windowSize={3}
+            subtitle={data?.modules?.["promo:vx:data:76"]?.subtitle}
+            data={
+              Array.from(
+                {
+                  length: Math.ceil(moodsAndGenres.length / 3),
+                },
+                (_, i) => moodsAndGenres.slice(i * 3, i * 3 + 3),
+              ) || []
+            }
           />
-        </View>
-
-        {/* Moods and Genres Section */}
-        <TopGenre
-          title={
-            data?.modules?.["promo:vx:data:76"]?.title || "Moods and genres"
-          }
-          subtitle={data?.modules?.["promo:vx:data:76"]?.subtitle}
-          data={
-            Array.from(
-              {
-                length: Math.ceil(moodsAndGenres.length / 3),
-              },
-              (_, i) => moodsAndGenres.slice(i * 3, i * 3 + 3),
-            ) || []
-          }
-        />
-      </Animated.ScrollView>
+        </Animated.ScrollView>
+      )}
     </View>
   );
 }
