@@ -1,8 +1,8 @@
 import CityHotSection from "@/components/home/CityHotSection";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
+import RecentlyPlayedSection from "@/components/home/RecentlyPlayedSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
-import RecentlyPlayedSection from "@/components/home/RecentlyPlayedSection";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
 import { getRecentActivity } from "@/src/lib/storage";
 import { useFocusEffect } from "@react-navigation/native";
@@ -47,7 +47,7 @@ export default function Index() {
   useFocusEffect(
     React.useCallback(() => {
       setRecentActivity(getRecentActivity());
-    }, [])
+    }, []),
   );
 
   const translateY = useSharedValue(0);
@@ -76,6 +76,8 @@ export default function Index() {
       };
     } else {
       return {
+        image: require("../../../assets/images/morning_default_image.png"),
+
         greeting: "Good Night",
       };
     }
@@ -142,6 +144,12 @@ export default function Index() {
   // Fix: Hooks must run before any conditional return
   const sections = React.useMemo(() => {
     const items = [];
+    items.push({
+      id: "quick",
+      title: "Quick Picks",
+      type: "quickPicks",
+      data: data?.quick_picks,
+    });
     if (recentActivity && recentActivity.length > 0) {
       items.push({
         id: "recentlyPlayed",
@@ -151,12 +159,6 @@ export default function Index() {
       });
     }
     items.push(
-      {
-        id: "quick",
-        title: "Quick Picks",
-        type: "quickPicks",
-        data: data?.quick_picks,
-      },
       {
         id: "trending",
         title: "New & Trending",
@@ -243,7 +245,12 @@ export default function Index() {
       >
         <Image
           source={bgImage}
-          style={{ width: "100%", height: height * 0.6, position: "absolute", top: 0 }}
+          style={{
+            width: "100%",
+            height: height * 0.6,
+            position: "absolute",
+            top: 0,
+          }}
           contentFit="cover"
           blurRadius={0}
         />
@@ -255,7 +262,12 @@ export default function Index() {
             "#050505",
           ]}
           locations={[0, 0.4, 0.7, 1]}
-          style={{ width: "100%", height: height * 0.65, position: "absolute", top: 0 }}
+          style={{
+            width: "100%",
+            height: height * 0.65,
+            position: "absolute",
+            top: 0,
+          }}
         />
       </Animated.View>
 
@@ -308,7 +320,6 @@ export default function Index() {
           renderItem={({ item }: any) => {
             if (item.type === "recentlyPlayed")
               return <RecentlyPlayedSection data={item.data} />;
-
             if (item.type === "quickPicks")
               return <QuickPicksSection data={item.data} />;
 

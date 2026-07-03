@@ -3,7 +3,7 @@ import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -17,6 +17,7 @@ import Animated, {
 import SearchIcon from "@/assets/app-icons/search.svg";
 import SettingsIcon from "@/assets/app-icons/settings.svg";
 import AppLogo from "@/assets/icons/appLogo.svg";
+import { useWindowDimensions } from "react-native";
 const HEADER_HEIGHT = 40;
 
 export default function Header({ title }: { title: string }) {
@@ -26,7 +27,8 @@ export default function Header({ title }: { title: string }) {
   const translateY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
   const isScrolling = useSharedValue(false);
-
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       const currentOffset = event.contentOffset.y;
@@ -71,14 +73,28 @@ export default function Header({ title }: { title: string }) {
       {/* Animated Header */}
       <Animated.View style={[styles.headerContainer, headerStyle]}>
         <View className="flex-row items-center justify-between px-[20px] py-5 w-full">
-          <AppLogo width={40} height={40} fill="#ffffff" />
+          <AppLogo
+            width={isShortScreen ? 30 : 40}
+            height={isShortScreen ? 30 : 40}
+            fill="#ffffff"
+          />
 
           <View className="flex-row items-center gap-8">
             <Pressable onPress={() => router.push("/search")}>
-              <SearchIcon width={28} height={28} fill="white" />
+              <SearchIcon
+                width={isShortScreen ? 24 : 28}
+                height={isShortScreen ? 24 : 28}
+                fill="white"
+              />
             </Pressable>
             <Pressable onPress={() => navigation.openDrawer()}>
-              <View className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/20 items-center justify-center bg-zinc-800">
+              <View
+                style={{
+                  width: isShortScreen ? 28 : 32,
+                  height: isShortScreen ? 28 : 32,
+                }}
+                className=" rounded-full overflow-hidden border border-white/20 items-center justify-center bg-zinc-800"
+              >
                 {isSignedIn ? (
                   user?.hasImage && user?.imageUrl ? (
                     <Image

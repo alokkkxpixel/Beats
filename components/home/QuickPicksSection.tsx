@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Text,
   useWindowDimensions,
-  View
+  View,
 } from "react-native";
 
 import { SongDetail } from "@/types/jiosaavn";
@@ -125,7 +125,13 @@ export default function QuickPicksSection({
     <View style={styles.section}>
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-          <Text style={[styles.heading, isShortScreen && { fontSize: 18, lineHeight: 22 }]} className="text-2xl font-sans-medium ">
+          <Text
+            style={[
+              styles.heading,
+              isShortScreen && { fontSize: 18, lineHeight: 22 },
+            ]}
+            className="text-2xl font-sans-medium "
+          >
             {title}
           </Text>
           {subtitle ? (
@@ -134,18 +140,14 @@ export default function QuickPicksSection({
             </Text>
           ) : null}
         </View>
-        {
-          onMorePress && (
-            <Pressable style={styles.headerActions} onPress={onMorePress}>
-              <View style={styles.playAllButton}>
-                <Text style={styles.playAllText}>
-                  More
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
-            </Pressable>
-          )
-        }
+        {onMorePress && (
+          <Pressable style={styles.headerActions} onPress={onMorePress}>
+            <View style={styles.playAllButton}>
+              <Text style={styles.playAllText}>More</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
+          </Pressable>
+        )}
         {/* <Pressable style={styles.headerActions} onPress={onMorePress}>
           <View style={styles.playAllButton}>
             <Text style={styles.playAllText}>

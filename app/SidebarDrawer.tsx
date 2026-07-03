@@ -31,7 +31,7 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
   const setDrawerOpen = usePlayerStore((s) => s.setDrawerOpen);
   const status = useDrawerStatus();
   const { user, isSignedIn } = useAuthStore();
-
+  const isShortScreen = height < 700;
   useEffect(() => {
     setDrawerOpen(status === "open");
   }, [status, setDrawerOpen]);
@@ -77,13 +77,15 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
     <View style={styles.container}>
       <DrawerContentScrollView
         {...props}
-        contentContainerStyle={{ paddingTop: insets.top + 20 }}
+        contentContainerStyle={{
+          paddingTop: isShortScreen ? 22 : insets.top + 20,
+        }}
       >
         <View className="mb-10 px-2">
           <View className="flex flex-row items-center gap-5">
             <CloseIcon
-              width={27}
-              height={27}
+              width={isShortScreen ? 27 : 27}
+              height={isShortScreen ? 27 : 27}
               fill={"#fff"}
               onPress={() => props.navigation.closeDrawer()}
             />
@@ -92,22 +94,40 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
+            <View
+              style={isShortScreen ? { width: 40, height: 40 } : styles.avatar}
+            >
               {isSignedIn && user?.imageUrl ? (
                 <Image
                   source={{ uri: user.imageUrl }}
-                  style={{ width: 50, height: 50, borderRadius: 25 }}
+                  style={{
+                    width: isShortScreen ? 40 : 50,
+                    height: isShortScreen ? 40 : 50,
+                    borderRadius: 25,
+                  }}
                   contentFit="cover"
                 />
               ) : (
-                <UserIcon width={30} height={30} fill="#fff" />
+                <UserIcon
+                  width={isShortScreen ? 25 : 30}
+                  height={isShortScreen ? 25 : 30}
+                  fill="#fff"
+                />
               )}
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.userName} className="font-sans-bold">
+              <Text
+                style={styles.userName}
+                className={`font-sans-bold ${isShortScreen ? "text-base" : ""}`}
+              >
                 {isSignedIn && user?.fullName ? user.fullName : "Guest User"}
               </Text>
-              <Text style={styles.userEmail} className="font-sans-regular">
+              <Text
+                style={styles.userEmail}
+                className={`font-sans-regular ${
+                  isShortScreen ? "text-[10px]" : ""
+                }`}
+              >
                 {isSignedIn && user?.emailAddress
                   ? user.emailAddress
                   : "guest@beats.app"}
@@ -143,13 +163,16 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
               onPress={item.onPress}
             >
               <item.icon
-                width={22}
-                height={22}
+                width={isShortScreen ? 20 : 22}
+                height={isShortScreen ? 20 : 22}
                 fill="#fff"
                 style={styles.menuIcon}
               />
               <Text
-                style={styles.menuLabel}
+                style={[
+                  styles.menuLabel,
+                  isShortScreen && { fontSize: 14, lineHeight: 20 },
+                ]}
                 className="font-sans-medium"
                 numberOfLines={1}
               >

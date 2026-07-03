@@ -7,12 +7,12 @@ import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import { useNetInfo } from "@react-native-community/netinfo";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, Pressable, StyleSheet, View, Text } from "react-native";
+import { BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
-import { useNetInfo } from "@react-native-community/netinfo";
 import QueueSheet from "./QueueSheet";
 // --- Sub-components for better isolation ---
 import { usePlaylistStore } from "@/src/store/usePlaylistStore";
@@ -360,14 +360,54 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const TABBAR_HEIGHT = 55 + insets.bottom;
   const netInfo = useNetInfo();
-  const isOffline = netInfo.isConnected === false || (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
+  const isOffline =
+    netInfo.isConnected === false ||
+    (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
 
-  const { hasTrack, isDrawerOpen } = usePlayerStore(
+  const {
+    hasTrack,
+    isDrawerOpen,
+    isFullPlayerOpen,
+    isQueueOpen,
+    isMoreOptionOpen,
+    isAudioDeviceOpen,
+    isLyricsOpen,
+  } = usePlayerStore(
     useShallow((s) => ({
       hasTrack: !!s.currentTrack,
       isDrawerOpen: s.isDrawerOpen,
+      isFullPlayerOpen: s.isFullPlayerOpen,
+      isQueueOpen: s.isQueueOpen,
+      isMoreOptionOpen: s.isMoreOptionOpen,
+      isAudioDeviceOpen: s.isAudioDeviceOpen,
+      isLyricsOpen: s.isLyricsOpen,
     })),
   );
+
+  const isPlaylistModalOpen = usePlaylistStore((s) => s.isPlaylistModalOpen);
+
+  const isAnySheetOpen =
+    isFullPlayerOpen ||
+    isQueueOpen ||
+    isMoreOptionOpen ||
+    isAudioDeviceOpen ||
+    isLyricsOpen ||
+    isPlaylistModalOpen;
+
+  const [showOfflineBanner, setShowOfflineBanner] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOffline) {
+      setShowOfflineBanner(true);
+      const timer = setTimeout(() => {
+        setShowOfflineBanner(false);
+      }, 15000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowOfflineBanner(false);
+    }
+  }, [isOffline]);
+
   const segments = useSegments();
   const isMiniPlayerShowing =
     segments.length > 0 &&
@@ -419,18 +459,17 @@ export function PlayerWrapper({ children }: { children: React.ReactNode }) {
     <View style={styles.container}>
       {children}
       <MiniPlayerLayer tabHeight={TABBAR_HEIGHT} />
+      {showOfflineBanner && !isAnySheetOpen && (
+        <View style={[styles.offlineBanner, { bottom: bannerBottom }]}>
+          <Text style={styles.offlineText}>No internet connection</Text>
+        </View>
+      )}
       <FullPlayerSheetLayer />
       <MoreOptionsSheetLayer />
       <AudioDeviceSheetLayer />
       <QueueSheetLayer />
       <LyricsSheetLayer />
       <PlaylistModalLayer />
-
-      {isOffline && (
-        <View style={[styles.offlineBanner, { bottom: bannerBottom }]}>
-          <Text style={styles.offlineText}>No internet connection</Text>
-        </View>
-      )}
     </View>
   );
 }
