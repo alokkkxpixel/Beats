@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-na
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { FlatList } from "react-native";
+import defaultCover from "@/assets/app-icons/defualt-cover.png";
 
 interface CityHotSectionProps {
   title: string;
@@ -27,9 +28,13 @@ export default function CityHotSection({
   if (!data || data.length === 0) return <></>;
   const getImageUri = (img: any): string => {
     if (Array.isArray(img)) {
-      return img[2] || img[1] || img[0] || "";
+      const target = img[2] || img[1] || img[0] || "";
+      if (typeof target === "string") return target;
+      return target?.url || target?.uri || "";
     }
     if (typeof img === "string" && img) {
+      if (img.includes("50x50")) return img.replace("50x50", "500x500");
+      if (img.includes("150x150")) return img.replace("150x150", "500x500");
       const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
       return `${base}-500x500.jpg`;
     }
@@ -75,7 +80,7 @@ export default function CityHotSection({
           isArtist ? { borderRadius: cardSize / 2 } : { borderRadius: isShortScreen ? 6 : 8 }
         ]}>
           <Image
-            source={{ uri: getImageUri(displayImage) }}
+            source={getImageUri(displayImage) ? { uri: getImageUri(displayImage) } : defaultCover}
             style={styles.image}
             contentFit="cover"
             transition={150}
