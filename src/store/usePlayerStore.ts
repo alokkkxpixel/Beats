@@ -9,6 +9,7 @@ import {
     saveLikedSongs,
     savePlayerState as saveStoredPlayerState,
     setAudioQualityPreference,
+    addToRecentActivity,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { ExtractedColors } from "@/src/utils/extractAccentColor";
@@ -25,6 +26,9 @@ import {
     TrackPlayer,
 } from "react-native-nitro-player";
 import { create } from "zustand";
+
+let lastLoggedTrackId = "";
+
 
 const mapToTrackItem = (
   song: SongDetail,
@@ -935,6 +939,23 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (state.position === position && state.duration === duration) return;
     set({ position, duration });
     get().persistPlayerState();
+
+    if (state.currentTrack && state.currentTrack.id !== lastLoggedTrackId) {
+      const isShortSong = duration > 0 && duration < 60;
+      const playThreshold = isShortSong ? duration * 0.8 : 60;
+      if (position >= playThreshold) {
+        lastLoggedTrackId = state.currentTrack.id;
+        addToRecentActivity({
+          id: state.currentTrack.id,
+          title: state.currentTrack.name || (state.currentTrack as any).title || "",
+          image: state.currentTrack.image,
+          type: "song",
+          subtitle: state.currentTrack.primaryArtists || "Song",
+          url: state.currentTrack.url || (state.currentTrack as any).perma_url || "",
+          timestamp: Date.now(),
+        });
+      }
+    }
   },
 
   setPlaying: (isPlaying) => {

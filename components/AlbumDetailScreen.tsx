@@ -285,7 +285,7 @@ const AlbumDetailScreen = ({
         subtitle: `${artist}${yearText}`,
         timestamp: Date.now(),
       });
-    }, 20000);
+    }, 60000);
 
     return () => clearTimeout(timer);
   }, [album]);

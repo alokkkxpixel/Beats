@@ -437,18 +437,6 @@ export default function LibraryScreen() {
             )}
           </>
         }
-        // ListEmptyComponent={
-        //   <View className="flex-1 items-center justify-center pt-32 px-12">
-        //     <View className="w-20 h-20 bg-white/5 rounded-full items-center justify-center mb-6"></View>
-        //     <Text className="text-white text-xl font-sans-bold mb-2">
-        //       Nothing here yet
-        //     </Text>
-        //     <Text className="text-gray-500 text-center text-base leading-6">
-        //       Songs, albums, and artists you interact with will appear here
-        //       automatically.
-        //     </Text>
-        //   </View>
-        // }
       />
 
       {/* Playlist Options Menu */}

@@ -2,7 +2,10 @@ import CityHotSection from "@/components/home/CityHotSection";
 import QuickPicksSection from "@/components/home/QuickPicksSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
+import RecentlyPlayedSection from "@/components/home/RecentlyPlayedSection";
 import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
+import { getRecentActivity } from "@/src/lib/storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
@@ -37,6 +40,13 @@ export default function Index() {
   const HEADER_HEIGHT = 54;
   const TOTAL_HEADER_HEIGHT = HEADER_HEIGHT + insets.top;
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setRecentActivity(getRecentActivity());
+    }, [])
+  );
 
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
@@ -128,8 +138,17 @@ export default function Index() {
   });
 
   // Fix: Hooks must run before any conditional return
-  const sections = React.useMemo(
-    () => [
+  const sections = React.useMemo(() => {
+    const items = [];
+    if (recentActivity && recentActivity.length > 0) {
+      items.push({
+        id: "recentlyPlayed",
+        title: "Recently Played",
+        type: "recentlyPlayed",
+        data: recentActivity,
+      });
+    }
+    items.push(
       {
         id: "quick",
         title: "Quick Picks",
@@ -168,7 +187,6 @@ export default function Index() {
         type: "artistrecos",
         data: data?.artist_recos.data,
       },
-
       {
         id: "albums",
         title: "New Releases",
@@ -204,9 +222,9 @@ export default function Index() {
         type: "promo:vx:data:69",
         data: data?.["promo:vx:data:69"].data,
       },
-    ],
-    [data, SpecialForYouData, moodsAndGenres],
-  );
+    );
+    return items;
+  }, [data, SpecialForYouData, moodsAndGenres, recentActivity]);
 
   // Loading State is handled inline below to keep the header and background visible
 
@@ -286,6 +304,9 @@ export default function Index() {
             paddingBottom: 250,
           }}
           renderItem={({ item }: any) => {
+            if (item.type === "recentlyPlayed")
+              return <RecentlyPlayedSection data={item.data} />;
+
             if (item.type === "quickPicks")
               return <QuickPicksSection data={item.data} />;
 

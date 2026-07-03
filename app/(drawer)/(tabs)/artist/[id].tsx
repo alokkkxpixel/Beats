@@ -105,7 +105,7 @@ export default function ArtistScreen() {
         )} monthly listeners`,
         timestamp: Date.now(),
       });
-    },20000);
+    }, 60000);
     }
   }, [artist, id]);
 
