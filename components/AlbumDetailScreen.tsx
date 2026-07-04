@@ -27,8 +27,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PlayingIndicator from "./PlayingIndicator";
@@ -175,6 +175,7 @@ const AlbumDetailScreen = ({
   const highResCover = album?.image?.[album?.image?.length - 1]?.url || "";
   const setQueue = usePlayerStore((state) => state.setQueue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
   const savedAlbums = usePlaylistStore((s) => s.savedAlbums);
   const addAlbumToLibrary = usePlaylistStore((s) => s.addAlbumToLibrary);
   const removeAlbumFromLibrary = usePlaylistStore(
@@ -183,7 +184,9 @@ const AlbumDetailScreen = ({
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
   const { width, height } = useWindowDimensions();
   const isShortScreen = height < 700;
-  const coverSize = isShortScreen ? Math.min(width * 0.45, 160) : Math.min(width * 0.55, 220);
+  const coverSize = isShortScreen
+    ? Math.min(width * 0.45, 160)
+    : Math.min(width * 0.55, 220);
   const backdropHeight = isShortScreen ? 280 : Math.min(height * 0.45, 380);
   const [albumBgColor, setAlbumBgColor] = useState<ExtractedColors | string>(
     "#000",
@@ -272,12 +275,17 @@ const AlbumDetailScreen = ({
     if (album.id === "liked-songs") {
       return;
     }
-    if (album.id.startsWith("playlist-")) {
-      return;
-    }
     if (album.id.startsWith("downloaded-songs")) {
       return;
     }
+
+    // Only add if one of its songs is currently playing
+    const isSongPlayingFromThisAlbum =
+      isPlaying && currentTrack && songs.some((s) => s.id === currentTrack.id);
+    if (!isSongPlayingFromThisAlbum) {
+      return;
+    }
+
     const artist = album.artists?.primary?.[0]?.name || "Various Artists";
     const yearText = album.year ? ` • ${album.year}` : "";
 
@@ -286,14 +294,16 @@ const AlbumDetailScreen = ({
         id: album.id,
         title: album.name || (album as any).title,
         image: album.image,
-        type: album.type || "album",
+        type:
+          album.type ||
+          (album.id.startsWith("playlist-") ? "playlist" : "album"),
         subtitle: `${artist}${yearText}`,
         timestamp: Date.now(),
       });
-    }, 60000);
+    }, 60000 * 2);
 
     return () => clearTimeout(timer);
-  }, [album]);
+  }, [album, currentTrack?.id, isPlaying, songs]);
 
   const totalDurationSeconds = React.useMemo(
     () => songs.reduce((acc, song) => acc + (song.duration || 0), 0),
@@ -426,7 +436,13 @@ const AlbumDetailScreen = ({
   return (
     <View style={styles.container}>
       <View
-        style={{ height: backdropHeight, position: "absolute", top: 0, left: 0, right: 0 }}
+        style={{
+          height: backdropHeight,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+        }}
       >
         {/* <Image
           source={{ uri: highResCover }}

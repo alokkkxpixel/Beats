@@ -77,13 +77,16 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
     fetchAndAppendSuggestions,
   ]);
 
+  const queueLength = usePlayerStore((s) => s.queue.length);
+  const currentIndex = usePlayerStore((s) => s.currentIndex);
+
   // Reset suggestion ref when track changes
   // FIX #3 cont: depends on currentTrackId (scalar) not currentTrack (object)
   useEffect(() => {
     hasFetchedSingleTrackSuggestions.current = false;
   }, [currentTrackId]);
 
-  // ── Track change sync + infinite autoplay ────────────────────────────────────
+  // ── Track change sync ────────────────────────────────────────────────────────
   // FIX #2 (already applied): queue is read imperatively — not in dep array.
   // FIX #4: currentTrack?.id comparison is now done via getState() snapshot,
   // not the JS-subscribed `currentTrackId`. This closes the race condition where
@@ -107,15 +110,17 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
       position: 0,
       duration: queue[newIndex].duration || 0,
     });
+  }, [nowPlaying.currentTrack?.id]);
 
-    // Infinite autoplay: approaching end of queue — fetch more tracks
-    if (queue.length > 2 && newIndex >= queue.length - 2) {
-      fetchAndAppendSuggestions(nativeTrack.id);
+  // ── Infinite autoplay: fetch more tracks when reaching the second to last song ──
+  useEffect(() => {
+    if (queueLength > 2 && currentIndex !== -1 && currentIndex >= queueLength - 2) {
+      const { currentTrack } = usePlayerStore.getState();
+      if (currentTrack?.id) {
+        fetchAndAppendSuggestions(currentTrack.id);
+      }
     }
-  }, [nowPlaying.currentTrack?.id, fetchAndAppendSuggestions]);
-  // FIX #4 cont: removed `currentTrackId` from deps — the comparison is now
-  // done via getState() so there's no reason to re-run on every store update.
-  // The effect only needs to fire when the native player reports a new track.
+  }, [currentIndex, queueLength, fetchAndAppendSuggestions]);
 
   return null;
 });

@@ -1,7 +1,7 @@
 import PauseIcon from "@/assets/app-icons/pause.svg";
 import PlayIcon from "@/assets/app-icons/play.svg";
+import ShuffleOnIcon from "@/assets/app-icons/shuffle-on.svg";
 import ShuffleIcon from "@/assets/app-icons/shuffle.svg";
-
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { SongDetail } from "@/types/jiosaavn";
@@ -15,6 +15,7 @@ import {
   Easing,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -46,6 +47,8 @@ const QueueSheet = () => {
     (state) => state.fetchAndAppendSuggestions,
   );
   const toggleShuffle = usePlayerStore((state) => state.toggleShuffle);
+  const isAutoplayEnabled = usePlayerStore((state) => state.isAutoplayEnabled);
+  const toggleAutoplay = usePlayerStore((state) => state.toggleAutoplay);
   const flatListRef = useRef<any>(null);
   const renderScrollComponent = useBottomSheetScrollableCreator();
 
@@ -218,6 +221,22 @@ const QueueSheet = () => {
       ? currentTrack.album
       : currentTrack?.album?.name || "Playback Queue";
 
+  const renderListFooter = () => {
+    if (!isFetchingSuggestions) return null;
+    return (
+      <View style={styles.listFooter}>
+        <ActivityIndicator
+          size="small"
+          color="#1DB954"
+          style={{ marginRight: 10 }}
+        />
+        <Text style={{ color: "#eee", fontSize: 13 }}>
+          Fetching suggestions...
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: accentColor.average }]}>
       {/* Universal protection overlay for bright backgrounds */}
@@ -253,21 +272,8 @@ const QueueSheet = () => {
         renderItem={renderTrackItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={renderListFooter}
       />
-
-      {/* Fixed suggestion loading indicator */}
-      {isFetchingSuggestions && (
-        <View style={styles.ListFooterComponentFixed}>
-          <ActivityIndicator
-            size="small"
-            color="#1DB954"
-            style={{ marginRight: 10 }}
-          />
-          <Text style={{ color: "#eee", fontSize: 13 }}>
-            Fetching suggestions...
-          </Text>
-        </View>
-      )}
 
       {/* Styled the bottom controller bar background to blend properly with the dynamic layout */}
       <View
@@ -280,12 +286,11 @@ const QueueSheet = () => {
         ]}
       >
         <Pressable style={styles.footerBtn} onPress={toggleShuffle}>
-          <ShuffleIcon
-            width={24}
-            height={24}
-            fill={isShuffleEnabled ? "#FFF" : "gray"}
-            stroke={isShuffleEnabled ? "#FFF" : "gray"}
-          />
+          {isShuffleEnabled ? (
+            <ShuffleOnIcon width={25} height={25} fill="#FFF" />
+          ) : (
+            <ShuffleIcon width={25} height={25} fill="#FFF" />
+          )}
           <Text
             style={[
               styles.footerBtnText,
@@ -296,10 +301,34 @@ const QueueSheet = () => {
           </Text>
         </Pressable>
         <View style={styles.footerDivider} />
-        <Pressable style={styles.footerBtn}>
-          <MaterialIcons name="timer" size={24} color="white" />
-          <Text style={styles.footerBtnText}>Timer</Text>
-        </Pressable>
+        <View style={styles.footerBtn}>
+          <Switch
+            value={isAutoplayEnabled}
+            onValueChange={toggleAutoplay}
+            trackColor={{ false: "#767577", true: "rgba(255, 255, 255, 0.3)" }}
+            thumbColor={
+              isAutoplayEnabled ? accentColor.vibrant || "#fff" : "#f4f3f4"
+            }
+            ios_backgroundColor="#3e3e3e"
+            style={{
+              transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }],
+              marginBottom: -2,
+            }}
+          />
+          <View className="flex items-center ">
+            <Text
+              style={[
+                styles.footerBtnText,
+                { color: isAutoplayEnabled ? "#fff" : "gray" },
+              ]}
+            >
+              Autoplay
+            </Text>
+            <Text className="text-xs font-sans-regular text-center text-gray-500">
+              Add similar content to queue of endless music
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -310,12 +339,12 @@ const styles = StyleSheet.create({
     flex: 1,
     // backgroundColor: "#121212",
   },
-  ListFooterComponentFixed: {
+  listFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    marginBottom: 90,
+    paddingVertical: 20,
+    marginBottom: 40,
   },
   playingOverlay: {
     height: "100%",

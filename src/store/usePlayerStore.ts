@@ -1,15 +1,15 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
 import {
-    AudioQualityPreference,
-    clearPlayerState as clearStoredPlayerState,
-    getAudioQualityPreference,
-    getDownloadedTrackMetadata,
-    getLikedSongs,
-    getPlayerState as getStoredPlayerState,
-    saveLikedSongs,
-    savePlayerState as saveStoredPlayerState,
-    setAudioQualityPreference,
-    addToRecentActivity,
+  addToRecentActivity,
+  AudioQualityPreference,
+  clearPlayerState as clearStoredPlayerState,
+  getAudioQualityPreference,
+  getDownloadedTrackMetadata,
+  getLikedSongs,
+  getPlayerState as getStoredPlayerState,
+  saveLikedSongs,
+  savePlayerState as saveStoredPlayerState,
+  setAudioQualityPreference,
 } from "@/src/lib/storage";
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { ExtractedColors } from "@/src/utils/extractAccentColor";
@@ -20,15 +20,14 @@ import { ToastAndroid } from "react-native";
 
 // ===== NEW: Nitro Player imports =====
 import {
-    DownloadManager,
-    PlayerQueue,
-    TrackItem,
-    TrackPlayer,
+  DownloadManager,
+  PlayerQueue,
+  TrackItem,
+  TrackPlayer,
 } from "react-native-nitro-player";
 import { create } from "zustand";
 
 let lastLoggedTrackId = "";
-
 
 const mapToTrackItem = (
   song: SongDetail,
@@ -124,6 +123,8 @@ interface PlayerState {
   setShowDeleteDownloadOption: (show: boolean) => void;
   isQueueOpen: boolean;
   isAudioDeviceOpen: boolean;
+  isAutoplayEnabled: boolean;
+  toggleAutoplay: () => void;
 
   isDrawerOpen: boolean;
   isLyricsOpen: boolean;
@@ -202,6 +203,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isMoreOptionOpen: false,
   isQueueOpen: false,
   isAudioDeviceOpen: false,
+  isAutoplayEnabled: true,
+  toggleAutoplay: () => set((state) => ({ isAutoplayEnabled: !state.isAutoplayEnabled })),
   isLyricsOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
@@ -660,8 +663,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   fetchAndAppendSuggestions: async (trackId: string) => {
     try {
-      const { queue, activePlaylistId, isFetchingSuggestions } = get();
-      if (!activePlaylistId || isFetchingSuggestions) return;
+      const { queue, activePlaylistId, isFetchingSuggestions, isAutoplayEnabled } = get();
+      if (!activePlaylistId || isFetchingSuggestions || !isAutoplayEnabled) return;
 
       // console.log("🔄 Fetching more suggestions for autoplay...");
       set({ isFetchingSuggestions: true });
@@ -942,16 +945,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (state.currentTrack && state.currentTrack.id !== lastLoggedTrackId) {
       const isShortSong = duration > 0 && duration < 60;
-      const playThreshold = isShortSong ? duration * 0.8 : 60;
+      const playThreshold = isShortSong ? duration * 0.8 : 60 * 3;
       if (position >= playThreshold) {
         lastLoggedTrackId = state.currentTrack.id;
         addToRecentActivity({
           id: state.currentTrack.id,
-          title: state.currentTrack.name || (state.currentTrack as any).title || "",
+          title:
+            state.currentTrack.name || (state.currentTrack as any).title || "",
           image: state.currentTrack.image,
           type: "song",
           subtitle: state.currentTrack.primaryArtists || "Song",
-          url: state.currentTrack.url || (state.currentTrack as any).perma_url || "",
+          url:
+            state.currentTrack.url ||
+            (state.currentTrack as any).perma_url ||
+            "",
           timestamp: Date.now(),
         });
       }

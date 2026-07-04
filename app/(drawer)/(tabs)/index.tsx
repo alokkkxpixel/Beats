@@ -320,7 +320,7 @@ export default function Index() {
               progressViewOffset={TOTAL_HEADER_HEIGHT}
               tintColor="#ffffff"
               colors={["#050505"]}
-              progressBackgroundColor="#"
+              progressBackgroundColor="#fff"
             />
           }
           showsVerticalScrollIndicator={false}

@@ -2,35 +2,34 @@ import { usePlayerStore } from "@/src/store/usePlayerStore";
 import {
   Pressable,
   StyleSheet,
-  Text, View
+  Text,
+  useWindowDimensions,
+  View,
 } from "react-native";
 
 interface LyricsPreviewProps {
- 
   onPress?: () => void;
 }
 
-const LyricsPreview = ({
-  
-  onPress,
-}: LyricsPreviewProps) => {
-  
-const accentColor = usePlayerStore((state) => state.accentColor);
+const LyricsPreview = ({ onPress }: LyricsPreviewProps) => {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const accentColor = usePlayerStore((state) => state.accentColor);
   return (
     <Pressable
-      style={[styles.container, { backgroundColor: accentColor.muted + "79" }]}
+      style={[
+        styles.container,
+        isShortScreen && { height: 180 },
+        { backgroundColor: accentColor.muted + "79" },
+      ]}
       onPress={onPress}
       android_ripple={{ color: "#ffffff15" }}
     >
-      <Text style={[styles.header, { color:  "#FFFFFF" }]}>
-        Lyrics preview
-      </Text>
+      <Text style={[styles.header, { color: "#FFFFFF" }]}>Lyrics preview</Text>
 
       <View style={styles.centerContent}>
         <View style={styles.button}>
-          <Text style={styles.buttonText}>
-            Show Lyrics
-          </Text>
+          <Text style={styles.buttonText}>Show Lyrics</Text>
         </View>
       </View>
     </Pressable>
@@ -40,16 +39,16 @@ const accentColor = usePlayerStore((state) => state.accentColor);
 export default LyricsPreview;
 
 const styles = StyleSheet.create({
-//   container: {
-//     backgroundColor: "#ffffff15",
-//     borderRadius: 24,
-//     width: 320,
-//     marginLeft: "auto",
-//     marginRight: "auto",
-//     padding: 16,
-//     borderWidth: 1,
-//     borderColor: "#ffffff08",
-//   },
+  //   container: {
+  //     backgroundColor: "#ffffff15",
+  //     borderRadius: 24,
+  //     width: 320,
+  //     marginLeft: "auto",
+  //     marginRight: "auto",
+  //     padding: 16,
+  //     borderWidth: 1,
+  //     borderColor: "#ffffff08",
+  //   },
 
   title: {
     // color: accentColor.muted,
@@ -61,7 +60,7 @@ const styles = StyleSheet.create({
   },
 
   lyricsContainer: {
-    padding:20,
+    padding: 20,
     gap: 4,
   },
 
@@ -75,8 +74,8 @@ const styles = StyleSheet.create({
   activeLine: {
     color: "#FFFFFF",
   },
-    container: {
-    height: 220,
+  container: {
+    height: 200,
     width: 360,
     marginLeft: "auto",
     marginRight: "auto",
@@ -87,7 +86,7 @@ const styles = StyleSheet.create({
     // backgroundColor: "#4A90E2", // use album accent color
     overflow: "hidden",
     padding: 16,
-    marginTop:15,
+    marginTop: 15,
   },
 
   header: {
@@ -114,5 +113,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
   },
-
 });

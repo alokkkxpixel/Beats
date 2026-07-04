@@ -55,7 +55,7 @@ const ArtistCredits = ({
       >
         {artists.map((artist, index) => (
           <View
-            key={artist.id}
+            key={`${artist.id}-${artist.role}-${index}`}
             style={[
               styles.artistRow,
               index !== artists.length - 1 && styles.artistRowBorder

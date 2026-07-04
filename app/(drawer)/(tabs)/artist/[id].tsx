@@ -98,17 +98,17 @@ export default function ArtistScreen() {
   useEffect(() => {
     if (artist) {
       const timer = setTimeout(() => {
-      addToRecentActivity({
-        id: artist.id || id,
-        title: artist.name,
-        image: artist.image,
-        type: "artist",
-        subtitle: `${formatPlayCount(
-          artist.fanCount || artist.followerCount || 0,
-        )} monthly listeners`,
-        timestamp: Date.now(),
-      });
-    }, 60000);
+        addToRecentActivity({
+          id: artist.id || id,
+          title: artist.name,
+          image: artist.image,
+          type: "artist",
+          subtitle: `${formatPlayCount(
+            artist.fanCount || artist.followerCount || 0,
+          )} monthly listeners`,
+          timestamp: Date.now(),
+        });
+      }, 60000 * 2);
     }
   }, [artist, id]);
 
@@ -249,7 +249,13 @@ export default function ArtistScreen() {
 
     return (
       <View style={[styles.headerContent, { height: imageHeight }]}>
-        <Animated.View style={[styles.imageContainer, { height: imageHeight }, imageAnimatedStyle]}>
+        <Animated.View
+          style={[
+            styles.imageContainer,
+            { height: imageHeight },
+            imageAnimatedStyle,
+          ]}
+        >
           <Image
             source={{ uri: artistImage }}
             style={styles.artistImage}
@@ -263,7 +269,16 @@ export default function ArtistScreen() {
         </Animated.View>
 
         <View style={styles.infoContainer}>
-          <Text style={[styles.artistName, { fontSize: Math.min(width * 0.12, 44), lineHeight: Math.min(width * 0.12, 44) + 4 }]} numberOfLines={2}>
+          <Text
+            style={[
+              styles.artistName,
+              {
+                fontSize: Math.min(width * 0.12, 44),
+                lineHeight: Math.min(width * 0.12, 44) + 4,
+              },
+            ]}
+            numberOfLines={2}
+          >
             {decodeHtmlEntities(artist?.name || "")}
           </Text>
 
@@ -466,8 +481,7 @@ const styles = StyleSheet.create({
     fontFamily: "sans-bold",
     textAlign: "center",
   },
-  headerContent: {
-  },
+  headerContent: {},
   imageContainer: {
     width: "100%",
     position: "absolute",

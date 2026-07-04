@@ -28,6 +28,7 @@ import QueueIcon from "@/assets/app-icons/queue.svg";
 import RepeatOnIcon from "@/assets/app-icons/repeat-on.svg";
 import RepeatOneIcon from "@/assets/app-icons/repeat-one.svg";
 import RepeatIcon from "@/assets/app-icons/repeat.svg";
+import ShuffleOnIcon from "@/assets/app-icons/shuffle-on.svg";
 import ShuffleIcon from "@/assets/app-icons/shuffle.svg";
 import SkipNextIcon from "@/assets/app-icons/skip-next.svg";
 import SkipPreviousIcon from "@/assets/app-icons/skip-previous.svg";
@@ -247,11 +248,11 @@ const PlayerControls = React.memo(() => {
     <>
       <View style={[styles.mainControls, { marginVertical: responsiveMargin }]}>
         <Pressable onPress={toggleShuffle} hitSlop={15}>
-          <ShuffleIcon
-            width={25}
-            height={25}
-            fill={isShuffleEnabled ? "#fff" : "#A3A3A3"}
-          />
+          {isShuffleEnabled ? (
+            <ShuffleOnIcon width={25} height={25} fill="#FFF" />
+          ) : (
+            <ShuffleIcon width={25} height={25} fill="#FFF" />
+          )}
         </Pressable>
         <Pressable onPress={previous}>
           <SkipPreviousIcon width={50} height={50} fill="white" />
@@ -281,7 +282,9 @@ const PlayerControls = React.memo(() => {
         </Pressable>
       </View>
 
-      <View style={[styles.footerControls, { marginVertical: responsiveMargin }]}>
+      <View
+        style={[styles.footerControls, { marginVertical: responsiveMargin }]}
+      >
         <Pressable
           style={styles.deviceIndicator}
           onPress={handleDownloadPress}
