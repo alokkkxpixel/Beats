@@ -5,14 +5,15 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Platform,
-    StyleSheet,
-    Text,
-    ToastAndroid,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from "react-native";
 
 // Required: complete any pending auth sessions on app load
@@ -30,7 +31,8 @@ export function GitHubSignInButton({
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_github" });
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
-
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   // Only render on iOS and Android
   if (Platform.OS !== "ios" && Platform.OS !== "android") {
     return null;
@@ -89,7 +91,7 @@ export function GitHubSignInButton({
           <>
             <Ionicons
               name="logo-github"
-              size={24}
+              size={isShortScreen ? 20 : 26}
               color="white"
               className="mr-3"
             />

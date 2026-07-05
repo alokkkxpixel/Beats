@@ -1,9 +1,10 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import {
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -20,19 +21,26 @@ interface CreditsProps {
   onArtistPress?: (artist: Artist) => void;
 }
 
-const ArtistCredits = ({
-  artists,
-  onShowAll,
-  onArtistPress,
-}: CreditsProps) => {
+const ArtistCredits = ({ artists, onShowAll, onArtistPress }: CreditsProps) => {
   const shouldScroll = artists.length > 4;
- const accentColor = usePlayerStore((state) => state.accentColor);
-
+  const accentColor = usePlayerStore((state) => state.accentColor);
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
   return (
-    <View style={[styles.container, { backgroundColor: accentColor.muted + "29" , borderColor: "#FFFFFF20" , borderWidth: 1}]}>
+    <View
+      style={[
+        styles.container,
+        isShortScreen && { padding: 8, marginTop: 15 },
+        {
+          backgroundColor: accentColor.muted + "29",
+          borderColor: "#FFFFFF20",
+          borderWidth: 1,
+        },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>
+        <Text style={[styles.title, isShortScreen && { fontSize: 15 }]}>
           Credits
         </Text>
 
@@ -46,40 +54,37 @@ const ArtistCredits = ({
       </View>
 
       {/* Artists */}
-      <ScrollView
-        nestedScrollEnabled
-        showsVerticalScrollIndicator={false}
-        style={{
-          maxHeight: shouldScroll ? 280 : undefined,
-        }}
-      >
-        {artists.map((artist, index) => (
+
+      <FlatList
+        // style={{ maxHeight: shouldScroll ? 280 : undefined }}
+        data={artists}
+        // nestedScrollEnabled
+        renderItem={({ item, index }) => (
           <View
-            key={`${artist.id}-${artist.role}-${index}`}
+            key={`${item.id}-${item.role}-${index}`}
             style={[
               styles.artistRow,
-              index !== artists.length - 1 && styles.artistRowBorder
+              index !== artists.length - 1 && styles.artistRowBorder,
             ]}
           >
-             <TouchableOpacity onPress={() => onArtistPress?.(artist)}>
-
-            <Text
-              style={styles.artistName}
-              numberOfLines={1}
+            <TouchableOpacity onPress={() => onArtistPress?.(item)}>
+              <Text
+                style={[styles.artistName, isShortScreen && { fontSize: 12 }]}
+                numberOfLines={1}
               >
-              {artist.name}
-            </Text>
-              </TouchableOpacity>
+                {item.name}
+              </Text>
+            </TouchableOpacity>
 
             <Text
-              style={styles.artistRole}
+              style={[styles.artistRole, isShortScreen && { fontSize: 12 }]}
               numberOfLines={1}
             >
-              {artist.role.split("_").join(" ")}
+              {item.role.split("_").join(" ")}
             </Text>
           </View>
-        ))}
-      </ScrollView>
+        )}
+      />
     </View>
   );
 };
@@ -87,7 +92,7 @@ const ArtistCredits = ({
 const styles = StyleSheet.create({
   container: {
     // backgroundColor: "#18181B",
-   
+
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
@@ -103,13 +108,13 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     // fontWeight: "700",
-    fontFamily:"sans-semibold"
+    fontFamily: "sans-semibold",
   },
   showAllText: {
     color: "#1DB954",
     fontSize: 14,
     // fontWeight: "600",
-    fontFamily:"sans-semibold"
+    fontFamily: "sans-semibold",
   },
   artistRow: {
     flexDirection: "row",
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 15,
     // fontWeight: "500",
-    fontFamily:"sans-medium",
+    fontFamily: "sans-medium",
     flex: 1,
     marginRight: 16,
   },
@@ -133,7 +138,7 @@ const styles = StyleSheet.create({
     color: "#A1A1AA",
     fontSize: 14,
     // fontWeight: "400",
-    fontFamily:"sans-regular",
+    fontFamily: "sans-regular",
     textTransform: "capitalize",
   },
 });

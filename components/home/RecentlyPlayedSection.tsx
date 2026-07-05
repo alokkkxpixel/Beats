@@ -40,7 +40,7 @@ export default function RecentlyPlayedSection({
 }: RecentlyPlayedSectionProps): React.JSX.Element {
   const { height } = useWindowDimensions();
   const isShortScreen = height < 700;
-  const cardSize = isShortScreen ? 76 : 80;
+  const cardSize = isShortScreen ? 76 : 85;
   const router = useRouter();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
   const currentTrack = usePlayerStore((state) => state.currentTrack);

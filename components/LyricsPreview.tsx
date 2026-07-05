@@ -19,7 +19,9 @@ const LyricsPreview = ({ onPress }: LyricsPreviewProps) => {
     <Pressable
       style={[
         styles.container,
-        isShortScreen && { height: 180 },
+        isShortScreen
+          ? { height: 180, marginTop: 18, width: 320 }
+          : { marginTop: 50, height: 180, width: 360 },
         { backgroundColor: accentColor.muted + "79" },
       ]}
       onPress={onPress}
@@ -75,8 +77,8 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   container: {
-    height: 200,
-    width: 360,
+    // height: 200,
+    // width: 360,
     marginLeft: "auto",
     marginRight: "auto",
     borderRadius: 18,
@@ -86,7 +88,7 @@ const styles = StyleSheet.create({
     // backgroundColor: "#4A90E2", // use album accent color
     overflow: "hidden",
     padding: 16,
-    marginTop: 15,
+    // marginTop: 15,
   },
 
   header: {

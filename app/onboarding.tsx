@@ -3,17 +3,18 @@ import { GitHubSignInButton } from "@/components/GitHubSignInButton";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  Dimensions,
   Image,
   StatusBar,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 
-const { height } = Dimensions.get("window");
-
 export default function OnboardingScreen() {
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 700;
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -23,7 +24,12 @@ export default function OnboardingScreen() {
       />
 
       {/* Top 50% Background Image */}
-      <View style={styles.imageContainer}>
+      <View
+        style={[
+          styles.imageContainer,
+          { height: height * (isShortScreen ? 0.45 : 0.52) },
+        ]}
+      >
         <Image
           source={require("@/assets/images/OnBoarding.png")}
           style={styles.image}
@@ -36,11 +42,32 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Bottom 50% Content */}
-      <View style={styles.contentContainer}>
-        <AppLogo width={48} height={48} fill="#ffffff" />
+      <View
+        style={[
+          styles.contentContainer,
+          { paddingBottom: isShortScreen ? 35 : 80 },
+        ]}
+      >
+        <AppLogo
+          width={isShortScreen ? 36 : 48}
+          height={isShortScreen ? 36 : 48}
+          fill="#ffffff"
+        />
         <View style={styles.headerContainer}>
-          <Text style={styles.logoText}>Beats</Text>
-          <Text style={styles.headline}>
+          <Text
+            style={[
+              styles.logoText,
+              isShortScreen && { fontSize: 26, marginBottom: 8 },
+            ]}
+          >
+            Beats
+          </Text>
+          <Text
+            style={[
+              styles.headline,
+              isShortScreen && { fontSize: 22, lineHeight: 28 },
+            ]}
+          >
             Millions of Songs.{"\n"}Free for Everyone.
           </Text>
         </View>
@@ -61,7 +88,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#050505",
   },
   imageContainer: {
-    height: height * 0.52,
     width: "100%",
     position: "relative",
   },
@@ -81,14 +107,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#050505",
     paddingHorizontal: 24,
     justifyContent: "space-between",
-    paddingBottom: 80,
     paddingTop: 10,
     alignItems: "center",
-    // marginBottom: 50,
   },
   headerContainer: {
     alignItems: "center",
-    // marginTop: 10,
   },
   logoText: {
     fontSize: 32,
@@ -100,10 +123,10 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 28,
-    fontWeight: "800",
+    fontWeight: "500",
     color: "#ffffff",
     textAlign: "center",
-    fontFamily: "sans-extrabold",
+    fontFamily: "sans-semibold",
     lineHeight: 36,
   },
   buttonContainer: {

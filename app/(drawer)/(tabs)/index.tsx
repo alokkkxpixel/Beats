@@ -82,7 +82,7 @@ export default function Index() {
       };
     } else {
       return {
-        image: require("../../../assets/images/morning_default_image.png"),
+        // image: require("../../../assets/images/morning_default_image.png"),
 
         greeting: "Good Night",
       };
