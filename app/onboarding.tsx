@@ -31,7 +31,8 @@ export default function OnboardingScreen() {
         ]}
       >
         <Image
-          source={require("@/assets/images/OnBoarding.png")}
+          // src="https://www.genspark.ai/api/files/s/y6vTheuZ?cache_control=3600"
+          source={require("../assets/images/musc.png")}
           style={styles.image}
           resizeMode="cover"
         />
