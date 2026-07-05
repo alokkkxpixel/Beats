@@ -1,6 +1,6 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import {
-  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -46,20 +46,18 @@ const ArtistCredits = ({ artists, onShowAll, onArtistPress }: CreditsProps) => {
 
         {artists.length > 4 && (
           <TouchableOpacity onPress={onShowAll}>
-            {/* <Text style={styles.showAllText}>
-              Show all
-            </Text> */}
+            {/* <Text style={styles.showAllText}>Show all</Text> */}
           </TouchableOpacity>
         )}
       </View>
 
       {/* Artists */}
-
-      <FlatList
-        // style={{ maxHeight: shouldScroll ? 280 : undefined }}
-        data={artists}
-        // nestedScrollEnabled
-        renderItem={({ item, index }) => (
+      <ScrollView
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        style={{ maxHeight: shouldScroll ? 180 : undefined }}
+      >
+        {artists.map((item, index) => (
           <View
             key={`${item.id}-${item.role}-${index}`}
             style={[
@@ -83,8 +81,8 @@ const ArtistCredits = ({ artists, onShowAll, onArtistPress }: CreditsProps) => {
               {item.role.split("_").join(" ")}
             </Text>
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
     </View>
   );
 };

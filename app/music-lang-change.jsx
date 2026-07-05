@@ -12,7 +12,15 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, Image as RNImage, Text, View } from "react-native";
+import {
+  Pressable,
+  Image as RNImage,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 const LANGUAGES = [
   {
     id: "hindi",
@@ -153,6 +161,9 @@ export default function LanguageSelectionScreen() {
   const [selected, setSelected] = useState([]);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { height, width } = useWindowDimensions();
+  const isShortScreen = height < 700;
+  const insets = useSafeAreaInsets();
 
   // Load initial selection from MMKV
   useEffect(() => {
@@ -188,173 +199,247 @@ export default function LanguageSelectionScreen() {
   const isSelected = (langId) => selected.includes(langId);
 
   return (
-    <View className="flex-1 bg-black px-4 pt-20">
-      {/* Header */}
-      <LanguageHeader />
-      {/* Grid */}
-      <FlashList
-        data={LANGUAGES}
-        numColumns={2}
-        estimatedItemSize={170}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingHorizontal: 8, // Adds a nice breathing room on the outer edges
-          paddingBottom: 100,
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: width > 400 ? 20 : 16,
+          paddingTop: insets.top + 12,
         }}
-        columnWrapperStyle={{
-          justifyContent: "space-between", // Pushes the items to the sides perfectly
-        }}
-        renderItem={({ item }) => {
-          const active = isSelected(item.id);
+      >
+        {/* Header */}
+        <LanguageHeader isShortScreen={isShortScreen} />
 
-          return (
-            <Pressable
-              onPress={() => toggleLanguage(item.id)}
-              style={{
-                flex: 1, // Makes the card fill 50% of the screen width evenly
-                margin: 6, // Controls the gap size between cards cleanly
-                aspectRatio: 1.2, // Keeps your desired card proportion perfectly scaled
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  borderRadius: 20,
-                  overflow: "hidden",
-                }}
-              >
-                {/* Background */}
-                <Image
-                  source={{ uri: item.image }}
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                  }}
-                  contentFit="cover"
-                />
-                {/* Grayscale/Desaturation Overlay (Visible ONLY when NOT active) */}
-                {!active && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      width: "100%",
-                      height: "100%",
-                      backgroundColor: "rgba(31, 31, 31, 0.94)", // Adjust opacity here to make it more or less gray
-                      mixBlendMode: "color", // If supported by your environment, otherwise the fallback tint works perfectly
-                    }}
-                  />
-                )}
-                {/* Smooth Bottom Linear Gradient (Replaced the full dark overlay) */}
-                <LinearGradient
-                  colors={["transparent", "rgba(0, 0, 0, 0.8)"]}
-                  locations={[0.6, 1.0]} // Starts fading in at 50% height, full dark at 100%
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: "100%",
-                  }}
-                />
+        {/* Grid Wrapper */}
+        <View style={{ flex: 1 }}>
+          <FlashList
+            data={LANGUAGES}
+            numColumns={2}
+            estimatedItemSize={140}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{
+              paddingHorizontal: 4,
+              paddingBottom: 20,
+            }}
+            columnWrapperStyle={{
+              justifyContent: "space-between",
+            }}
+            renderItem={({ item }) => {
+              const active = isSelected(item.id);
 
-                {/* Check */}
-                {active && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
-                      backgroundColor: "#fff",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Ionicons name="checkmark" size={18} color="#000" />
-                  </View>
-                )}
-
-                {/* Text */}
-                <View
+              return (
+                <Pressable
+                  onPress={() => toggleLanguage(item.id)}
                   style={{
-                    position: "absolute",
-                    bottom: 4,
-                    left: 15,
+                    flex: 1,
+                    margin: 6,
+                    aspectRatio: isShortScreen ? 1.35 : 1.25,
                   }}
                 >
-                  <Text
+                  <View
                     style={{
-                      color: "white",
-                      fontSize: 20,
-                      fontWeight: "700",
+                      flex: 1,
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      borderWidth: 2,
+                      borderColor: active ? "#ffffff" : "transparent",
+                      elevation: active ? 8 : 0,
+                      shadowColor: "#ffffff",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: active ? 0.3 : 0,
+                      shadowRadius: 6,
                     }}
                   >
-                    {item.name}
-                  </Text>
+                    {/* Background */}
+                    <Image
+                      source={{ uri: item.image }}
+                      style={{
+                        position: "absolute",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                      contentFit="cover"
+                    />
 
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.85)",
-                      fontSize: 14,
-                    }}
-                  >
-                    {item.native}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          );
-        }}
-      />
+                    {/* Desaturation Overlay for Inactive */}
+                    {!active && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          width: "100%",
+                          height: "100%",
+                          backgroundColor: "rgba(10, 10, 10, 0.75)",
+                        }}
+                      />
+                    )}
 
-      {/* Done Button */}
-      <Pressable
-        disabled={selected.length === 0}
-        onPress={handleDone}
-        className={`absolute bottom-10 left-4 right-4 py-4 rounded-xl ${
-          selected.length === 0 ? "bg-zinc-700" : "bg-green-500"
-        }`}
-      >
-        <Text className="text-center font-sans-bold text-black text-lg">
-          Done
-        </Text>
-      </Pressable>
+                    {/* Smooth Bottom Linear Gradient */}
+                    <LinearGradient
+                      colors={["transparent", "rgba(0, 0, 0, 0.9)"]}
+                      locations={[0.5, 1.0]}
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: "100%",
+                      }}
+                    />
+
+                    {/* Checkmark indicator */}
+                    {active && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          width: 22,
+                          height: 22,
+                          borderRadius: 11,
+                          backgroundColor: "#ffffff",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Ionicons name="checkmark" size={14} color="#000000" />
+                      </View>
+                    )}
+
+                    {/* Text Labels */}
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: 10,
+                        left: 12,
+                        right: 12,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#ffffff",
+                          fontSize: isShortScreen ? 16 : 18,
+                          fontWeight: "700",
+                          fontFamily: "sans-semibold",
+                        }}
+                        numberOfLines={1}
+                      >
+                        {item.name}
+                      </Text>
+
+                      <Text
+                        style={{
+                          color: "rgba(255, 255, 255, 0.65)",
+                          fontSize: isShortScreen ? 11 : 12,
+                          fontFamily: "sans-regular",
+                        }}
+                        numberOfLines={1}
+                      >
+                        {item.native}
+                      </Text>
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            }}
+          />
+        </View>
+
+        {/* Done Button */}
+        <Pressable
+          disabled={selected.length === 0}
+          onPress={handleDone}
+          style={{
+            marginTop: 10,
+            marginBottom: Math.max(insets.bottom + 10, isShortScreen ? 20 : 32),
+            paddingVertical: isShortScreen ? 12 : 15,
+            borderRadius: 25,
+            backgroundColor: selected.length === 0 ? "#1c1c1e" : "#ffffff",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          <Text
+            style={{
+              color: selected.length === 0 ? "#8e8e93" : "#000000",
+              fontSize: 16,
+              fontWeight: "bold",
+            }}
+          >
+            Done
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
-export function LanguageHeader() {
+export function LanguageHeader({ isShortScreen }) {
   const router = useRouter();
   const navigation = useNavigation();
   const hasCompletedOnboarding =
     storage.getBoolean("has-completed-onboarding") ?? false;
 
   return (
-    <View className="bg-black px-4  pb-4">
-      {/* Header Row */}
+    <View
+      style={{
+        backgroundColor: "#000000",
+        paddingBottom: isShortScreen ? 10 : 20,
+      }}
+    >
       {/* Back Button */}
       {hasCompletedOnboarding && (
         <Pressable
           onPress={() => navigation.goBack()}
-          className="w-10 h-10 absolute top-5 left-5 items-center justify-center rounded-full bg-zinc-800"
+          style={{
+            width: 36,
+            height: 36,
+            position: "absolute",
+            top: isShortScreen ? -5 : 0,
+            left: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 18,
+            backgroundColor: "#1c1c1e",
+            zIndex: 10,
+          }}
         >
-          <BackIcon width={22} height={22} fill="#fff" />
+          <BackIcon width={18} height={18} fill="#ffffff" />
         </Pressable>
       )}
-      <View className="flex-row items-center justify-center  ">
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {/* Title */}
         <Text
-          className={`text-white text-xl self-center font-sans-bold ${hasCompletedOnboarding ? "ml-4" : ""}`}
+          style={{
+            color: "#ffffff",
+            fontSize: isShortScreen ? 14 : 18,
+            fontFamily: "sans-bold",
+            textAlign: "center",
+            marginTop: hasCompletedOnboarding ? 4 : 0,
+          }}
         >
           Choose your music languages
         </Text>
       </View>
 
-      {/* Subtitle (centered) */}
-      <Text className="text-zinc-400 text-center mt-4 px-6">
+      {/* Subtitle */}
+      <Text
+        style={{
+          color: "#8e8e93",
+          textAlign: "center",
+          marginTop: isShortScreen ? 4 : 6,
+          paddingHorizontal: 24,
+          fontSize: isShortScreen ? 13 : 14,
+          fontFamily: "sans-regular",
+        }}
+      >
         Pick at least one language you enjoy
       </Text>
     </View>
