@@ -6,6 +6,7 @@ import { useSetupPlayer } from "@/hooks/useSetupPlayer";
 import { configureDownloadManager } from "@/src/lib/downloadManager";
 import { persister, queryClient } from "@/src/lib/query-client";
 import { storage } from "@/src/lib/storage";
+import { requestAppPermissions } from "@/src/lib/permissions";
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "@expo-google-fonts/inter";
@@ -75,6 +76,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       setHasRenderedChildren(true);
     }
   }, [isLoaded, isOffline]);
+
+  React.useEffect(() => {
+    const hasCompletedOnboarding =
+      storage.getBoolean("has-completed-onboarding") ?? false;
+    const hasPromptedPermissions =
+      storage.getBoolean("has-prompted-permissions") ?? false;
+
+    if (hasCompletedOnboarding && !hasPromptedPermissions) {
+      requestAppPermissions().then(() => {
+        storage.set("has-prompted-permissions", true);
+      });
+    }
+  }, [segments]);
 
   if (hasRenderedChildren) {
     return <>{children}</>;

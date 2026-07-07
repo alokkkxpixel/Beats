@@ -56,7 +56,7 @@ export function AuthSync() {
         };
         storage.set("cached-user-data", JSON.stringify(cachedUser));
       } else if (!isSignedIn) {
-        storage.delete("cached-user-data");
+        (storage as any).delete("cached-user-data");
       }
     }
   }, [isLoaded, isSignedIn, user, syncFromClerk]);
