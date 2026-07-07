@@ -173,6 +173,142 @@ export default function ArtistScreen() {
     }
   }, [artistKey, queryClient, refetchArtist]);
 
+  const renderSectionItem = React.useCallback(
+    ({ item }: { item: ArtistSection }) => {
+      if (item.type === "spacer") {
+        return <View style={{ height: 20 }} />;
+      }
+
+      if (item.type === "top_songs") {
+        return (
+          <View style={styles.sectionWrapper}>
+            <QuickPicksSection
+              data={(item.data as any)?.slice?.(0, 12) || []}
+              title="Top songs"
+              subtitle=""
+              onMorePress={() => openCatalog("songs")}
+            />
+          </View>
+        );
+      }
+
+      if (item.type === "albums") {
+        return (
+          <TrendingSection
+            title={item.title}
+            data={(item.data as any)?.slice?.(0, 10) || []}
+            type="albums"
+            onMorePress={() => openCatalog("albums")}
+          />
+        );
+      }
+
+      if (item.type === "singles") {
+        return (
+          <TrendingSection
+            title={item.title}
+            data={item.data as any}
+            type="single"
+          />
+        );
+      }
+
+      if (item.type === "dedicated_artist_playlist") {
+        return (
+          <TrendingSection
+            title={item.title}
+            data={item.data as any}
+            type="playlist"
+          />
+        );
+      }
+
+      if (item.type === "featured_artist_playlist") {
+        return (
+          <TrendingSection
+            title={item.title}
+            data={item.data as any}
+            type="playlist"
+          />
+        );
+      }
+
+      if (item.type === "latest_release") {
+        return (
+          <TrendingSection
+            title={item.title}
+            data={item.data as any}
+            type="albums"
+          />
+        );
+      }
+
+      if (item.type === "recommended_artists") {
+        return (
+          <RecommendedArtist title={item.title} data={item.data as any} />
+        );
+      }
+
+      return null;
+    },
+    [id, url],
+  );
+
+  const headerView = React.useMemo(() => {
+    const artistImage = getImageUri(artist?.image);
+
+    return (
+      <View style={[styles.headerContent, { height: imageHeight }]}>
+        <Animated.View
+          style={[
+            styles.imageContainer,
+            { height: imageHeight },
+            imageAnimatedStyle,
+          ]}
+        >
+          <Image
+            source={{ uri: artistImage }}
+            style={styles.artistImage}
+            contentFit="cover"
+          />
+          <LinearGradient
+            colors={["transparent", "rgba(0, 0, 0, 0.6)", "#050505"]}
+            locations={[0, 0.7, 1]}
+            style={styles.gradient}
+          />
+        </Animated.View>
+
+        <View style={styles.infoContainer}>
+          <Text
+            style={[
+              styles.artistName,
+              {
+                fontSize: Math.min(width * 0.12, 44),
+                lineHeight: Math.min(width * 0.12, 44) + 4,
+              },
+            ]}
+            numberOfLines={2}
+          >
+            {decodeHtmlEntities(artist?.name || "")}
+          </Text>
+
+          <View style={styles.actionsRow}>
+            <Text style={styles.audienceText}>
+              {formatPlayCount(artist?.fanCount || artist?.followerCount || 0)}{" "}
+              monthly listeners
+            </Text>
+            <Pressable
+              style={styles.playButtonCircle}
+              onPress={() => openCatalog("songs")}
+            >
+              {/* <PlayIcon width={45} height={45} /> */}
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
+  }, [artist, width, imageHeight]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -244,61 +380,6 @@ export default function ArtistScreen() {
     },
   ];
 
-  const renderHeader = () => {
-    const artistImage = getImageUri(artist?.image);
-
-    return (
-      <View style={[styles.headerContent, { height: imageHeight }]}>
-        <Animated.View
-          style={[
-            styles.imageContainer,
-            { height: imageHeight },
-            imageAnimatedStyle,
-          ]}
-        >
-          <Image
-            source={{ uri: artistImage }}
-            style={styles.artistImage}
-            contentFit="cover"
-          />
-          <LinearGradient
-            colors={["transparent", "rgba(0, 0, 0, 0.6)", "#050505"]}
-            locations={[0, 0.7, 1]}
-            style={styles.gradient}
-          />
-        </Animated.View>
-
-        <View style={styles.infoContainer}>
-          <Text
-            style={[
-              styles.artistName,
-              {
-                fontSize: Math.min(width * 0.12, 44),
-                lineHeight: Math.min(width * 0.12, 44) + 4,
-              },
-            ]}
-            numberOfLines={2}
-          >
-            {decodeHtmlEntities(artist?.name || "")}
-          </Text>
-
-          <View style={styles.actionsRow}>
-            <Text style={styles.audienceText}>
-              {formatPlayCount(artist?.fanCount || artist?.followerCount || 0)}{" "}
-              monthly listeners
-            </Text>
-            <Pressable
-              style={styles.playButtonCircle}
-              onPress={() => openCatalog("songs")}
-            >
-              {/* <PlayIcon width={45} height={45} /> */}
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
@@ -338,87 +419,11 @@ export default function ArtistScreen() {
             progressBackgroundColor="#050505"
           />
         }
-        ListHeaderComponent={renderHeader()}
+        ListHeaderComponent={headerView}
         keyExtractor={(item: ArtistSection) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 200 }}
-        renderItem={({ item }: { item: ArtistSection }) => {
-          if (item.type === "spacer") {
-            return <View style={{ height: 20 }} />;
-          }
-
-          if (item.type === "top_songs") {
-            return (
-              <View style={styles.sectionWrapper}>
-                <QuickPicksSection
-                  data={(item.data as any)?.slice?.(0, 12) || []}
-                  title="Top songs"
-                  subtitle=""
-                  onMorePress={() => openCatalog("songs")}
-                />
-              </View>
-            );
-          }
-
-          if (item.type === "albums") {
-            return (
-              <TrendingSection
-                title={item.title}
-                data={(item.data as any)?.slice?.(0, 10) || []}
-                type="albums"
-                onMorePress={() => openCatalog("albums")}
-              />
-            );
-          }
-
-          if (item.type === "singles") {
-            return (
-              <TrendingSection
-                title={item.title}
-                data={item.data as any}
-                type="single"
-              />
-            );
-          }
-
-          if (item.type === "dedicated_artist_playlist") {
-            return (
-              <TrendingSection
-                title={item.title}
-                data={item.data as any}
-                type="playlist"
-              />
-            );
-          }
-
-          if (item.type === "featured_artist_playlist") {
-            return (
-              <TrendingSection
-                title={item.title}
-                data={item.data as any}
-                type="playlist"
-              />
-            );
-          }
-
-          if (item.type === "latest_release") {
-            return (
-              <TrendingSection
-                title={item.title}
-                data={item.data as any}
-                type="albums"
-              />
-            );
-          }
-
-          if (item.type === "recommended_artists") {
-            return (
-              <RecommendedArtist title={item.title} data={item.data as any} />
-            );
-          }
-
-          return null;
-        }}
+        renderItem={renderSectionItem}
       />
     </View>
   );

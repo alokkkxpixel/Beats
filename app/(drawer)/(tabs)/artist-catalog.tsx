@@ -1,12 +1,11 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowDownUp,
   ArrowLeft,
   MoreVertical,
   Search,
-  Share,
 } from "lucide-react-native";
 import React from "react";
 import {
@@ -179,10 +178,7 @@ const SongRow = React.memo(
         />
 
         <View style={styles.rowContent}>
-          <Text
-            style={[styles.rowTitle, isActive && styles.activeTitle]}
-            numberOfLines={1}
-          >
+          <Text style={[styles.rowTitle]} numberOfLines={1}>
             {decodeHtmlEntities(item.name || item.title || "")}
           </Text>
 
@@ -498,7 +494,7 @@ export default function ArtistCatalogScreen() {
     [renderAlbumItem, renderSongItem, selectedTab],
   );
 
-  if (isLoading && !artist) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#fff" />
@@ -530,9 +526,6 @@ export default function ArtistCatalogScreen() {
         </Pressable>
 
         <View style={styles.topBarRight}>
-          <Pressable style={styles.topBarIcon}>
-            <Share size={20} color="#fff" />
-          </Pressable>
           <Pressable
             style={styles.topBarIcon}
             onPress={() => router.push("/search")}
@@ -541,7 +534,6 @@ export default function ArtistCatalogScreen() {
           </Pressable>
         </View>
       </View>
-
       <Animated.View style={[styles.stickyHeader, headerAnimatedStyle]}>
         <Text style={styles.stickyHeaderTitle} numberOfLines={1}>
           {decodeHtmlEntities(artist.name)}
@@ -756,7 +748,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 18,
-    paddingVertical: 12,
+    paddingVertical: 10,
     gap: 12,
   },
   activeRow: {
@@ -775,7 +767,7 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     color: "#f8f9fb",
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: "sans-semibold",
   },
   activeTitle: {
@@ -788,7 +780,7 @@ const styles = StyleSheet.create({
   },
   rowSubtitle: {
     color: "#c5c9d3",
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "sans-regular",
     flexShrink: 1,
   },

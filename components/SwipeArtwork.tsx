@@ -17,6 +17,7 @@ interface SwipeArtworkProps {
   nextImage?: string | number;
   onNext: () => void;
   onPrevious: () => void;
+  setLoading: (loading: boolean) => void;
 }
 
 export default function SwipeArtwork({
@@ -25,10 +26,14 @@ export default function SwipeArtwork({
   nextImage,
   onNext,
   onPrevious,
+  setLoading,
 }: SwipeArtworkProps) {
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const isShortScreen = SCREEN_HEIGHT < 700;
-  const artworkSize = Math.min(SCREEN_WIDTH * 0.82, isShortScreen ? SCREEN_HEIGHT * 0.32 : SCREEN_HEIGHT * 0.42);
+  const artworkSize = Math.min(
+    SCREEN_WIDTH * 0.82,
+    isShortScreen ? SCREEN_HEIGHT * 0.32 : SCREEN_HEIGHT * 0.42,
+  );
 
   const translateX = useSharedValue(0);
   const currentIndex = useSharedValue(0);
@@ -49,7 +54,7 @@ export default function SwipeArtwork({
         // Swipe left - go to next
         isAnimating.value = true;
         currentIndex.value = 1;
-        
+
         translateX.value = withTiming(
           -SCREEN_WIDTH,
           { duration: 300, easing: Easing.out(Easing.cubic) },
@@ -58,23 +63,23 @@ export default function SwipeArtwork({
               runOnJS(onNext)();
               translateX.value = SCREEN_WIDTH;
               currentIndex.value = -1;
-              
+
               translateX.value = withTiming(
                 0,
                 { duration: 300, easing: Easing.out(Easing.cubic) },
                 () => {
                   isAnimating.value = false;
                   currentIndex.value = 0;
-                }
+                },
               );
             }
-          }
+          },
         );
       } else if (e.translationX > THRESHOLD && previousImage) {
         // Swipe right - go to previous
         isAnimating.value = true;
         currentIndex.value = -1;
-        
+
         translateX.value = withTiming(
           SCREEN_WIDTH,
           { duration: 300, easing: Easing.out(Easing.cubic) },
@@ -83,17 +88,17 @@ export default function SwipeArtwork({
               runOnJS(onPrevious)();
               translateX.value = -SCREEN_WIDTH;
               currentIndex.value = 1;
-              
+
               translateX.value = withTiming(
                 0,
                 { duration: 300, easing: Easing.out(Easing.cubic) },
                 () => {
                   isAnimating.value = false;
                   currentIndex.value = 0;
-                }
+                },
               );
             }
-          }
+          },
         );
       } else {
         // Snap back
@@ -109,7 +114,9 @@ export default function SwipeArtwork({
           translateX: baseOffset + translateX.value,
         },
       ],
-      opacity: withTiming(currentIndex.value === 0 ? 0.3 : 1, { duration: 200 }),
+      opacity: withTiming(currentIndex.value === 0 ? 0.3 : 1, {
+        duration: 200,
+      }),
       scale: withTiming(currentIndex.value === 0 ? 0.85 : 1, { duration: 200 }),
     };
   });
@@ -134,14 +141,18 @@ export default function SwipeArtwork({
           translateX: baseOffset + translateX.value,
         },
       ],
-      opacity: withTiming(currentIndex.value === 0 ? 0.3 : 1, { duration: 200 }),
+      opacity: withTiming(currentIndex.value === 0 ? 0.3 : 1, {
+        duration: 200,
+      }),
       scale: withTiming(currentIndex.value === 0 ? 0.85 : 1, { duration: 200 }),
     };
   });
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={[styles.container, { width: artworkSize, height: artworkSize }]}>
+      <View
+        style={[styles.container, { width: artworkSize, height: artworkSize }]}
+      >
         {/* <Animated.View style={[styles.artwork, previousStyle]}>
           {previousImage && (
             <Image
@@ -152,20 +163,42 @@ export default function SwipeArtwork({
           )}
         </Animated.View> */}
 
-        <Animated.View style={[styles.artwork, { width: artworkSize, height: artworkSize }, currentStyle]}>
+        <Animated.View
+          style={[
+            styles.artwork,
+            { width: artworkSize, height: artworkSize },
+            currentStyle,
+          ]}
+        >
           <Image
-            source={typeof currentImage === 'number' ? currentImage : { uri: currentImage }}
+            source={
+              typeof currentImage === "number"
+                ? currentImage
+                : { uri: currentImage }
+            }
             style={styles.image}
             resizeMode="cover"
+            onLoadStart={() => setLoading(true)}
+            onLoadEnd={() => setLoading(false)}
           />
         </Animated.View>
 
-        <Animated.View style={[styles.artwork, { width: artworkSize, height: artworkSize }, nextStyle]}>
+        <Animated.View
+          style={[
+            styles.artwork,
+            { width: artworkSize, height: artworkSize },
+            nextStyle,
+          ]}
+        >
           {nextImage && (
             <Image
-              source={typeof nextImage === 'number' ? nextImage : { uri: nextImage }}
+              source={
+                typeof nextImage === "number" ? nextImage : { uri: nextImage }
+              }
               style={styles.image}
               resizeMode="cover"
+              onLoadStart={() => setLoading(true)}
+              onLoadEnd={() => setLoading(false)}
             />
           )}
         </Animated.View>

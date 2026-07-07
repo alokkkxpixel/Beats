@@ -70,6 +70,7 @@ const FullPlayer = React.memo(
       expandLyrics,
       setSelectedSongOption,
       isLoading,
+      setLoading,
       likedSongs,
       toggleLike,
       next,
@@ -83,6 +84,7 @@ const FullPlayer = React.memo(
         expandLyrics: s.expandLyrics,
         setSelectedSongOption: s.setSelectedSongOption,
         isLoading: s.isLoading,
+        setLoading: s.setLoading,
         likedSongs: s.likedSongs,
         toggleLike: s.toggleLike,
         next: s.next,
@@ -273,6 +275,7 @@ const FullPlayer = React.memo(
               nextImage={nextTrackImage}
               onNext={next}
               onPrevious={() => previous(true)}
+              setLoading={setLoading}
             />
             {isLoading && !imageError && (
               <View style={styles.imageLoaderContainer}>
