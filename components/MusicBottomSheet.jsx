@@ -98,30 +98,51 @@ export default function MusicBottomSheet() {
     const artistUrl =
       activeSong?.artistUrl || activeSong?.artists?.primary?.[0]?.url;
 
-    if (!artistId) return;
+    if (!artistId) {
+      // console.warn("[handleArtistPress] no artistId found on", activeSong);
+      ToastAndroid.show("Artist not found", ToastAndroid.SHORT);
+      return;
+    }
 
     minizeMoreOption();
     minimizeFullPlayer();
 
-    router.push({
-      pathname: "/artist/[id]",
-      params: { id: artistId, url: artistUrl },
-    });
+    // Delay navigation so sheet close animations don't race with the router
+    setTimeout(() => {
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: artistId, url: artistUrl },
+      });
+    }, 350);
   };
 
   const handleAlbumPress = () => {
-    const albumId = activeSong?.album?.id || activeSong?.albumId;
-    const albumUrl = activeSong?.album?.url || activeSong?.albumUrl;
+    const albumId =
+      activeSong?.album?.id ||
+      activeSong?.albumId ||
+      activeSong?.more_info?.album_id ||
+      activeSong?.moreInfo?.albumId;
+    const albumUrl =
+      activeSong?.album?.url ||
+      activeSong?.albumUrl ||
+      activeSong?.more_info?.album_url ||
+      activeSong?.moreInfo?.albumUrl;
 
-    if (!albumId) return;
+    if (!albumId) {
+      console.warn("[handleAlbumPress] no albumId found on", activeSong);
+      return;
+    }
 
     minizeMoreOption();
     minimizeFullPlayer();
 
-    router.push({
-      pathname: "/album-detail",
-      params: { albumId, albumUrl },
-    });
+    // Delay navigation so sheet close animations don't race with the router
+    setTimeout(() => {
+      router.push({
+        pathname: "/album-detail",
+        params: { albumId, albumUrl },
+      });
+    }, 350);
   };
 
   const handlePlayNext = async () => {

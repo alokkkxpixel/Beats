@@ -68,8 +68,8 @@ const PlayerControls = React.memo(() => {
     resumeDownload,
     cancelDownload,
     checkDownloadStatus,
-    getDownloadProgress,
     downloadedTracks,
+    downloadProgress,
   } = useDownloadStore();
 
   useEffect(() => {
@@ -82,7 +82,7 @@ const PlayerControls = React.memo(() => {
     ? downloadedTracks.has(currentTrack.id)
     : false;
   const progress = currentTrack?.id
-    ? getDownloadProgress(currentTrack.id)
+    ? downloadProgress.get(currentTrack.id)
     : undefined;
 
   const handleDownloadPress = useCallback(async () => {
@@ -212,10 +212,10 @@ const PlayerControls = React.memo(() => {
         <View className="flex-row items-center">
           <ActivityIndicator
             size="small"
-            color="#3b82f6"
+            color="#fff"
             style={{ marginRight: 6 }}
           />
-          <Text style={{ color: "#3b82f6", fontSize: 12, fontWeight: "600" }}>
+          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>
             {pct}%
           </Text>
         </View>

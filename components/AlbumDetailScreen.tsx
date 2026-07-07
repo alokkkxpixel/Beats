@@ -17,6 +17,7 @@ import {
 } from "@/src/utils/extractAccentColor";
 import { formatPlayCount } from "@/src/utils/transform";
 import { AlbumResponse, Song } from "@/types/jiosaavn";
+import { useNetInfo } from "@react-native-community/netinfo";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -72,6 +73,9 @@ const TrackItem = React.memo(function TrackItem({
 
   const isDownloaded = useDownloadStore((s) => s.downloadedTracks.has(item.id));
   const progress = useDownloadStore((s) => s.downloadProgress.get(item.id));
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
+  const isOfflineTrack = isOffline && isDownloaded;
 
   const handleOption = async (songItem: any) => {
     const response = await jioSaavnService.getSongByIdandLink(
@@ -89,9 +93,14 @@ const TrackItem = React.memo(function TrackItem({
   const accentColor = usePlayerStore((state) => state.accentColor);
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      style={[styles.trackItem, isCurrent && styles.activeTrackItem]}
+      activeOpacity={isOffline && !isDownloaded ? 1 : 0.7}
+      style={[
+        styles.trackItem,
+        isCurrent && styles.activeTrackItem,
+        isOffline && !isDownloaded && { opacity: 0.5 },
+      ]}
       onPress={onPress}
+      disabled={isOffline && !isDownloaded}
     >
       {/* Cover */}
       <View style={styles.imageContainer}>
@@ -181,6 +190,7 @@ const AlbumDetailScreen = ({
   const removeAlbumFromLibrary = usePlaylistStore(
     (s) => s.removeAlbumFromLibrary,
   );
+
   const loadSavedAlbums = usePlaylistStore((s) => s.loadSavedAlbums);
   const { width, height } = useWindowDimensions();
   const isShortScreen = height < 700;

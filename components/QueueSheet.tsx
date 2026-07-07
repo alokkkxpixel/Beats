@@ -9,7 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useBottomSheetScrollableCreator } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   Easing,
@@ -138,83 +138,86 @@ const QueueSheet = () => {
     }
   }, [isQueueOpen, queue.length, currentTrack, fetchAndAppendSuggestions]);
 
-  const renderTrackItem = ({
-    item,
-    index,
-  }: {
-    item: SongDetail;
-    index: number;
-  }) => {
-    const isCurrent = item.id === currentTrack?.id;
-    const artistName =
-      item.primaryArtists ||
-      item.artists?.primary?.[0]?.name ||
-      "Unknown Artist";
+  const renderTrackItem = useCallback(
+    ({ item }: { item: SongDetail; index: number }) => {
+      const isCurrent = item.id === currentTrack?.id;
+      const artistName =
+        item.primaryArtists ||
+        item.artists?.primary?.[0]?.name ||
+        "Unknown Artist";
 
-    const views = formatPlayCount(item.playCount);
+      const views = formatPlayCount(item.playCount);
 
-    // REMOVED: setQueueImage(item.image?.[1]?.url) state mutation is completely gone!
+      // REMOVED: setQueueImage(item.image?.[1]?.url) state mutation is completely gone!
 
-    return (
-      <Pressable
-        style={[styles.trackItem, isCurrent && styles.currentTrackItem]}
-        onPress={() => !isCurrent && setCurrentTrack(item)}
-      >
-        {/* Cover */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
-            style={styles.trackArt}
-          />
+      return (
+        <Pressable
+          style={[styles.trackItem, isCurrent && styles.currentTrackItem]}
+          onPress={() => !isCurrent && setCurrentTrack(item)}
+        >
+          {/* Cover */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
+              style={styles.trackArt}
+            />
 
-          {isCurrent && (
-            <View style={styles.playingOverlay}>
-              <PlayingIndicator />
-            </View>
-          )}
-        </View>
-
-        <View style={styles.trackInfo}>
-          {isCurrent ? (
-            <TextTicker
-              style={[styles.trackTitle, isCurrent && styles.currentTrackTitle]}
-              duration={15000}
-              animationType="scroll"
-              loop
-              bounce={false}
-              repeatSpacer={50}
-              marqueeDelay={1000}
-              easing={Easing.linear}
-            >
-              {item.name}
-            </TextTicker>
-          ) : (
-            <Text
-              style={[styles.trackTitle, isCurrent && styles.currentTrackTitle]}
-              numberOfLines={1}
-            >
-              {item.name}
-            </Text>
-          )}
-          <Text style={styles.trackArtist} numberOfLines={1}>
-            {artistName} {views ? `• ${views}` : ""}
-          </Text>
-        </View>
-
-        {isCurrent ? (
-          <Pressable onPress={togglePlay} style={styles.playBtn}>
-            {isPlaying ? (
-              <PauseIcon width={24} height={24} fill="white" />
-            ) : (
-              <PlayIcon width={24} height={24} fill="white" />
+            {isCurrent && (
+              <View style={styles.playingOverlay}>
+                <PlayingIndicator />
+              </View>
             )}
-          </Pressable>
-        ) : (
-          <MaterialIcons name="drag-handle" size={24} color="#888" />
-        )}
-      </Pressable>
-    );
-  };
+          </View>
+
+          <View style={styles.trackInfo}>
+            {isCurrent ? (
+              <TextTicker
+                style={[
+                  styles.trackTitle,
+                  isCurrent && styles.currentTrackTitle,
+                ]}
+                duration={15000}
+                animationType="scroll"
+                loop
+                bounce={false}
+                repeatSpacer={50}
+                marqueeDelay={1000}
+                easing={Easing.linear}
+              >
+                {item.name}
+              </TextTicker>
+            ) : (
+              <Text
+                style={[
+                  styles.trackTitle,
+                  isCurrent && styles.currentTrackTitle,
+                ]}
+                numberOfLines={1}
+              >
+                {item.name}
+              </Text>
+            )}
+            <Text style={styles.trackArtist} numberOfLines={1}>
+              {artistName} {views ? `• ${views}` : ""}
+            </Text>
+          </View>
+
+          {isCurrent ? (
+            <Pressable onPress={togglePlay} style={styles.playBtn}>
+              {isPlaying ? (
+                <PauseIcon width={24} height={24} fill="white" />
+              ) : (
+                <PlayIcon width={24} height={24} fill="white" />
+              )}
+            </Pressable>
+          ) : (
+            <MaterialIcons name="drag-handle" size={24} color="#888" />
+          )}
+        </Pressable>
+      );
+    },
+    [currentTrack?.id, isPlaying, setCurrentTrack, togglePlay],
+  );
 
   const albumName =
     typeof currentTrack?.album === "string"
@@ -268,7 +271,7 @@ const QueueSheet = () => {
         ref={flatListRef}
         data={queue}
         renderScrollComponent={renderScrollComponent}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item) => item.id}
         renderItem={renderTrackItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -289,7 +292,7 @@ const QueueSheet = () => {
           {isShuffleEnabled ? (
             <ShuffleOnIcon width={25} height={25} fill="#FFF" />
           ) : (
-            <ShuffleIcon width={25} height={25} fill="#FFF" />
+            <ShuffleIcon width={25} height={25} fill="gray" />
           )}
           <Text
             style={[
@@ -452,7 +455,7 @@ const styles = StyleSheet.create({
   },
   footerBtnText: {
     color: "gray",
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 6,
     fontFamily: "sans-medium",
   },
