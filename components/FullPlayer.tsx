@@ -110,21 +110,26 @@ const FullPlayer = React.memo(
         : null) ||
       originalSong?.subtitle ||
       "Unknown Artist";
-    const trackImage =
-      originalSong?.image?.[3]?.url ||
-      (currentTrack as any)?.image?.[2]?.url ||
-      originalSong?.image?.[0]?.url;
+    const localPath =
+      (currentTrack as any)?.localArtworkPath ||
+      originalSong?.localArtworkPath;
+    const trackImage = localPath
+      ? localPath.startsWith("file://") ? localPath : `file://${localPath}`
+      : originalSong?.image?.[3]?.url ||
+        (currentTrack as any)?.image?.[2]?.url ||
+        originalSong?.image?.[0]?.url;
 
     // Get previous and next track images for carousel
     const previousTrackImage = React.useMemo(() => {
       if (currentIndex > 0 && queue[currentIndex - 1]) {
         const prevSong = queue[currentIndex - 1];
         const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
-        return (
-          prevOriginal?.image?.[3]?.url ||
-          (prevSong as any)?.image?.[2]?.url ||
-          prevOriginal?.image?.[0]?.url
-        );
+        const pLocal = (prevSong as any)?.localArtworkPath || prevOriginal?.localArtworkPath;
+        return pLocal
+          ? (pLocal.startsWith("file://") ? pLocal : `file://${pLocal}`)
+          : prevOriginal?.image?.[3]?.url ||
+            (prevSong as any)?.image?.[2]?.url ||
+            prevOriginal?.image?.[0]?.url;
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -133,11 +138,12 @@ const FullPlayer = React.memo(
       if (currentIndex < queue.length - 1 && queue[currentIndex + 1]) {
         const nextSong = queue[currentIndex + 1];
         const nextOriginal = (nextSong as any)?.extraPayload?.song || nextSong;
-        return (
-          nextOriginal?.image?.[3]?.url ||
-          (nextSong as any)?.image?.[2]?.url ||
-          nextOriginal?.image?.[0]?.url
-        );
+        const nLocal = (nextSong as any)?.localArtworkPath || nextOriginal?.localArtworkPath;
+        return nLocal
+          ? (nLocal.startsWith("file://") ? nLocal : `file://${nLocal}`)
+          : nextOriginal?.image?.[3]?.url ||
+            (nextSong as any)?.image?.[2]?.url ||
+            nextOriginal?.image?.[0]?.url;
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -275,7 +281,6 @@ const FullPlayer = React.memo(
               nextImage={nextTrackImage}
               onNext={next}
               onPrevious={() => previous(true)}
-              setLoading={setLoading}
             />
             {isLoading && !imageError && (
               <View style={styles.imageLoaderContainer}>

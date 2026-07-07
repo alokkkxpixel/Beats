@@ -1,12 +1,18 @@
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
+import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { formatPlayCount } from "@/src/utils/transform";
 import { FlatList } from "react-native";
-import defaultCover from "@/assets/app-icons/defualt-cover.png";
 
 interface CityHotSectionProps {
   title: string;
@@ -27,16 +33,26 @@ export default function CityHotSection({
 
   if (!data || data.length === 0) return <></>;
   const getImageUri = (img: any): string => {
+    let url = "";
     if (Array.isArray(img)) {
       const target = img[2] || img[1] || img[0] || "";
-      if (typeof target === "string") return target;
-      return target?.url || target?.uri || "";
+      url =
+        typeof target === "string" ? target : target?.url || target?.uri || "";
+    } else if (typeof img === "string") {
+      url = img;
     }
-    if (typeof img === "string" && img) {
-      if (img.includes("50x50")) return img.replace("50x50", "500x500");
-      if (img.includes("150x150")) return img.replace("150x150", "500x500");
-      const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");
-      return `${base}-500x500.jpg`;
+
+    if (url) {
+      if (url.includes("150x150")) {
+        return url.replace("150x150", "500x500");
+      }
+      if (url.includes("50x50")) {
+        return url.replace("50x50", "500x500");
+      }
+      if (url.includes("150-150")) {
+        return url.replace("150-150", "500-500");
+      }
+      return url;
     }
     return "";
   };
@@ -73,14 +89,29 @@ export default function CityHotSection({
     };
 
     return (
-      <Pressable style={[styles.card, { width: cardSize }]} onPress={handlePress}>
-        <View style={[
-          styles.imageContainer,
-          { width: cardSize, height: cardSize, marginBottom: isShortScreen ? 6 : 10 },
-          isArtist ? { borderRadius: cardSize / 2 } : { borderRadius: isShortScreen ? 6 : 8 }
-        ]}>
+      <Pressable
+        style={[styles.card, { width: cardSize }]}
+        onPress={handlePress}
+      >
+        <View
+          style={[
+            styles.imageContainer,
+            {
+              width: cardSize,
+              height: cardSize,
+              marginBottom: isShortScreen ? 6 : 10,
+            },
+            isArtist
+              ? { borderRadius: cardSize / 2 }
+              : { borderRadius: isShortScreen ? 6 : 8 },
+          ]}
+        >
           <Image
-            source={getImageUri(displayImage) ? { uri: getImageUri(displayImage) } : defaultCover}
+            source={
+              getImageUri(displayImage)
+                ? { uri: getImageUri(displayImage) }
+                : defaultCover
+            }
             style={styles.image}
             contentFit="cover"
             transition={150}
@@ -90,7 +121,7 @@ export default function CityHotSection({
           style={[
             styles.cardTitle,
             isArtist && styles.artistTitle,
-            isShortScreen && { fontSize: 12, lineHeight: 15 }
+            isShortScreen && { fontSize: 12, lineHeight: 15 },
           ]}
           className="font-sans-medium text-white"
           numberOfLines={1}
@@ -98,7 +129,10 @@ export default function CityHotSection({
           {displayTitle}
         </Text>
         <Text
-          style={[styles.description, isShortScreen && { fontSize: 10, lineHeight: 13 }]}
+          style={[
+            styles.description,
+            isShortScreen && { fontSize: 10, lineHeight: 13 },
+          ]}
           className="font-sans-light"
           numberOfLines={1}
         >
@@ -127,7 +161,13 @@ export default function CityHotSection({
     <View style={[styles.container, isShortScreen && { marginTop: 15 }]}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, isShortScreen && { fontSize: 18, lineHeight: 22 }]} className="font-sans-semibold">
+          <Text
+            style={[
+              styles.title,
+              isShortScreen && { fontSize: 18, lineHeight: 22 },
+            ]}
+            className="font-sans-semibold"
+          >
             {title}
           </Text>
           {subtitle && (
@@ -144,14 +184,14 @@ export default function CityHotSection({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         keyExtractor={(item: any, index: number) =>
-          item.id || item.listid || item.albumid || index.toString()
+          `cityhot-${item.id || item.listid || item.albumid || index}-${index}`
         }
         renderItem={renderItem}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={5}
-        updateCellsBatchingPeriod={100}
-        initialNumToRender={5}
-        windowSize={3}
+        // removeClippedSubviews={true}
+        // maxToRenderPerBatch={5}
+        // updateCellsBatchingPeriod={100}
+        // initialNumToRender={5}
+        // windowSize={3}
       />
     </View>
   );
@@ -214,7 +254,8 @@ const styles = StyleSheet.create({
     borderRadius: 75,
   },
   image: {
-    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   cardTitle: {
     fontSize: 14,

@@ -32,8 +32,8 @@ export default function OfflineContent() {
           textAlign: "center",
           marginBottom: isShortScreen ? 20 : 30,
           maxWidth: 280,
+          fontFamily: "sans-medium",
         }}
-        className="font-sans-medium"
       >
         There is no network connection now
       </Text>
@@ -56,8 +56,7 @@ export default function OfflineContent() {
         }}
       >
         <Text
-          style={{ color: "#000", fontSize: isShortScreen ? 14 : 16 }}
-          className="font-sans-bold"
+          style={{ color: "#000", fontSize: isShortScreen ? 14 : 16, fontFamily: "sans-bold" }}
         >
           Go to downloads
         </Text>
@@ -80,8 +79,7 @@ export default function OfflineContent() {
         }}
       >
         <Text
-          style={{ color: "#fff", fontSize: isShortScreen ? 14 : 16 }}
-          className="font-sans-bold"
+          style={{ color: "#fff", fontSize: isShortScreen ? 14 : 16, fontFamily: "sans-bold" }}
         >
           Try again
         </Text>

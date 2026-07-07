@@ -10,7 +10,6 @@ import {
 } from "@/src/lib/storage";
 import { Playlist, SongDetail } from "@/types/jiosaavn";
 import { ToastAndroid } from "react-native";
-import Toast from "react-native-toast-message";
 import { create } from "zustand";
 
 interface PlaylistState {
@@ -53,12 +52,12 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
   createPlaylist: (name, description) => {
     const newPlaylist = createPlaylistStorage(name, description);
     get().loadPlaylists();
-    Toast.show({
-      type: "success",
-      text1: "Playlist created",
-      text2: name,
-      position: "top",
-    });
+
+    ToastAndroid.showWithGravity(
+      "Playlist created",
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
     return newPlaylist;
   },
 
@@ -66,32 +65,43 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     addSongToPlaylist(playlistId, song);
     get().loadPlaylists();
     const playlist = get().playlists.find((p) => p.id === playlistId);
-    Toast.show({
-      type: "success",
-      text1: "Added to playlist",
-      text2: playlist?.name || "Playlist",
-      position: "top",
-    });
+
+    ToastAndroid.showWithGravity(
+      `Added to playlist ${playlist?.name || "Playlist"}`,
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   },
 
   removeSongFromPlaylist: (playlistId, songId) => {
     removeSongFromPlaylist(playlistId, songId);
     get().loadPlaylists();
-    Toast.show({
-      type: "success",
-      text1: "Removed from playlist",
-      position: "top",
-    });
+
+    ToastAndroid.showWithGravity(
+      "Removed from playlist",
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   },
 
   deletePlaylist: (playlistId) => {
     deletePlaylistStorage(playlistId);
     get().loadPlaylists();
+    ToastAndroid.showWithGravity(
+      "Playlist deleted",
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   },
 
   updatePlaylist: (playlistId, updates) => {
     updatePlaylistStorage(playlistId, updates);
     get().loadPlaylists();
+    ToastAndroid.showWithGravity(
+      "Playlist updated",
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   },
 
   openPlaylistModal: (song) => {

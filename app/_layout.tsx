@@ -26,6 +26,9 @@ import "react-native-reanimated";
 import Toast from "react-native-toast-message";
 import "../global.css";
 
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export const unstable_settings = {
   anchor: "(drawer)",
 };
@@ -35,13 +38,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const router = useRouter();
   const netInfo = useNetInfo();
+  const [hasRenderedChildren, setHasRenderedChildren] = React.useState(false);
 
   const isOffline =
     netInfo.isConnected === false ||
     (netInfo.isConnected !== null && netInfo.isInternetReachable === false);
 
   React.useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded && !isOffline) return;
 
     const inAuthGroup = segments[0] === "onboarding";
     const inLangGroup = segments[0] === "music-lang-change";
@@ -64,7 +68,17 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         router.replace("/(drawer)/(tabs)");
       }
     }
-  }, [isSignedIn, isLoaded, segments, netInfo.isConnected]);
+  }, [isSignedIn, isLoaded, segments, isOffline]);
+
+  React.useEffect(() => {
+    if (isLoaded || isOffline) {
+      setHasRenderedChildren(true);
+    }
+  }, [isLoaded, isOffline]);
+
+  if (hasRenderedChildren) {
+    return <>{children}</>;
+  }
 
   if (isOffline) {
     return <>{children}</>;
@@ -114,11 +128,13 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   React.useEffect(() => {
-    configureDownloadManager();
-  }, []);
+    if (fontsLoaded) {
+      configureDownloadManager();
+    }
+  }, [fontsLoaded]);
 
-  // Temporarily bypass font check to avoid black screen
-  // if (!fontsLoaded) return null;
+  // Ensure fonts are loaded before rendering to prevent broken layout/text
+  if (!fontsLoaded) return null;
 
   const customDarkTheme = {
     ...DarkTheme,

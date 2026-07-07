@@ -226,12 +226,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 24,
     includeFontPadding: false,
+    fontFamily: "sans-bold",
   },
   userEmail: {
     color: "#888",
     fontSize: 14,
     lineHeight: 20,
     includeFontPadding: false,
+    fontFamily: "sans-regular",
   },
   manageAccountBtn: {
     marginTop: 5,
@@ -273,10 +275,11 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   menuLabel: {
-    flexShrink: 1,
+    flex: 1,
     color: "#fff",
     fontSize: 16,
     lineHeight: 22,
+    fontFamily: "sans-medium",
   },
   footer: {
     marginTop: "auto",

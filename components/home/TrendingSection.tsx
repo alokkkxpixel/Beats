@@ -6,7 +6,14 @@ import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import PlayingIndicator from "../PlayingIndicator";
 
 interface TrendingSectionProps {
@@ -232,8 +239,20 @@ export default function TrendingSection({
       // getImageUri is now a module-level pure function (above component)
 
       return (
-        <Pressable style={[styles.card, { width: cardSize }]} onPress={handlePress}>
-          <View style={[styles.imageContainer, { width: cardSize, height: cardSize, marginBottom: isShortScreen ? 6 : 10 }]}>
+        <Pressable
+          style={[styles.card, { width: cardSize }]}
+          onPress={handlePress}
+        >
+          <View
+            style={[
+              styles.imageContainer,
+              {
+                width: cardSize,
+                height: cardSize,
+                marginBottom: isShortScreen ? 6 : 10,
+              },
+            ]}
+          >
             <Image
               source={
                 getImageUri(displayImage)
@@ -259,7 +278,10 @@ export default function TrendingSection({
             {displayTitle}
           </Text>
           <Text
-            style={[styles.description, isShortScreen && { fontSize: 11, lineHeight: 15 }]}
+            style={[
+              styles.description,
+              isShortScreen && { fontSize: 11, lineHeight: 15 },
+            ]}
             className="font-sans-light tracking-tight capitalize"
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -276,7 +298,10 @@ export default function TrendingSection({
     <View style={[styles.container, isShortScreen && { marginTop: 15 }]}>
       <View style={styles.header}>
         <Text
-          style={[styles.title, isShortScreen && { fontSize: 18, lineHeight: 22 }]}
+          style={[
+            styles.title,
+            isShortScreen && { fontSize: 18, lineHeight: 22 },
+          ]}
           className="font-sans-semibold text-white"
           numberOfLines={2}
           ellipsizeMode="tail"

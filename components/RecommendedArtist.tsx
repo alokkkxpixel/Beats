@@ -2,7 +2,13 @@ import { FlashList as OriginalFlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 interface RecommendedArtistProps {
   title?: string;
@@ -61,8 +67,21 @@ export default function RecommendedArtist({
     };
 
     return (
-      <Pressable style={[styles.card, { width: cardSize }]} onPress={handlePress}>
-        <View style={[styles.imageContainer, { width: cardSize, height: cardSize, borderRadius: cardSize / 2, marginBottom: isShortScreen ? 6 : 10 }]}>
+      <Pressable
+        style={[styles.card, { width: cardSize }]}
+        onPress={handlePress}
+      >
+        <View
+          style={[
+            styles.imageContainer,
+            {
+              width: cardSize,
+              height: cardSize,
+              borderRadius: cardSize / 2,
+              marginBottom: isShortScreen ? 6 : 10,
+            },
+          ]}
+        >
           <Image
             source={{ uri: getImageUri(item.image_url || item.image) }}
             style={styles.image}
@@ -72,14 +91,20 @@ export default function RecommendedArtist({
         </View>
         <View style={styles.textContainer}>
           <Text
-            style={[styles.cardTitle, isShortScreen && { fontSize: 12, lineHeight: 15 }]}
+            style={[
+              styles.cardTitle,
+              isShortScreen && { fontSize: 12, lineHeight: 15 },
+            ]}
             className="font-sans-medium text-white"
             numberOfLines={1}
           >
             {displayTitle}
           </Text>
           <Text
-            style={[styles.description, isShortScreen && { fontSize: 10, lineHeight: 13 }]}
+            style={[
+              styles.description,
+              isShortScreen && { fontSize: 10, lineHeight: 13 },
+            ]}
             className="font-sans-light"
             numberOfLines={1}
           >

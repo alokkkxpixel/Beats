@@ -10,6 +10,7 @@
  */
 
 import { create } from "zustand";
+import { storage } from "@/src/lib/storage";
 
 export interface AuthUser {
   id: string;
@@ -36,9 +37,22 @@ interface AuthState {
   clearUser: () => void;
 }
 
+const getInitialUser = (): AuthUser | null => {
+  try {
+    const data = storage.getString("cached-user-data");
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getInitialIsSignedIn = (): boolean => {
+  return storage.getBoolean("is-user-signed-in") ?? false;
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isSignedIn: false,
+  user: getInitialUser(),
+  isSignedIn: getInitialIsSignedIn(),
   isLoaded: false,
 
   syncFromClerk: ({ isLoaded, isSignedIn, clerkUser }) => {

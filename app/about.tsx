@@ -89,7 +89,7 @@ export default function AboutScreen() {
                   }`}
                 >
                   <Image
-                    source={require("@/assets/logo-1024.png")}
+                    source={require("@/assets/icons/appIcon.png")}
                     style={{
                       width: isShortScreen ? 40 : 50,
                       height: isShortScreen ? 40 : 50,

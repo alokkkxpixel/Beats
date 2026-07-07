@@ -29,11 +29,34 @@ import { create } from "zustand";
 
 let lastLoggedTrackId = "";
 
+const formatArtworkUri = (path: string | null | undefined): string => {
+  if (!path) return "";
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("file://")
+  ) {
+    return path;
+  }
+  return `file://${path}`;
+};
+
 const mapToTrackItem = (
-  song: SongDetail,
+  song: SongDetail & { localArtworkPath?: string | null },
   audioQuality: AudioQualityPreference = getAudioQualityPreference(),
 ): TrackItem => {
   const networkUrl = getPreferredTrackUrl(song, audioQuality);
+
+  // Clean undefined properties from song object to prevent JSI conversion errors on native side
+  const cleanSong = { ...song };
+  Object.keys(cleanSong).forEach((key) => {
+    if (
+      (cleanSong as any)[key] === undefined ||
+      (cleanSong as any)[key] === null
+    ) {
+      delete (cleanSong as any)[key];
+    }
+  });
 
   const tempTrackItem: TrackItem = {
     id: song.id,
@@ -48,14 +71,16 @@ const mapToTrackItem = (
         : song.album?.name || "Unknown Album",
     duration: song.duration || 0,
     url: networkUrl,
-    artwork: Array.isArray(song.image)
-      ? typeof song.image[song.image.length - 1] === "string"
-        ? song.image[song.image.length - 1]
-        : (song.image[song.image.length - 1] as any)?.url || ""
-      : typeof song.image === "string"
-        ? song.image
-        : "",
-    extraPayload: { song: song as any },
+    artwork:
+      formatArtworkUri(song.localArtworkPath) ||
+      (Array.isArray(song.image)
+        ? typeof song.image[song.image.length - 1] === "string"
+          ? song.image[song.image.length - 1]
+          : (song.image[song.image.length - 1] as any)?.url || ""
+        : typeof song.image === "string"
+          ? song.image
+          : ""),
+    extraPayload: { song: cleanSong as any },
   };
 
   return tempTrackItem;
@@ -204,7 +229,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isQueueOpen: false,
   isAudioDeviceOpen: false,
   isAutoplayEnabled: true,
-  toggleAutoplay: () => set((state) => ({ isAutoplayEnabled: !state.isAutoplayEnabled })),
+  toggleAutoplay: () =>
+    set((state) => ({ isAutoplayEnabled: !state.isAutoplayEnabled })),
   isLyricsOpen: false,
   isDrawerOpen: false,
   selectedSongOption: "",
@@ -440,12 +466,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           const savedMetadata = getDownloadedTrackMetadata(normalizedTrack.id);
           if (savedMetadata) {
             fullTrack = savedMetadata;
-          } else {
-            const downloadedTrack = await DownloadManager.getDownloadedTrack(
-              normalizedTrack.id,
-            );
-            if (downloadedTrack?.originalTrack?.extraPayload?.song) {
-              fullTrack = downloadedTrack.originalTrack.extraPayload.song;
+          }
+          const downloadedTrack = await DownloadManager.getDownloadedTrack(
+            normalizedTrack.id,
+          );
+          if (downloadedTrack) {
+            if (downloadedTrack.originalTrack?.extraPayload?.song) {
+              fullTrack = {
+                ...(downloadedTrack.originalTrack.extraPayload.song as any),
+                localArtworkPath: downloadedTrack.localArtworkPath,
+              };
+            } else {
+              fullTrack = {
+                ...fullTrack,
+                localArtworkPath: downloadedTrack.localArtworkPath,
+              };
             }
           }
         } catch (err) {
@@ -584,12 +619,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           );
           if (savedMetadata) {
             fullTrack = savedMetadata;
-          } else {
-            const downloadedTrack = await DownloadManager.getDownloadedTrack(
-              normalizedSelectedTrack.id,
-            );
-            if (downloadedTrack?.originalTrack?.extraPayload?.song) {
-              fullTrack = downloadedTrack.originalTrack.extraPayload.song;
+          }
+          const downloadedTrack = await DownloadManager.getDownloadedTrack(
+            normalizedSelectedTrack.id,
+          );
+          if (downloadedTrack) {
+            if (downloadedTrack.originalTrack?.extraPayload?.song) {
+              fullTrack = {
+                ...(downloadedTrack.originalTrack.extraPayload.song as any),
+                localArtworkPath: downloadedTrack.localArtworkPath,
+              };
+            } else {
+              fullTrack = {
+                ...fullTrack,
+                localArtworkPath: downloadedTrack.localArtworkPath,
+              };
             }
           }
         } catch (err) {
@@ -632,8 +676,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       }
 
-      const trackItems = get().queue.map((item) =>
-        mapToTrackItem(item, get().audioQuality),
+      const trackItems = await Promise.all(
+        get().queue.map(async (item) => {
+          let localArtworkPath = (item as any).localArtworkPath;
+          if (!localArtworkPath) {
+            const isItemDownloaded = await DownloadManager.isTrackDownloaded(
+              item.id,
+            );
+            if (isItemDownloaded) {
+              const downloadedTrack = await DownloadManager.getDownloadedTrack(
+                item.id,
+              );
+              localArtworkPath = downloadedTrack?.localArtworkPath;
+            }
+          }
+          return mapToTrackItem(
+            { ...item, localArtworkPath },
+            get().audioQuality,
+          );
+        }),
       );
 
       // 2. Create and load playlist in native player
@@ -663,8 +724,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   fetchAndAppendSuggestions: async (trackId: string) => {
     try {
-      const { queue, activePlaylistId, isFetchingSuggestions, isAutoplayEnabled } = get();
-      if (!activePlaylistId || isFetchingSuggestions || !isAutoplayEnabled) return;
+      const {
+        queue,
+        activePlaylistId,
+        isFetchingSuggestions,
+        isAutoplayEnabled,
+      } = get();
+      if (!activePlaylistId || isFetchingSuggestions || !isAutoplayEnabled)
+        return;
 
       // console.log("🔄 Fetching more suggestions for autoplay...");
       set({ isFetchingSuggestions: true });
@@ -1079,12 +1146,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           );
           if (savedMetadata) {
             fullTrack = savedMetadata;
-          } else {
-            const downloadedTrack = await DownloadManager.getDownloadedTrack(
-              normalizedCurrentTrack.id,
-            );
-            if (downloadedTrack?.originalTrack?.extraPayload?.song) {
-              fullTrack = downloadedTrack.originalTrack.extraPayload.song;
+          }
+          const downloadedTrack = await DownloadManager.getDownloadedTrack(
+            normalizedCurrentTrack.id,
+          );
+          if (downloadedTrack) {
+            if (downloadedTrack.originalTrack?.extraPayload?.song) {
+              fullTrack = {
+                ...(downloadedTrack.originalTrack.extraPayload.song as any),
+                localArtworkPath: downloadedTrack.localArtworkPath,
+              };
+            } else {
+              fullTrack = {
+                ...fullTrack,
+                localArtworkPath: downloadedTrack.localArtworkPath,
+              };
             }
           }
         } catch (err) {
@@ -1125,8 +1201,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
 
       // Create and load playlist in native player
-      const trackItems = get().queue.map((item) =>
-        mapToTrackItem(item, get().audioQuality),
+      const trackItems = await Promise.all(
+        get().queue.map(async (item) => {
+          let localArtworkPath = (item as any).localArtworkPath;
+          if (!localArtworkPath) {
+            const isItemDownloaded = await DownloadManager.isTrackDownloaded(
+              item.id,
+            );
+            if (isItemDownloaded) {
+              const downloadedTrack = await DownloadManager.getDownloadedTrack(
+                item.id,
+              );
+              localArtworkPath = downloadedTrack?.localArtworkPath;
+            }
+          }
+          return mapToTrackItem(
+            { ...item, localArtworkPath },
+            get().audioQuality,
+          );
+        }),
       );
 
       const playlistId = await PlayerQueue.createPlaylist(

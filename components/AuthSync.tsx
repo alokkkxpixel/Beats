@@ -27,6 +27,37 @@ export function AuthSync() {
     });
     if (isLoaded) {
       storage.set("is-user-signed-in", !!isSignedIn);
+      if (isSignedIn && user) {
+        // Detect primary OAuth provider from external accounts
+        const externalAccounts: any[] = user.externalAccounts ?? [];
+        let provider: string | null = null;
+        if (externalAccounts.length > 0) {
+          provider = externalAccounts[0].provider ?? null;
+        } else {
+          provider = "email";
+        }
+
+        const primaryEmail =
+          user.primaryEmailAddress?.emailAddress ??
+          user.emailAddresses?.[0]?.emailAddress ??
+          null;
+
+        const cachedUser = {
+          id: user.id,
+          firstName: user.firstName ?? null,
+          lastName: user.lastName ?? null,
+          fullName:
+            user.fullName ??
+            ([user.firstName, user.lastName].filter(Boolean).join(" ") || null),
+          emailAddress: primaryEmail,
+          imageUrl: user.imageUrl ?? null,
+          hasImage: user.hasImage,
+          provider,
+        };
+        storage.set("cached-user-data", JSON.stringify(cachedUser));
+      } else if (!isSignedIn) {
+        storage.delete("cached-user-data");
+      }
     }
   }, [isLoaded, isSignedIn, user, syncFromClerk]);
 

@@ -17,7 +17,6 @@ interface SwipeArtworkProps {
   nextImage?: string | number;
   onNext: () => void;
   onPrevious: () => void;
-  setLoading: (loading: boolean) => void;
 }
 
 export default function SwipeArtwork({
@@ -26,7 +25,6 @@ export default function SwipeArtwork({
   nextImage,
   onNext,
   onPrevious,
-  setLoading,
 }: SwipeArtworkProps) {
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const isShortScreen = SCREEN_HEIGHT < 700;
@@ -178,8 +176,6 @@ export default function SwipeArtwork({
             }
             style={styles.image}
             resizeMode="cover"
-            onLoadStart={() => setLoading(true)}
-            onLoadEnd={() => setLoading(false)}
           />
         </Animated.View>
 
@@ -197,8 +193,6 @@ export default function SwipeArtwork({
               }
               style={styles.image}
               resizeMode="cover"
-              onLoadStart={() => setLoading(true)}
-              onLoadEnd={() => setLoading(false)}
             />
           )}
         </Animated.View>

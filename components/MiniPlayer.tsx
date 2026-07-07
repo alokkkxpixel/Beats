@@ -43,10 +43,15 @@ const MiniPlayer = React.memo(function MiniPlayer() {
 
   if (!isLoaded) return null;
 
+  const localPath =
+    (currentTrack as any)?.localArtworkPath ||
+    (originalSong as any)?.localArtworkPath;
   const trackImage = isLoaded
-    ? (currentTrack as any).image?.[1]?.url ||
-      (originalSong as any)?.image?.[1]?.url ||
-      (originalSong as any)?.image?.[0]?.url
+    ? localPath
+      ? localPath.startsWith("file://") ? localPath : `file://${localPath}`
+      : (currentTrack as any).image?.[1]?.url ||
+        (originalSong as any)?.image?.[1]?.url ||
+        (originalSong as any)?.image?.[0]?.url
     : "";
   const primaryArtists = (currentTrack as any)?.artists?.primary;
   const artistName = isLoaded
