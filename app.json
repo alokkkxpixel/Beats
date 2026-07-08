@@ -2,7 +2,13 @@
   "expo": {
     "name": "Beats",
     "slug": "Beats",
-    "version": "1.1.0",
+    "updates": {
+      "url": "https://u.expo.dev/3fe6ce9c-d129-4d67-9f0c-e5e45ffea59c"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/icons/appIcon.png",
     "scheme": "beats",
@@ -66,7 +72,7 @@
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "2.0.21"
+            "kotlinVersion": "2.1.20"
           }
         }
       ],
