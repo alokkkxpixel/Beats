@@ -10,6 +10,63 @@ import { SongDetail } from "@/types/jiosaavn";
 import { ToastAndroid } from "react-native";
 import { DownloadManager } from "react-native-nitro-player";
 import { create } from "zustand";
+import * as FileSystem from "expo-file-system/legacy";
+
+const downloadTrackArtworks = async (trackId: string, image: any): Promise<any[]> => {
+  if (!image) return [];
+  
+  let urls: string[] = [];
+  if (Array.isArray(image)) {
+    urls = image.map((img) => typeof img === "string" ? img : img?.url || "");
+  } else if (typeof image === "string") {
+    let baseurl = image;
+    if (baseurl.startsWith("http://")) {
+      baseurl = baseurl.replace("http://", "https://");
+    }
+    const cleanUrl = baseurl.split("?")[0];
+    const hasResolution = /-(50x50|150x150|500x500)\.jpg$/i.test(cleanUrl);
+    if (hasResolution) {
+      const base = cleanUrl
+        .replace(/-(50x50|150x150|500x500)\.jpg$/i, "")
+        .replace(/\.(jpg|jpeg|png)$/i, "");
+      urls = [
+        `${base}-50x50.jpg`,
+        `${base}-150x150.jpg`,
+        `${base}-500x500.jpg`
+      ];
+    } else {
+      urls = [image];
+    }
+  }
+
+  const localPaths: any[] = [];
+  const suffixes = ["50x50", "150x150", "500x500"];
+
+  for (let i = 0; i < urls.length; i++) {
+    let url = urls[i];
+    if (!url) continue;
+    if (url.startsWith("http://")) {
+      url = url.replace("http://", "https://");
+    }
+    try {
+      const suffix = suffixes[i] || `custom_${i}`;
+      const filename = `artwork_${suffix}_${trackId}.jpg`;
+      const localPath = `${FileSystem.documentDirectory}${filename}`;
+      const downloadResult = await FileSystem.downloadAsync(url, localPath);
+      localPaths.push({
+        quality: suffix,
+        url: downloadResult.uri
+      });
+    } catch (error) {
+      console.warn(`Failed to download artwork variant at index ${i} for track ${trackId}`, error);
+      localPaths.push({
+        quality: suffixes[i] || `custom_${i}`,
+        url: url
+      });
+    }
+  }
+  return localPaths;
+};
 
 interface DownloadProgress {
   downloadId: string;
@@ -197,6 +254,15 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
         }
       }
 
+      const localArtworkPaths = await downloadTrackArtworks(track.id, fullTrack.image);
+      if (localArtworkPaths.length > 0) {
+        fullTrack = {
+          ...fullTrack,
+          image: localArtworkPaths,
+          localArtworkPath: localArtworkPaths[localArtworkPaths.length - 1].url,
+        } as any;
+      }
+
       const trackItem = mapToTrackItem(fullTrack);
       // console.log("Track item mapped:", trackItem);
 
@@ -291,6 +357,20 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
               );
             }
           }
+
+          try {
+            const localArtworkPaths = await downloadTrackArtworks(track.id, fullTrack.image);
+            if (localArtworkPaths.length > 0) {
+              fullTrack = {
+                ...fullTrack,
+                image: localArtworkPaths,
+                localArtworkPath: localArtworkPaths[localArtworkPaths.length - 1].url,
+              } as any;
+            }
+          } catch (err) {
+            console.warn("Failed to download artwork for track during playlist download", track.id, err);
+          }
+
           return fullTrack;
         }),
       );

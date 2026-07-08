@@ -169,68 +169,68 @@ export default function Index() {
         id: "trending",
         title: "New & Trending",
         type: "trending",
-        data: data?.newtrending,
+        data: data?.newtrending || [],
       },
       {
         id: "citymod",
-        title: data?.city_mod.title,
-        subtitle: data?.city_mod.subtitle,
+        title: data?.city_mod?.title,
+        subtitle: data?.city_mod?.subtitle,
         type: "cityHot",
-        data: data?.city_mod.data,
+        data: data?.city_mod?.data || [],
       },
       {
         id: "foryou",
         title: "For You",
         subtitle: "Music just for you",
         type: "foryou",
-        data: SpecialForYouData?.list,
+        data: SpecialForYouData?.list || [],
       },
       {
         id: "playlists",
         title: "Top Playlists",
         type: "playlists",
-        data: data?.topPlaylists,
+        data: data?.topPlaylists || [],
       },
       {
         id: "artist_recos",
-        title: data?.artist_recos.title as string,
+        title: data?.artist_recos?.title as string,
         type: "artistrecos",
-        data: data?.artist_recos.data,
+        data: data?.artist_recos?.data || [],
       },
       {
         id: "albums",
         title: "New Releases",
         type: "albums",
-        data: data?.newreleases,
+        data: data?.newreleases || [],
       },
-      { id: "charts", title: "Top Charts", type: "charts", data: data?.charts },
+      { id: "charts", title: "Top Charts", type: "charts", data: data?.charts || [] },
       {
         id: "promo:vx:data:68",
         title: data?.["promo:vx:data:68"]?.title,
         subtitle: data?.["promo:vx:data:68"]?.subtitle,
         type: "promo:vx:data:68",
-        data: data?.["promo:vx:data:68"].data,
+        data: data?.["promo:vx:data:68"]?.data || [],
       },
       {
         id: "moodsAndGenres",
         title: "Moods and Genres",
         subtitle: "Discover new music",
         type: "moodsAndGenres",
-        data: moodsAndGenres,
+        data: moodsAndGenres || [],
       },
       {
         id: "promo:vx:data:185",
         title: data?.["promo:vx:data:185"]?.title,
         subtitle: data?.["promo:vx:data:185"]?.subtitle,
         type: "promo:vx:data:185",
-        data: data?.["promo:vx:data:185"].data,
+        data: data?.["promo:vx:data:185"]?.data || [],
       },
       {
         id: "promo:vx:data:69",
         title: data?.["promo:vx:data:69"]?.title,
         subtitle: data?.["promo:vx:data:69"]?.subtitle,
         type: "promo:vx:data:69",
-        data: data?.["promo:vx:data:69"].data,
+        data: data?.["promo:vx:data:69"]?.data || [],
       },
     );
     return items;
@@ -358,15 +358,16 @@ export default function Index() {
               return <RecommendedArtist title={item.title} data={item.data} />;
             }
             if (item.type === "moodsAndGenres") {
+              const itemData = Array.isArray(item.data) ? item.data : [];
               return (
                 <TopGenre
                   data={
                     Array.from(
                       {
-                        length: Math.ceil(item.data.length / 3),
+                        length: Math.ceil(itemData.length / 3),
                       },
-                      (_, i) => item.data.slice(i * 3, i * 3 + 3),
-                    ) || []
+                      (_, i) => itemData.slice(i * 3, i * 3 + 3),
+                    )
                   }
                   title={item.title}
                   subtitle={item.subtitle}

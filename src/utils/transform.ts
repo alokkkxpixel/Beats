@@ -37,7 +37,11 @@ export const decodeHtmlEntities = (str: string): string => {
 
 export const recursiveClean = (obj: any): any => {
   if (typeof obj === "string") {
-    return decodeHtmlEntities(obj);
+    let cleaned = decodeHtmlEntities(obj);
+    if (cleaned.startsWith("http://")) {
+      cleaned = cleaned.replace("http://", "https://");
+    }
+    return cleaned;
   }
   if (Array.isArray(obj)) {
     return obj.map(recursiveClean);

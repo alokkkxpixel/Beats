@@ -90,16 +90,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="downloads"
-        options={{
-          href: null,
-          title: "Downloads",
-          tabBarIcon: ({ color, focused }) => (
-            <Download size={24} color={focused ? "#fff" : "#737373"} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="album-detail"
         options={{
           href: null,

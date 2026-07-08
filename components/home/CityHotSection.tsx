@@ -43,6 +43,9 @@ export default function CityHotSection({
     }
 
     if (url) {
+      if (url.startsWith("http://")) {
+        url = url.replace("http://", "https://");
+      }
       if (url.includes("150x150")) {
         return url.replace("150x150", "500x500");
       }

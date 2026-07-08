@@ -138,7 +138,11 @@ export default function SidebarDrawer(props: DrawerContentComponentProps) {
             style={styles.manageAccountBtn}
             onPress={() => {
               props.navigation.closeDrawer();
-              setTimeout(() => router.push("/profile"), 120);
+              if (isSignedIn) {
+                setTimeout(() => router.push("/profile"), 120);
+              } else {
+                setTimeout(() => router.push("/onboarding"), 120);
+              }
             }}
           >
             <Text style={styles.manageAccountText} className="font-sans-medium">

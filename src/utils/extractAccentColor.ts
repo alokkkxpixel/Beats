@@ -40,8 +40,8 @@ export async function extractAccentColor({
     fallbackAccentColor: fallbackAccentColor,
   });
 
-  if (!trackImage) {
-    return createFallbackObject();
+  if (!trackImage || trackImage.startsWith("file://")) {
+    return createFallbackObject("#222222");
   }
 
   try {

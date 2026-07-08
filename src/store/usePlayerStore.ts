@@ -474,12 +474,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             if (downloadedTrack.originalTrack?.extraPayload?.song) {
               fullTrack = {
                 ...(downloadedTrack.originalTrack.extraPayload.song as any),
-                localArtworkPath: downloadedTrack.localArtworkPath,
+                localArtworkPath:
+                  downloadedTrack.localArtworkPath ||
+                  fullTrack.localArtworkPath,
               };
             } else {
               fullTrack = {
                 ...fullTrack,
-                localArtworkPath: downloadedTrack.localArtworkPath,
+                localArtworkPath:
+                  downloadedTrack.localArtworkPath ||
+                  fullTrack.localArtworkPath,
               };
             }
           }
@@ -627,12 +631,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             if (downloadedTrack.originalTrack?.extraPayload?.song) {
               fullTrack = {
                 ...(downloadedTrack.originalTrack.extraPayload.song as any),
-                localArtworkPath: downloadedTrack.localArtworkPath,
+                localArtworkPath:
+                  downloadedTrack.localArtworkPath ||
+                  fullTrack.localArtworkPath,
               };
             } else {
               fullTrack = {
                 ...fullTrack,
-                localArtworkPath: downloadedTrack.localArtworkPath,
+                localArtworkPath:
+                  downloadedTrack.localArtworkPath ||
+                  fullTrack.localArtworkPath,
               };
             }
           }
@@ -1154,12 +1162,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             if (downloadedTrack.originalTrack?.extraPayload?.song) {
               fullTrack = {
                 ...(downloadedTrack.originalTrack.extraPayload.song as any),
-                localArtworkPath: downloadedTrack.localArtworkPath,
+                localArtworkPath:
+                  downloadedTrack.localArtworkPath ||
+                  fullTrack.localArtworkPath,
               };
             } else {
               fullTrack = {
                 ...fullTrack,
-                localArtworkPath: downloadedTrack.localArtworkPath,
+                localArtworkPath:
+                  downloadedTrack.localArtworkPath ||
+                  fullTrack.localArtworkPath,
               };
             }
           }

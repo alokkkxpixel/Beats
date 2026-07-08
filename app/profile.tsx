@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View, ToastAndroid } from "react-native";
+import { storage } from "@/src/lib/storage";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -14,7 +15,13 @@ export default function ProfileScreen() {
   const { signOut } = useClerk();
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (err) {
+      console.warn("Clerk sign out error:", err);
+    }
+    storage.set("is-guest-mode", false);
+    storage.set("is-user-signed-in", false);
     ToastAndroid.show("Signed out successfully", ToastAndroid.SHORT);
     router.replace("/");
   };
@@ -68,18 +75,26 @@ export default function ProfileScreen() {
 
         {/* Actions */}
         <View className="mt-4">
-          {isSignedIn && (
-            <>
-              <Pressable
-                onPress={handleSignOut}
-                className="flex-row items-center justify-between py-4 border-b border-zinc-800"
-              >
-                <Text className="text-red-500 text-base font-sans-medium">
-                  Sign Out
-                </Text>
-                <ForwardArrow width={20} height={20} fill="#ef4444" />
-              </Pressable>
-            </>
+          {isSignedIn ? (
+            <Pressable
+              onPress={handleSignOut}
+              className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+            >
+              <Text className="text-red-500 text-base font-sans-medium">
+                Sign Out
+              </Text>
+              <ForwardArrow width={20} height={20} fill="#ef4444" />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => router.push("/onboarding")}
+              className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+            >
+              <Text className="text-blue-500 text-base font-sans-medium">
+                Sign In / Sign Up
+              </Text>
+              <ForwardArrow width={20} height={20} fill="#3ea6ff" />
+            </Pressable>
           )}
         </View>
       </ScrollView>

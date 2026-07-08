@@ -376,6 +376,10 @@ export const SaavnService = {
         let url = item.image || "";
         if (!url) return ["", "", ""];
 
+        if (url.startsWith("http://")) {
+          url = url.replace("http://", "https://");
+        }
+
         // Strip query string params (e.g. ?bch=493632)
         url = url.split("?")[0];
 

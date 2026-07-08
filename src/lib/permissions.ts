@@ -2,15 +2,20 @@ import * as Notifications from "expo-notifications";
 import { Permission, PermissionsAndroid, Platform } from "react-native";
 
 export const requestAppPermissions = async () => {
+  // 1. Request Notification Permissions (Android)
   try {
-    // 1. Request Notification Permissions
     if (Platform.OS === "android" && Platform.Version >= 33) {
-      await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-      );
+      const postPerm = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+      if (postPerm) {
+        await PermissionsAndroid.request(postPerm);
+      }
     }
+  } catch (error) {
+    console.warn("Error requesting Android notification permission:", error);
+  }
 
-    // Always request iOS notifications
+  // 2. Request Notification Permissions (iOS / Expo Notifications)
+  try {
     await Notifications.requestPermissionsAsync({
       ios: {
         allowAlert: true,
@@ -19,24 +24,33 @@ export const requestAppPermissions = async () => {
         allowCriticalAlerts: true,
       },
     });
+  } catch (error) {
+    console.warn("Error requesting notification permissions via Expo:", error);
+  }
 
-    // 2. Request Location Permissions
+  // 3. Request Location Permissions
+  try {
     if (Platform.OS === "android") {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-      ]);
+      const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+      const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      if (fine && coarse) {
+        await PermissionsAndroid.requestMultiple([fine, coarse]);
+      }
     }
+  } catch (error) {
+    console.warn("Error requesting location permissions:", error);
+  }
 
-    // 3. Request Storage Permissions
+  // 4. Request Storage Permissions
+  try {
     if (Platform.OS === "android") {
       const permissionsToRequest: Permission[] = [];
 
       if (Platform.Version < 33) {
-        permissionsToRequest.push(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        );
+        const read = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        const write = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+        if (read) permissionsToRequest.push(read);
+        if (write) permissionsToRequest.push(write);
       }
 
       if (permissionsToRequest.length > 0) {
@@ -44,6 +58,7 @@ export const requestAppPermissions = async () => {
       }
     }
   } catch (error) {
-    console.warn("Error requesting app permissions:", error);
+    console.warn("Error requesting storage permissions:", error);
   }
 };
+
