@@ -39,7 +39,7 @@ export default function ProgressSection() {
     await TrackPlayer.seek(pos);
   }, []);
 
-  const gesture = React.useMemo(
+  const panGesture = React.useMemo(
     () =>
       Gesture.Pan()
         .onStart(() => {
@@ -61,6 +61,25 @@ export default function ProgressSection() {
           runOnJS(seek)(newPosition);
         }),
     [TRACK_WIDTH, duration, seek],
+  );
+
+  const tapGesture = React.useMemo(
+    () =>
+      Gesture.Tap().onStart((event) => {
+        const newProgress = Math.min(
+          100,
+          Math.max(0, (event.x / TRACK_WIDTH) * 100),
+        );
+        progress.value = newProgress;
+        const newPosition = (newProgress / 100) * duration;
+        runOnJS(seek)(newPosition);
+      }),
+    [TRACK_WIDTH, duration, seek],
+  );
+
+  const composedGesture = React.useMemo(
+    () => Gesture.Exclusive(panGesture, tapGesture),
+    [panGesture, tapGesture],
   );
 
   const animatedFillStyle = useAnimatedStyle(() => ({
@@ -85,7 +104,7 @@ export default function ProgressSection() {
   return (
     <>
       <View className="px-8 ">
-        <GestureDetector gesture={gesture}>
+        <GestureDetector gesture={composedGesture}>
           {/* HITBOX CONTAINER: Provides plenty of space so the knob never clips */}
           <View style={styles.sliderContainer}>
             {/* The actual background track */}
