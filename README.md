@@ -49,7 +49,7 @@ A beautiful, feature-rich music playback experience built with **React Native** 
 
 <br/>
 
-<a href="https://github.com/alokkkxpixel/Beats/releases/download/v1.1.1/Beats.apk">
+<a href="https://github.com/alokkkxpixel/Beats/releases/download/v1.1.1/Beats-v1.1.1.1.apk">
   <img width="250" alt="Download APK for Android" src="https://user-images.githubusercontent.com/114044633/223920025-83687de0-e463-4c5d-8122-e06e4bb7d40c.png">
 </a>
 
