@@ -27,7 +27,6 @@ A beautiful, feature-rich music playback experience built with **React Native** 
 <div>
 
 - 📖 **Open-source & Ads Free**: Enjoy a completely free music experience with absolutely no interruptions.
-
 - 🎧 **Stream, Download & Offline Playback**: Listen to high-quality audio up to 320kbps. Download your favorite songs and easily play them offline without an internet connection.
 
 - 🎤 **Real-Time Synced Lyrics**: Sing along to your favorite tracks with perfectly synced, real-time lyrics.
@@ -40,27 +39,29 @@ A beautiful, feature-rich music playback experience built with **React Native** 
 
 ## <a id="installation-guide"></a>📜 ⬇️ Installation guide
 
-To download the latest release securely without unwanted browser pop-ups or warnings, use the direct GitHub download link below:
+<div align="center">
 
-<table>
-  <tr>
-    <th>Platform</th>
-    <th>Package/Installation Method</th>
-  </tr>
-  <tr>
-    <td>Android</td>
-    <td>
-      <a href="https://github.com/alokkkxpixel/Beats/releases/latest/download/Beats.apk">
-        <img width="220" alt="APK download" src="https://user-images.githubusercontent.com/114044633/223920025-83687de0-e463-4c5d-8122-e06e4bb7d40c.png">
-      </a>
-      <br/>
-      <blockquote style="color:red">
-        *Direct APK file. Bypasses browser pop-ups and warnings by using the official GitHub Release link.
-      </blockquote>
-    </td>
-  </tr>
-</table>
+### 🚀 Ready to experience Beats?
+
+<br/>
+
+👇 **Click on the button below to download the app!**
+
+<br/>
+
+<a href="https://github.com/alokkkxpixel/Beats/releases/latest/download/Beats.apk">
+  <img width="250" alt="Download APK for Android" src="https://user-images.githubusercontent.com/114044633/223920025-83687de0-e463-4c5d-8122-e06e4bb7d40c.png">
+</a>
+
+<br/>
+<br/>
+
+> [!TIP]
+> **Safe & Direct Download**
+> This button links directly to the official `.apk` file on GitHub Releases. It completely bypasses third-party websites and annoying browser security warnings!
+
+</div>
 
 ## <a id="license"></a>💼 License
 
-Beats is open source software.
+Beats is open source software licensed under the [MIT License](LICENSE).
