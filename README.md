@@ -61,11 +61,17 @@ A beautiful, feature-rich music playback experience built with **React Native** 
 <br/>
 <br/>
 
-> [!TIP]
+<!-- > [!TIP]
 > **Safe & Direct Download**
-> This button links directly to the official `.apk` file on GitHub Releases. It completely bypasses third-party websites and annoying browser security warnings!
+> This button links directly to the official `.apk` file on GitHub Releases. It completely bypasses third-party websites and annoying browser security warnings! -->
 
 </div>
+
+## 🤝 Support & Contribute
+
+### ⭐ If you like **Beats**, please consider giving this repository a ⭐ to show your support! 
+
+Contributions, issues, and feature requests are always welcome! Feel free to check the [issues page](https://github.com/alokkkxpixel/Beats/issues) if you want to contribute.
 
 ## <a id="license"></a>💼 License
 
