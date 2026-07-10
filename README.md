@@ -65,3 +65,10 @@ A beautiful, feature-rich music playback experience built with **React Native** 
 ## <a id="license"></a>💼 License
 
 Beats is open source software licensed under the [MIT License](LICENSE).
+
+---
+
+## ⚠️ Disclaimer
+
+**This project is strictly for educational and learning purposes only.** 
+Beats is a personal, non-commercial open-source project created to learn React Native development. It does not host any audio files or content on its own servers. The creators and contributors are not responsible for any copyright infringement, misuse, or legal issues that may arise from using this application or its source code.
