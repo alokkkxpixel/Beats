@@ -49,9 +49,14 @@ A beautiful, feature-rich music playback experience built with **React Native** 
 
 <br/>
 
-<a href="https://github.com/alokkkxpixel/Beats/releases/latest/download/Beats.apk">
+<a href="https://github.com/alokkkxpixel/Beats/releases/download/v1.1.1/Beats.apk">
   <img width="250" alt="Download APK for Android" src="https://user-images.githubusercontent.com/114044633/223920025-83687de0-e463-4c5d-8122-e06e4bb7d40c.png">
 </a>
+
+<br/>
+<br/>
+
+<img alt="Total Downloads" src="https://img.shields.io/github/downloads/alokkkxpixel/Beats/total?style=flat-square&color=blue&logo=github">
 
 <br/>
 <br/>
@@ -68,7 +73,8 @@ Beats is open source software licensed under the [MIT License](LICENSE).
 
 ---
 
-## ⚠️ Disclaimer
-
-**This project is strictly for educational and learning purposes only.** 
-Beats is a personal, non-commercial open-source project created to learn React Native development. It does not host any audio files or content on its own servers. The creators and contributors are not responsible for any copyright infringement, misuse, or legal issues that may arise from using this application or its source code.
+<div align="center">
+  <sub>
+    ⚠️ <b>Disclaimer:</b> This project is strictly for educational and learning purposes only. Beats is a personal, non-commercial open-source project created to learn React Native development. It does not host any audio files or content on its own servers. The creators and contributors are not responsible for any copyright infringement, misuse, or legal issues that may arise from using this application or its source code.
+  </sub>
+</div>
