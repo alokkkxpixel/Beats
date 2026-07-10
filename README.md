@@ -1,50 +1,66 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img width="150" src="assets/icons/appLogo.svg" alt="Beats Logo">
+  <h1>Beats</h1>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A Android open-source music streaming application.<br>
+A beautiful, feature-rich music playback experience built with **React Native** for Android.
 
-## Get started
+<a href="https://github.com/alokkkxpixel/Beats/releases/latest">
+  <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/alokkkxpixel/Beats?style=for-the-badge">
+</a>
+<a href="https://github.com/alokkkxpixel/Beats/stargazers">
+  <img alt="GitHub stars" src="https://img.shields.io/github/stars/alokkkxpixel/Beats?style=for-the-badge">
+</a>
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+  <img src="assets/Beats-showcase/home-showcase.png" width="19%" />
+  <img src="assets/Beats-showcase/FullPlayer-showcase.png" width="19%" />
+  <img src="assets/Beats-showcase/Lyrics-showcase.png" width="19%" />
+  <img src="assets/Beats-showcase/Album-showcase.png" width="19%" />
+  <img src="assets/Beats-showcase/Library-showcase.png" width="19%" />
 
-2. Start the app
+</div>
 
-   ```bash
-   npx expo start
-   ```
+## <a id="features"></a>🌃 Features
 
-In the output, you'll find options to open the app in a
+<div>
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- 📖 **Open-source & Ads Free**: Enjoy a completely free music experience with absolutely no interruptions.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- 🎧 **Stream, Download & Offline Playback**: Listen to high-quality audio up to 320kbps. Download your favorite songs and easily play them offline without an internet connection.
 
-## Get a fresh project
+- 🎤 **Real-Time Synced Lyrics**: Sing along to your favorite tracks with perfectly synced, real-time lyrics.
 
-When you're ready, run:
+- 🌍 **Global & Regional Library**: Explore a massive library featuring top Indian hits and worldwide trending songs.
 
-```bash
-npm run reset-project
-```
+- ✨ **Clean & Modern UI**: Navigate through a beautifully crafted, user-friendly interface designed for the best experience.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+</div>
 
-## Learn more
+## <a id="installation-guide"></a>📜 ⬇️ Installation guide
 
-To learn more about developing your project with Expo, look at the following resources:
+To download the latest release securely without unwanted browser pop-ups or warnings, use the direct GitHub download link below:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+<table>
+  <tr>
+    <th>Platform</th>
+    <th>Package/Installation Method</th>
+  </tr>
+  <tr>
+    <td>Android</td>
+    <td>
+      <a href="https://github.com/alokkkxpixel/Beats/releases/latest/download/Beats.apk">
+        <img width="220" alt="APK download" src="https://user-images.githubusercontent.com/114044633/223920025-83687de0-e463-4c5d-8122-e06e4bb7d40c.png">
+      </a>
+      <br/>
+      <blockquote style="color:red">
+        *Direct APK file. Bypasses browser pop-ups and warnings by using the official GitHub Release link.
+      </blockquote>
+    </td>
+  </tr>
+</table>
 
-## Join the community
+## <a id="license"></a>💼 License
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Beats is open source software.
