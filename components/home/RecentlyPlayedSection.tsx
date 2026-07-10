@@ -131,7 +131,7 @@ export default function RecentlyPlayedSection({
                 lineHeight: isShortScreen ? 12 : 13,
               },
             ]}
-            className="font-sans-light tracking-tight capitalize"
+            className="font-sans-regular tracking-tight capitalize"
             numberOfLines={1}
             ellipsizeMode="tail"
           >

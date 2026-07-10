@@ -104,7 +104,7 @@ export default function AboutScreen() {
                   Beats
                 </Text>
                 <Text className="text-gray-400 text-sm mt-2">
-                  Free music for everyone
+                  Free music for everyone.
                 </Text>
               </View>
 

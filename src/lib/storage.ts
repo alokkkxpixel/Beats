@@ -1,9 +1,10 @@
 import type { SongDetail } from "@/types/jiosaavn";
+import { Platform } from "react-native";
 import { createMMKV } from "react-native-mmkv";
 
 export const storage = createMMKV({
   id: "beats-app-storage",
-  encryptionKey: "beats-secure-key", // In a real app, use a more secure way to store this
+  ...(Platform.OS !== "web" ? { encryptionKey: "beats-secure-key" } : {}),
 });
 
 /**
