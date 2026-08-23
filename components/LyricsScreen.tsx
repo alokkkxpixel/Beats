@@ -230,7 +230,7 @@ export default function LyricsScreen() {
               ? { uri: trackImage }
               : require("@/assets/app-icons/defualt-cover.png")
           }
-          style={{ width: 40, height: 40, borderRadius: 6 }}
+          style={{ width: 40, height: 40, borderRadius: 4 }}
           className="ml-4"
           contentFit="cover"
         />
