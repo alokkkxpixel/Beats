@@ -293,10 +293,23 @@ export const jioSaavnService = {
           `https://lrclib.net/api/search?track_name=${encodeURIComponent(
             trackName as string,
           )}&artist_name=${encodeURIComponent(artist as string)}`,
+          {
+            headers: {
+              "User-Agent":
+                "BeatsApp/1.0.0 (https://github.com/alokkkxpixel/Beats)",
+            },
+          },
         );
 
+        if (!response.ok) {
+          console.log(
+            `LrcLib search failed for ${artist} with status: ${response.status}`,
+          );
+          continue;
+        }
+
         const data = await response.json();
-        // console.log("lyr data", JSON.stringify(data, null, 2));
+        console.log("lyr data", JSON.stringify(data, null, 2));
         if (Array.isArray(data) && data.length > 0) {
           const lyric = data[0]?.syncedLyrics || data[0]?.plainLyrics;
           // console.log("lyrics", lyric);

@@ -57,6 +57,9 @@ export default function CityHotSection({
       }
       return url;
     }
+    if (url === "https://static.saavncdn.com/_i/share-image-2.png" || !url) {
+      return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+    }
     return "";
   };
   const renderItem = ({ item }: { item: any }) => {

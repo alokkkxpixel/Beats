@@ -8,12 +8,12 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { usePlayerStore } from "@/src/store/usePlayerStore";
+import { useWindowDimensions } from "react-native";
 import {
   TrackPlayer,
   useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
 import { useShallow } from "zustand/shallow";
-import { useWindowDimensions } from "react-native";
 
 // Import SVGs
 import MusicIcon from "@/assets/app-icons/album.svg";
@@ -48,7 +48,9 @@ const MiniPlayer = React.memo(function MiniPlayer() {
     (originalSong as any)?.localArtworkPath;
   const trackImage = isLoaded
     ? localPath
-      ? localPath.startsWith("file://") ? localPath : `file://${localPath}`
+      ? localPath.startsWith("file://")
+        ? localPath
+        : `file://${localPath}`
       : (currentTrack as any).image?.[1]?.url ||
         (originalSong as any)?.image?.[1]?.url ||
         (originalSong as any)?.image?.[0]?.url
@@ -86,7 +88,9 @@ const MiniPlayer = React.memo(function MiniPlayer() {
       ]}
     >
       {/* <BlurredBackground height={12} accentColor={accentColor} /> */}
-      <View style={[styles.miniContent, isShortScreen && { paddingVertical: 6 }]}>
+      <View
+        style={[styles.miniContent, isShortScreen && { paddingVertical: 6 }]}
+      >
         {trackImage ? (
           <Image
             source={{ uri: trackImage }}
@@ -105,13 +109,25 @@ const MiniPlayer = React.memo(function MiniPlayer() {
               },
             ]}
           >
-            <MusicIcon width={isShortScreen ? 20 : 24} height={isShortScreen ? 20 : 24} fill="#666" />
+            <MusicIcon
+              width={isShortScreen ? 20 : 24}
+              height={isShortScreen ? 20 : 24}
+              fill="#666"
+            />
           </View>
         )}
         <View style={styles.miniTextContainer}>
-          <View style={{ height: isShortScreen ? 16 : 18, justifyContent: "center" }}>
+          <View
+            style={{
+              height: isShortScreen ? 16 : 18,
+              justifyContent: "center",
+            }}
+          >
             <TextTicker
-              style={[styles.miniTitle, isShortScreen && { fontSize: 12, lineHeight: 14 }]}
+              style={[
+                styles.miniTitle,
+                isShortScreen && { fontSize: 12, lineHeight: 14 },
+              ]}
               className="tracking-tight"
               duration={15000}
               animationType="scroll"

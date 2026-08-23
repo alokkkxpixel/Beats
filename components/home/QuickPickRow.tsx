@@ -1,7 +1,12 @@
-
 import { Image } from "expo-image";
 import React from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 import { jioSaavnService } from "@/src/services/jioSaavnService";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
@@ -36,7 +41,6 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
       url: link || item.url,
     };
     setCurrentTrack(partialTrack as any);
-    
   };
 
   const handleOption = async (item: any) => {
@@ -74,11 +78,24 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
   return (
     <View style={{ height: rowHeight + (isShortScreen ? 8 : 12) }}>
       <Pressable
-        style={[styles.row, { height: rowHeight, marginBottom: isShortScreen ? 8 : 12 }, isActive && styles.activerow]}
+        style={[
+          styles.row,
+          { height: rowHeight, marginBottom: isShortScreen ? 8 : 12 },
+          isActive && styles.activerow,
+        ]}
         //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
         onPress={() => handlePlay(item.id, item.url)}
       >
-        <View style={[styles.cover, { width: coverSize, height: coverSize, marginRight: isShortScreen ? 8 : 12 }]}>
+        <View
+          style={[
+            styles.cover,
+            {
+              width: coverSize,
+              height: coverSize,
+              marginRight: isShortScreen ? 8 : 12,
+            },
+          ]}
+        >
           <Image
             source={{ uri: getImageUri(item.cover) }}
             style={{
@@ -89,21 +106,35 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
           />
 
           {isCurrent && (
-            <View style={[styles.playingOverlay, { width: coverSize, height: coverSize }]}>
+            <View
+              style={[
+                styles.playingOverlay,
+                { width: coverSize, height: coverSize },
+              ]}
+            >
               <PlayingIndicator />
             </View>
           )}
         </View>
         <View style={styles.meta}>
-          <Text style={[styles.title, isShortScreen && { fontSize: 13, lineHeight: 17 }]} numberOfLines={1}>
+          <Text
+            style={[
+              styles.title,
+              isShortScreen && { fontSize: 13, lineHeight: 17 },
+            ]}
+            numberOfLines={1}
+          >
             {decodeHtmlEntities(item.title)}
           </Text>
-        <Pressable
-          onPress={handleArtistPress}
-          style={{ alignSelf: "flex-start" }}
-        >
+          <Pressable
+            // onPress={handleArtistPress}
+            style={{ alignSelf: "flex-start" }}
+          >
             <Text
-              style={[styles.artist, isShortScreen && { fontSize: 11, lineHeight: 14 }]}
+              style={[
+                styles.artist,
+                isShortScreen && { fontSize: 11, lineHeight: 14 },
+              ]}
               className="tracking-tighter "
               numberOfLines={1}
             >
@@ -119,7 +150,7 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
           </Pressable>
         </View>
 
-      {/* <DownloadButton
+        {/* <DownloadButton
         track={{
           id: item.id,
           name: item.title,
