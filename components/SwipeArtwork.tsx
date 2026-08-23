@@ -1,4 +1,5 @@
-import { Image, StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { Image } from "expo-image";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Easing,
@@ -175,7 +176,7 @@ export default function SwipeArtwork({
                 : { uri: currentImage }
             }
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
           />
         </Animated.View>
 
@@ -192,7 +193,7 @@ export default function SwipeArtwork({
                 typeof nextImage === "number" ? nextImage : { uri: nextImage }
               }
               style={styles.image}
-              resizeMode="cover"
+              contentFit="cover"
             />
           )}
         </Animated.View>

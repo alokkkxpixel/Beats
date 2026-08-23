@@ -201,18 +201,22 @@ export default function LibraryScreen() {
       subtitle: "like by the user",
       type: "liked-songs",
       image: require("@/assets/images/liked-songs.png"),
-      updatedAt: Infinity,
+      updatedAt: Date.now(),
     });
 
     // Sort playlists and albums by updatedAt desc
     const sortedRest: any[] = [];
     playlists.forEach((p) => {
+      let playlistImage = p.image;
+      if (!playlistImage && p.songs && p.songs.length > 0) {
+        playlistImage = p.songs[0].image as any;
+      }
       sortedRest.push({
         id: p.id,
         title: p.name,
         subtitle: `${p.songs?.length || 0} songs`,
         type: "local-playlist",
-        image: p.image,
+        image: playlistImage,
         updatedAt: p.updatedAt || p.createdAt || 0,
       });
     });

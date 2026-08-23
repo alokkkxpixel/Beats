@@ -309,7 +309,7 @@ export const jioSaavnService = {
         }
 
         const data = await response.json();
-        console.log("lyr data", JSON.stringify(data, null, 2));
+        // console.log("lyr data", JSON.stringify(data, null, 2));
         if (Array.isArray(data) && data.length > 0) {
           const lyric = data[0]?.syncedLyrics || data[0]?.plainLyrics;
           // console.log("lyrics", lyric);

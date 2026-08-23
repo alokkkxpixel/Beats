@@ -4,9 +4,11 @@ import Statminus from "@/assets/app-icons/stat-minus.svg";
 import { useLyrics } from "@/src/hooks/useQueries";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,6 +23,7 @@ import {
   useNowPlaying,
   useOnPlaybackProgressChange,
 } from "react-native-nitro-player";
+import TextTicker from "react-native-text-ticker";
 import { useShallow } from "zustand/shallow";
 import ProgressSection from "./ProgressSection";
 const LINE_HEIGHT = 70;
@@ -51,6 +54,16 @@ export default function LyricsScreen() {
   const playerData = nowPlaying;
   const track = playerData?.currentTrack || currentTrack;
   const originalSong = (track as any)?.extraPayload?.song || track;
+
+  const localPath =
+    (track as any)?.localArtworkPath || (originalSong as any)?.localArtworkPath;
+  const trackImage = localPath
+    ? localPath.startsWith("file://")
+      ? localPath
+      : `file://${localPath}`
+    : (track as any)?.image?.[1]?.url ||
+      (originalSong as any)?.image?.[1]?.url ||
+      (originalSong as any)?.image?.[0]?.url;
 
   const trackTitle =
     (track as any)?.title ||
@@ -211,10 +224,31 @@ export default function LyricsScreen() {
         <TouchableOpacity onPress={() => minimizeLyrics()} className="p-1">
           <Statminus height={24} width={24} />
         </TouchableOpacity>
+        <Image
+          source={
+            trackImage
+              ? { uri: trackImage }
+              : require("@/assets/app-icons/defualt-cover.png")
+          }
+          style={{ width: 40, height: 40, borderRadius: 6 }}
+          className="ml-4"
+          contentFit="cover"
+        />
         <View className="flex-1 ml-4 justify-center">
-          <Text className="text-white text-xl font-sans-bold" numberOfLines={1}>
+          <TextTicker
+            style={{ color: "white", fontSize: 16, fontFamily: "sans-bold" }}
+            duration={15000}
+            loop
+            animationType="scroll"
+            easing={Easing.linear}
+            bounce={false}
+            repeatSpacer={20}
+            scrollSpeed={100}
+            marqueeDelay={1000}
+            shouldAnimateTreshold={20}
+          >
             {trackTitle || "Unknown Track"}
-          </Text>
+          </TextTicker>
           <Text
             className="text-neutral-400 text-sm font-sans-regular mt-0.5"
             numberOfLines={1}

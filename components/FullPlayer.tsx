@@ -3,7 +3,6 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   Easing,
   Pressable,
@@ -111,10 +110,11 @@ const FullPlayer = React.memo(
       originalSong?.subtitle ||
       "Unknown Artist";
     const localPath =
-      (currentTrack as any)?.localArtworkPath ||
-      originalSong?.localArtworkPath;
+      (currentTrack as any)?.localArtworkPath || originalSong?.localArtworkPath;
     const trackImage = localPath
-      ? localPath.startsWith("file://") ? localPath : `file://${localPath}`
+      ? localPath.startsWith("file://")
+        ? localPath
+        : `file://${localPath}`
       : originalSong?.image?.[3]?.url ||
         (currentTrack as any)?.image?.[2]?.url ||
         originalSong?.image?.[0]?.url;
@@ -124,12 +124,15 @@ const FullPlayer = React.memo(
       if (currentIndex > 0 && queue[currentIndex - 1]) {
         const prevSong = queue[currentIndex - 1];
         const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
-        const pLocal = (prevSong as any)?.localArtworkPath || prevOriginal?.localArtworkPath;
+        const pLocal =
+          (prevSong as any)?.localArtworkPath || prevOriginal?.localArtworkPath;
         return pLocal
-          ? (pLocal.startsWith("file://") ? pLocal : `file://${pLocal}`)
+          ? pLocal.startsWith("file://")
+            ? pLocal
+            : `file://${pLocal}`
           : prevOriginal?.image?.[3]?.url ||
-            (prevSong as any)?.image?.[2]?.url ||
-            prevOriginal?.image?.[0]?.url;
+              (prevSong as any)?.image?.[2]?.url ||
+              prevOriginal?.image?.[0]?.url;
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -138,12 +141,15 @@ const FullPlayer = React.memo(
       if (currentIndex < queue.length - 1 && queue[currentIndex + 1]) {
         const nextSong = queue[currentIndex + 1];
         const nextOriginal = (nextSong as any)?.extraPayload?.song || nextSong;
-        const nLocal = (nextSong as any)?.localArtworkPath || nextOriginal?.localArtworkPath;
+        const nLocal =
+          (nextSong as any)?.localArtworkPath || nextOriginal?.localArtworkPath;
         return nLocal
-          ? (nLocal.startsWith("file://") ? nLocal : `file://${nLocal}`)
+          ? nLocal.startsWith("file://")
+            ? nLocal
+            : `file://${nLocal}`
           : nextOriginal?.image?.[3]?.url ||
-            (nextSong as any)?.image?.[2]?.url ||
-            nextOriginal?.image?.[0]?.url;
+              (nextSong as any)?.image?.[2]?.url ||
+              nextOriginal?.image?.[0]?.url;
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -282,11 +288,6 @@ const FullPlayer = React.memo(
               onNext={next}
               onPrevious={() => previous(true)}
             />
-            {isLoading && !imageError && (
-              <View style={styles.imageLoaderContainer}>
-                <ActivityIndicator size="large" color="white" />
-              </View>
-            )}
           </View>
 
           {/* --- Track Info --- */}
@@ -297,7 +298,7 @@ const FullPlayer = React.memo(
                 duration={15000}
                 animationType="scroll"
                 loop
-                bounce={false}
+                bounce={false}` 
                 repeatSpacer={50}
                 scrollSpeed={100}
                 marqueeDelay={1000}
@@ -502,17 +503,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
     alignSelf: "center",
-  },
-  imageLoaderContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
   },
   trackInfo: {
     flex: 1,
