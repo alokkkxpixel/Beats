@@ -3,7 +3,11 @@ import QuickPicksSection from "@/components/home/QuickPicksSection";
 import RecentlyPlayedSection from "@/components/home/RecentlyPlayedSection";
 import TrendingSection from "@/components/home/TrendingSection";
 import RecommendedArtist from "@/components/RecommendedArtist";
-import { useHomePreviews, useSpecialForYou } from "@/src/hooks/useQueries";
+import {
+  useCommunityPlaylists,
+  useHomePreviews,
+  useSpecialForYou,
+} from "@/src/hooks/useQueries";
 import { getRecentActivity } from "@/src/lib/storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
@@ -67,6 +71,10 @@ export default function Index() {
     isLoading: SpecialForYouLoading,
     refetch: refetchSpecialForYou,
   } = useSpecialForYou();
+  const {
+    data: communityPlaylists,
+    refetch: refetchCommunity,
+  } = useCommunityPlaylists();
   const moodsAndGenres = data?.["promo:vx:data:76"] || [];
   // Time-based background logic
   const getBackgroundData = () => {
@@ -98,13 +106,18 @@ export default function Index() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["home-previews"] }),
         queryClient.invalidateQueries({ queryKey: ["special-for-you"] }),
+        queryClient.invalidateQueries({ queryKey: ["community-playlists-home"] }),
       ]);
 
-      await Promise.all([refetchHomePreviews(), refetchSpecialForYou()]);
+      await Promise.all([
+        refetchHomePreviews(),
+        refetchSpecialForYou(),
+        refetchCommunity(),
+      ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [queryClient, refetchHomePreviews, refetchSpecialForYou]);
+  }, [queryClient, refetchHomePreviews, refetchSpecialForYou, refetchCommunity]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -204,6 +217,16 @@ export default function Index() {
         data: data?.newreleases || [],
       },
       { id: "charts", title: "Top Charts", type: "charts", data: data?.charts || [] },
+        ...(communityPlaylists && communityPlaylists.length > 0
+        ? [
+            {
+              id: "from_the_community",
+              title: "From the Community",
+              type: "playlists",
+              data: communityPlaylists,
+            },
+          ]
+        : []),
       {
         id: "promo:vx:data:68",
         title: data?.["promo:vx:data:68"]?.title,
@@ -234,7 +257,7 @@ export default function Index() {
       },
     );
     return items;
-  }, [data, SpecialForYouData, moodsAndGenres, recentActivity]);
+  }, [data, SpecialForYouData, moodsAndGenres, recentActivity, communityPlaylists]);
 
   // Loading State is handled inline below to keep the header and background visible
 

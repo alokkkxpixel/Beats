@@ -37,6 +37,7 @@ const getImageUri = (img: any): string => {
     return url;
   }
   if (typeof img === "string" && img) {
+    if (img.includes("pli.saavncdn.com")) return img;
     if (img.includes("50x50")) return img.replace("50x50", "500x500");
     if (img.includes("150x150")) return img.replace("150x150", "500x500");
     const base = img.split("?")[0].replace(/\.(jpg|jpeg|png)$/i, "");

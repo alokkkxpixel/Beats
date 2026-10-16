@@ -43,3 +43,7 @@ app-example
 /ios
 /android
 BEATS_LinkedIn_Post.md
+
+.agents/
+
+docs/

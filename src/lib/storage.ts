@@ -2,10 +2,25 @@ import type { SongDetail } from "@/types/jiosaavn";
 import { Platform } from "react-native";
 import { createMMKV } from "react-native-mmkv";
 
-export const storage = createMMKV({
-  id: "beats-app-storage",
-  ...(Platform.OS !== "web" ? { encryptionKey: "beats-secure-key" } : {}),
-});
+class MockMMKV {
+  set() {}
+  getString() { return undefined; }
+  getNumber() { return undefined; }
+  getBoolean() { return undefined; }
+  remove() {}
+  clearAll() {}
+  getAllKeys(): string[] { return []; }
+  recrypt() {}
+}
+
+const isServer = typeof window === "undefined";
+
+export const storage = isServer
+  ? new MockMMKV() as any
+  : createMMKV({
+      id: "beats-app-storage",
+      ...(Platform.OS !== "web" ? { encryptionKey: "beats-secure-key" } : {}),
+    });
 
 /**
  * Persister for TanStack Query using MMKV
@@ -285,7 +300,7 @@ export const deleteDownloadedTrackMetadata = (trackId: string) => {
 
 export const clearDownloadedTrackMetadata = () => {
   const keys = storage.getAllKeys();
-  keys.forEach((key) => {
+  keys.forEach((key: string) => {
     if (key.startsWith(DOWNLOAD_TRACK_METADATA_PREFIX)) {
       storage.remove(key);
     }
