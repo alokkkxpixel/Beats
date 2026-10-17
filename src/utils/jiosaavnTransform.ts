@@ -65,9 +65,11 @@ export function buildImageQualities(imageUrl?: string | null): ImageQuality[] {
   if (!imageUrl) return [];
 
   let url = imageUrl.replace(/^http:\/\//i, "https://").split("?")[0];
-  const hasResolutionPattern = /-(50x50|150x150|500x500)\.jpg$/i.test(url);
+  const resMatch = url.match(
+    /(?:-|_)((?:50|150|500)x(?:50|150|500))(?:\.(jpg|jpeg|png|webp))?$/i,
+  );
 
-  if (!hasResolutionPattern) {
+  if (!resMatch) {
     return [
       { quality: "50x50", url },
       { quality: "150x150", url },
@@ -75,14 +77,13 @@ export function buildImageQualities(imageUrl?: string | null): ImageQuality[] {
     ];
   }
 
-  const clean = url
-    .replace(/-(50x50|150x150|500x500)\.jpg$/i, "")
-    .replace(/\.(jpg|jpeg|png)$/i, "");
+  const ext = resMatch[2] ? `.${resMatch[2]}` : ".jpg";
+  const base = url.slice(0, resMatch.index);
 
   return [
-    { quality: "50x50", url: `${clean}-50x50.jpg` },
-    { quality: "150x150", url: `${clean}-150x150.jpg` },
-    { quality: "500x500", url: `${clean}-500x500.jpg` },
+    { quality: "50x50", url: `${base}-50x50${ext}` },
+    { quality: "150x150", url: `${base}-150x150${ext}` },
+    { quality: "500x500", url: `${base}-500x500${ext}` },
   ];
 }
 

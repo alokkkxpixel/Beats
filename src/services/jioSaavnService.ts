@@ -7,6 +7,7 @@ import {
   GlobalSearchResponse,
   RootResponse,
   SearchSongsResponse,
+  SongDetail,
   SpecialForYou,
 } from "../../types/jiosaavn";
 import {
@@ -25,7 +26,9 @@ const DEFAULT_HEADERS = {
   Accept: "application/json",
 };
 
-const extractTokenFromPermalink = (link: string | null | undefined): string | null => {
+const extractTokenFromPermalink = (
+  link: string | null | undefined,
+): string | null => {
   if (!link) return null;
   const parts = link.split("?")[0].replace(/\/+$/, "").split("/");
   return parts.pop() || null;
@@ -147,20 +150,22 @@ export const jioSaavnService = {
     )}&n=${n}&p=${p}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
 
     try {
-      const [songsRes, albumsRes, artistsRes, playlistsRes] = await Promise.all([
-        fetch(`${JIOSAAVN_API}?__call=search.getResults${params}`, {
-          headers: DEFAULT_HEADERS,
-        }).then((r) => r.json()),
-        fetch(`${JIOSAAVN_API}?__call=search.getAlbumResults${params}`, {
-          headers: DEFAULT_HEADERS,
-        }).then((r) => r.json()),
-        fetch(`${JIOSAAVN_API}?__call=search.getArtistResults${params}`, {
-          headers: DEFAULT_HEADERS,
-        }).then((r) => r.json()),
-        fetch(`${JIOSAAVN_API}?__call=search.getPlaylistResults${params}`, {
-          headers: DEFAULT_HEADERS,
-        }).then((r) => r.json()),
-      ]);
+      const [songsRes, albumsRes, artistsRes, playlistsRes] = await Promise.all(
+        [
+          fetch(`${JIOSAAVN_API}?__call=search.getResults${params}`, {
+            headers: DEFAULT_HEADERS,
+          }).then((r) => r.json()),
+          fetch(`${JIOSAAVN_API}?__call=search.getAlbumResults${params}`, {
+            headers: DEFAULT_HEADERS,
+          }).then((r) => r.json()),
+          fetch(`${JIOSAAVN_API}?__call=search.getArtistResults${params}`, {
+            headers: DEFAULT_HEADERS,
+          }).then((r) => r.json()),
+          fetch(`${JIOSAAVN_API}?__call=search.getPlaylistResults${params}`, {
+            headers: DEFAULT_HEADERS,
+          }).then((r) => r.json()),
+        ],
+      );
 
       const rawSongs = songsRes?.results || [];
       const mappedSongs = rawSongs.map(mapRawSongToSongDetail);
@@ -297,7 +302,10 @@ export const jioSaavnService = {
           item.subtitle || item.description || item.more_info?.album || "",
         ),
         type: item.type || "song",
-        image: typeof item.image === "string" ? item.image : item.image?.[0]?.url || "",
+        image:
+          typeof item.image === "string"
+            ? item.image
+            : item.image?.[0]?.url || "",
         url: item.perma_url || item.url || "",
       });
 
@@ -340,7 +348,10 @@ export const jioSaavnService = {
             return { success: true, data: mapped };
           }
         } catch (tokenErr) {
-          console.warn("Token resolution failed, falling back to pid:", tokenErr);
+          console.warn(
+            "Token resolution failed, falling back to pid:",
+            tokenErr,
+          );
         }
       }
 
@@ -435,7 +446,7 @@ export const jioSaavnService = {
 
   getSuggestedSongs: async (
     id: string,
-    limit: number = 10,
+    limit: number = 25,
     stationId?: string | null,
   ): Promise<any> => {
     try {
@@ -468,12 +479,25 @@ export const jioSaavnService = {
         }
       }
 
+      const results: SongDetail[] = [];
+      const seenIds = new Set<string>([id]);
+
       if (rawSongs.length > 0) {
-        const mapped = rawSongs.map(mapRawSongToSongDetail);
-        return { success: true, data: mapped.slice(0, limit) };
+        for (const raw of rawSongs) {
+          const mapped = mapRawSongToSongDetail(raw);
+          if (mapped?.id && !seenIds.has(mapped.id)) {
+            seenIds.add(mapped.id);
+            results.push(mapped);
+          }
+        }
       }
 
-      // 2. Fallback: Search similar songs using the song's primary artist
+      // If we already have enough recommendations (at least 12 or limit), return them
+      if (results.length >= Math.min(limit, 12)) {
+        return { success: true, data: results.slice(0, limit) };
+      }
+
+      // 2. Supplement/Fallback: Search similar songs using the song's primary artist
       try {
         const detailUrl = `${JIOSAAVN_API}?__call=song.getDetails&pids=${id}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
         const detailRes = await fetch(detailUrl, { headers: DEFAULT_HEADERS });
@@ -484,23 +508,26 @@ export const jioSaavnService = {
           song?.primary_artists;
 
         if (artist) {
-          const searchRes = await jioSaavnService.searchSongs(artist, 0, limit + 2);
-          const filtered = searchRes.data.results.filter((s) => s.id !== id);
-          if (filtered.length > 0) {
-            return { success: true, data: filtered.slice(0, limit) };
+          const searchRes = await jioSaavnService.searchSongs(artist, 0, 20);
+          const searchSongs = searchRes?.data?.results || [];
+          for (const s of searchSongs) {
+            if (s?.id && !seenIds.has(s.id)) {
+              seenIds.add(s.id);
+              results.push(s);
+              if (results.length >= limit) break;
+            }
           }
         }
       } catch (fbErr) {
         console.warn("Suggested songs fallback failed:", fbErr);
       }
 
-      return { success: true, data: [] };
+      return { success: true, data: results.slice(0, limit) };
     } catch (error) {
       console.error("Suggested songs failed:", error);
       return { success: false, data: [] };
     }
   },
-
 
   getLyrics: async (
     trackName: string,
@@ -890,7 +917,9 @@ export const SaavnService = {
       // 1. Feature the user's community playlist (ANGREJI)
       try {
         const featuredUrl = `${JIOSAAVN_API}?__call=webapi.get&token=jQrktgDBu4VFMb4ZdYSGfQ__&type=playlist&_format=json&_marker=0&api_version=4&ctx=android`;
-        const featuredRes = await fetch(featuredUrl, { headers: DEFAULT_HEADERS });
+        const featuredRes = await fetch(featuredUrl, {
+          headers: DEFAULT_HEADERS,
+        });
         const featuredJson = await featuredRes.json();
         if (featuredJson && (featuredJson.id || featuredJson.listid)) {
           const fid = String(featuredJson.id || featuredJson.listid);
@@ -901,7 +930,9 @@ export const SaavnService = {
             title: decodeHtmlEntities(featuredJson.title || "ANGREJI"),
             subtitle: "Member",
             type: "playlist",
-            image: featuredJson.image || "https://pli.saavncdn.com/07/17/1298930717.jpg",
+            image:
+              featuredJson.image ||
+              "https://pli.saavncdn.com/07/17/1298930717.jpg",
             url:
               featuredJson.perma_url ||
               "https://www.jiosaavn.com/s/playlist/8cd4f5025e82e9537c778c0cb2e06673/angreji/jQrktgDBu4VFMb4ZdYSGfQ__",
@@ -944,4 +975,3 @@ export const SaavnService = {
     }
   },
 };
-

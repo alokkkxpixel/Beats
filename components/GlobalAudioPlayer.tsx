@@ -59,12 +59,12 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
       updateProgress(progressData.position, progressData.totalDuration);
     }
 
-    // Single-song autoplay suggestion — fires once, then the ref blocks it
+    // Single-song / short-queue autoplay suggestion — fires promptly
     if (
       !hasFetchedSingleTrackSuggestions.current &&
-      state.queue.length === 1 &&
+      state.queue.length <= 2 &&
       state.currentTrack &&
-      progressData.position > 10
+      progressData.position > 2
     ) {
       hasFetchedSingleTrackSuggestions.current = true;
       fetchAndAppendSuggestions(state.currentTrack.id);
@@ -112,9 +112,9 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
     });
   }, [nowPlaying.currentTrack?.id]);
 
-  // ── Infinite autoplay: fetch more tracks when reaching the second to last song ──
+  // ── Infinite autoplay: fetch more tracks when reaching near the end of the queue ──
   useEffect(() => {
-    if (queueLength > 2 && currentIndex !== -1 && currentIndex >= queueLength - 2) {
+    if (queueLength > 0 && currentIndex !== -1 && currentIndex >= queueLength - 3) {
       const { currentTrack } = usePlayerStore.getState();
       if (currentTrack?.id) {
         fetchAndAppendSuggestions(currentTrack.id);

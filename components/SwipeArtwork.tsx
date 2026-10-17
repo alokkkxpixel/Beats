@@ -152,15 +152,27 @@ export default function SwipeArtwork({
       <View
         style={[styles.container, { width: artworkSize, height: artworkSize }]}
       >
-        {/* <Animated.View style={[styles.artwork, previousStyle]}>
+        <Animated.View
+          style={[
+            styles.artwork,
+            { width: artworkSize, height: artworkSize },
+            previousStyle,
+          ]}
+        >
           {previousImage && (
             <Image
-              source={typeof previousImage === 'number' ? previousImage : { uri: previousImage }}
+              source={
+                typeof previousImage === "number"
+                  ? previousImage
+                  : { uri: previousImage }
+              }
               style={styles.image}
-              resizeMode="cover"
+              contentFit="cover"
+              priority="high"
+              cachePolicy="disk"
             />
           )}
-        </Animated.View> */}
+        </Animated.View>
 
         <Animated.View
           style={[
@@ -177,6 +189,8 @@ export default function SwipeArtwork({
             }
             style={styles.image}
             contentFit="cover"
+            priority="high"
+            cachePolicy="disk"
           />
         </Animated.View>
 
@@ -194,6 +208,8 @@ export default function SwipeArtwork({
               }
               style={styles.image}
               contentFit="cover"
+              priority="high"
+              cachePolicy="disk"
             />
           )}
         </Animated.View>

@@ -41,14 +41,87 @@ const formatArtworkUri = (path: string | null | undefined): string => {
   return `file://${path}`;
 };
 
+/**
+ * Universally upgrades any 150x150 or 50x50 resolution in JioSaavn image URLs to 500x500.
+ */
+export const upgradeArtworkTo500 = (url?: string | null): string => {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("file://") || trimmed.startsWith("/")) return trimmed;
+
+  return trimmed
+    .replace(/^http:\/\//i, "https://")
+    .replace(
+      /(?:-|_)((?:50|150)x(?:50|150))(?=\.[a-z0-9]+|\?|$)/gi,
+      "-500x500",
+    );
+};
+
+/**
+ * Universally normalizes track artwork so every resolution variant in image[],
+ * artwork property, and extraPayload.song are converted to high-definition 500x500.
+ */
+export const normalizeTrackArtwork = <T extends any>(track: T): T => {
+  if (!track || typeof track !== "object") return track;
+
+  const raw = track as any;
+  let image = raw.image;
+
+  if (Array.isArray(image)) {
+    image = image.map((img: any) => {
+      if (typeof img === "string") {
+        return upgradeArtworkTo500(img);
+      }
+      if (img && typeof img === "object") {
+        return {
+          ...img,
+          url: upgradeArtworkTo500(img.url),
+        };
+      }
+      return img;
+    });
+  } else if (typeof image === "string") {
+    image = upgradeArtworkTo500(image);
+  }
+
+  let resolvedArtwork = "";
+  if (raw.localArtworkPath) {
+    resolvedArtwork = formatArtworkUri(raw.localArtworkPath);
+  } else if (typeof raw.artwork === "string" && raw.artwork.trim()) {
+    resolvedArtwork = upgradeArtworkTo500(raw.artwork);
+  } else if (Array.isArray(image) && image.length > 0) {
+    const last = image[image.length - 1];
+    resolvedArtwork = typeof last === "string" ? last : last?.url || "";
+  } else if (typeof image === "string") {
+    resolvedArtwork = image;
+  }
+
+  const normalized: any = {
+    ...raw,
+    image,
+    artwork: resolvedArtwork,
+  };
+
+  if (normalized.extraPayload?.song) {
+    normalized.extraPayload = {
+      ...normalized.extraPayload,
+      song: normalizeTrackArtwork(normalized.extraPayload.song),
+    };
+  }
+
+  return normalized;
+};
+
 const mapToTrackItem = (
   song: SongDetail & { localArtworkPath?: string | null },
   audioQuality: AudioQualityPreference = getAudioQualityPreference(),
 ): TrackItem => {
-  const networkUrl = getPreferredTrackUrl(song, audioQuality);
+  const normalizedSong = normalizeTrackArtwork(song);
+  const networkUrl = getPreferredTrackUrl(normalizedSong, audioQuality);
 
   // Clean undefined properties from song object to prevent JSI conversion errors on native side
-  const cleanSong = { ...song };
+  const cleanSong = { ...normalizedSong };
   Object.keys(cleanSong).forEach((key) => {
     if (
       (cleanSong as any)[key] === undefined ||
@@ -59,26 +132,38 @@ const mapToTrackItem = (
   });
 
   const tempTrackItem: TrackItem = {
-    id: song.id,
-    title: song.name,
+    id: normalizedSong.id,
+    title: normalizedSong.name,
     artist:
-      song.primaryArtists ||
-      song.artists?.primary?.[0]?.name ||
+      normalizedSong.primaryArtists ||
+      normalizedSong.artists?.primary?.[0]?.name ||
       "Unknown Artist",
     album:
-      typeof song.album === "string"
-        ? song.album
-        : song.album?.name || "Unknown Album",
-    duration: song.duration || 0,
+      typeof normalizedSong.album === "string"
+        ? normalizedSong.album
+        : normalizedSong.album?.name || "Unknown Album",
+    duration: normalizedSong.duration || 0,
     url: networkUrl,
     artwork:
-      formatArtworkUri(song.localArtworkPath) ||
-      (Array.isArray(song.image)
-        ? typeof song.image[song.image.length - 1] === "string"
-          ? song.image[song.image.length - 1]
-          : (song.image[song.image.length - 1] as any)?.url || ""
-        : typeof song.image === "string"
-          ? song.image
+      formatArtworkUri(normalizedSong.localArtworkPath) ||
+      normalizedSong.artwork ||
+      (Array.isArray(normalizedSong.image) && normalizedSong.image.length > 0
+        ? typeof normalizedSong.image[normalizedSong.image.length - 1] ===
+          "string"
+          ? upgradeArtworkTo500(
+              normalizedSong.image[
+                normalizedSong.image.length - 1
+              ] as unknown as string,
+            )
+          : upgradeArtworkTo500(
+              (
+                normalizedSong.image[
+                  normalizedSong.image.length - 1
+                ] as unknown as any
+              )?.url,
+            )
+        : typeof normalizedSong.image === "string"
+          ? upgradeArtworkTo500(normalizedSong.image)
           : ""),
     extraPayload: { song: cleanSong as any },
   };
@@ -382,7 +467,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setCurrentTrack: async (track, contextQueue) => {
     try {
       // Normalize the track first to handle both full SongDetail and partial listing/search items
-      const normalizedTrack = {
+      const normalizedTrack = normalizeTrackArtwork({
         ...track,
         id: track.id,
         name: track.name || (track as any).title || "",
@@ -398,7 +483,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             ? track.album
             : track.album?.name || (track as any).album || "",
         url: track.url || (track as any).perma_url || "",
-      };
+      });
 
       // 1. If we have a context queue (like an album/playlist), use it instead of suggestions
       if (contextQueue && contextQueue.length > 0) {
@@ -510,7 +595,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           fullTrack.url,
         );
         if (response.success && response.data[0]) {
-          fullTrack = response.data[0];
+          fullTrack = normalizeTrackArtwork(response.data[0]);
           // Update store with full details
           set({
             currentTrack: fullTrack,
@@ -543,6 +628,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       set({ isLoading: false });
       get().persistPlayerState();
+
+      // Immediately fetch suggestions for autoplay so queue is well populated
+      if (fullTrack.id) {
+        get().fetchAndAppendSuggestions(fullTrack.id);
+      }
     } catch (error) {
       console.error("Error playing track:", error);
       set({ isLoading: false });
@@ -554,43 +644,28 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (!tracks || tracks.length === 0) return;
 
     try {
-      const selectedTrack = tracks[startIndex];
+      const normalizedQueue = tracks.map((track) =>
+        normalizeTrackArtwork({
+          ...track,
+          id: track.id,
+          name: track.name || (track as any).title || "",
+          image: track.image,
+          primaryArtists:
+            track.primaryArtists ||
+            track.artists?.primary?.[0]?.name ||
+            (track as any).subtitle ||
+            (track as any).artist ||
+            "Unknown Artist",
+          album:
+            typeof track.album === "string"
+              ? track.album
+              : track.album?.name || (track as any).album || "",
+          url: track.url || (track as any).perma_url || "",
+        }),
+      );
 
-      const normalizedSelectedTrack = {
-        ...selectedTrack,
-        id: selectedTrack.id,
-        name: selectedTrack.name || (selectedTrack as any).title || "",
-        image: selectedTrack.image,
-        primaryArtists:
-          selectedTrack.primaryArtists ||
-          selectedTrack.artists?.primary?.[0]?.name ||
-          (selectedTrack as any).subtitle ||
-          (selectedTrack as any).artist ||
-          "Unknown Artist",
-        album:
-          typeof selectedTrack.album === "string"
-            ? selectedTrack.album
-            : selectedTrack.album?.name || (selectedTrack as any).album || "",
-        url: selectedTrack.url || (selectedTrack as any).perma_url || "",
-      };
-
-      const normalizedQueue = tracks.map((track) => ({
-        ...track,
-        id: track.id,
-        name: track.name || (track as any).title || "",
-        image: track.image,
-        primaryArtists:
-          track.primaryArtists ||
-          track.artists?.primary?.[0]?.name ||
-          (track as any).subtitle ||
-          (track as any).artist ||
-          "Unknown Artist",
-        album:
-          typeof track.album === "string"
-            ? track.album
-            : track.album?.name || (track as any).album || "",
-        url: track.url || (track as any).perma_url || "",
-      }));
+      const normalizedSelectedTrack =
+        normalizedQueue[startIndex] || normalizedQueue[0];
 
       // 1. Update store metadata IMMEDIATELY
       set({
@@ -669,7 +744,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           fullTrack.url,
         );
         if (response.success && response.data[0]) {
-          fullTrack = response.data[0];
+          fullTrack = normalizeTrackArtwork(response.data[0]);
 
           const updatedQueue = [...normalizedQueue];
           updatedQueue[startIndex] = fullTrack;
@@ -741,10 +816,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (!activePlaylistId || isFetchingSuggestions || !isAutoplayEnabled)
         return;
 
-      // console.log("🔄 Fetching more suggestions for autoplay...");
       set({ isFetchingSuggestions: true });
 
-      const response = await jioSaavnService.getSuggestedSongs(trackId, 10);
+      const response = await jioSaavnService.getSuggestedSongs(trackId, 25);
       const suggestions: SongDetail[] = Array.isArray(response)
         ? response
         : response?.data || [];
@@ -755,9 +829,38 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
 
       // Filter out songs already in queue to avoid duplicates
-      const newSongs = suggestions.filter(
-        (s) => !queue.some((q) => q.id === s.id),
-      );
+      let newSongs = suggestions
+        .filter((s) => !queue.some((q) => q.id === s.id))
+        .map(normalizeTrackArtwork);
+
+      // If we got fewer than 8 new songs, chain recommendations from the last suggestion
+      if (newSongs.length < 8 && suggestions.length > 0) {
+        try {
+          const pivotSong = suggestions[suggestions.length - 1];
+          if (pivotSong?.id && pivotSong.id !== trackId) {
+            const extraRes = await jioSaavnService.getSuggestedSongs(
+              pivotSong.id,
+              25,
+            );
+            const extraList: SongDetail[] = Array.isArray(extraRes)
+              ? extraRes
+              : extraRes?.data || [];
+
+            for (const item of extraList) {
+              if (
+                !queue.some((q) => q.id === item.id) &&
+                !newSongs.some((s) => s.id === item.id)
+              ) {
+                newSongs.push(item);
+                if (newSongs.length >= 20) break;
+              }
+            }
+          }
+        } catch (chainErr) {
+          console.warn("Error chaining recommendations:", chainErr);
+        }
+      }
+
       if (newSongs.length === 0) {
         set({ isFetchingSuggestions: false });
         return;
@@ -771,7 +874,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         mapToTrackItem(item, get().audioQuality),
       );
       await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
-      // console.log(`✅ Appended ${newSongs.length} new songs to queue`);
       set({ isFetchingSuggestions: false });
     } catch (error) {
       console.error("Error fetching more suggestions:", error);

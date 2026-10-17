@@ -51,6 +51,8 @@ export interface SongDetail {
   artists: SongArtistsMap;
   image: ImageQuality[];
   downloadUrl: ImageQuality[];
+  artwork?: string;
+  localArtworkPath?: string | null;
 }
 
 // ----------------------------------------------------

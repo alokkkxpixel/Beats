@@ -1,4 +1,7 @@
-import { usePlayerStore } from "@/src/store/usePlayerStore";
+import {
+  upgradeArtworkTo500,
+  usePlayerStore,
+} from "@/src/store/usePlayerStore";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useCallback } from "react";
@@ -25,6 +28,10 @@ import MoreIcon from "@/assets/app-icons/more.svg";
 import TextTicker from "react-native-text-ticker";
 // 🟢 CORRECT (For default exports)
 import defaultCover from "@/assets/app-icons/defualt-cover.png";
+import {
+  forceHighQualityImageUrl,
+  getHighQualityArtwork,
+} from "@/src/utils/artwork";
 import ArtistCredits from "./ArtistCredits";
 import LyricsPreview from "./LyricsPreview";
 import SwipeArtwork from "./SwipeArtwork";
@@ -111,45 +118,38 @@ const FullPlayer = React.memo(
       "Unknown Artist";
     const localPath =
       (currentTrack as any)?.localArtworkPath || originalSong?.localArtworkPath;
-    const trackImage = localPath
+    const rawTrackImage = localPath
       ? localPath.startsWith("file://")
         ? localPath
         : `file://${localPath}`
-      : originalSong?.image?.[3]?.url ||
+      : currentTrack?.artwork ||
+        originalSong?.artwork ||
         (currentTrack as any)?.image?.[2]?.url ||
+        originalSong?.image?.[2]?.url ||
         originalSong?.image?.[0]?.url;
+    const trackImage = upgradeArtworkTo500(rawTrackImage) || rawTrackImage;
 
     // Get previous and next track images for carousel
     const previousTrackImage = React.useMemo(() => {
       if (currentIndex > 0 && queue[currentIndex - 1]) {
-        const prevSong = queue[currentIndex - 1];
-        const prevOriginal = (prevSong as any)?.extraPayload?.song || prevSong;
-        const pLocal =
-          (prevSong as any)?.localArtworkPath || prevOriginal?.localArtworkPath;
-        return pLocal
-          ? pLocal.startsWith("file://")
-            ? pLocal
-            : `file://${pLocal}`
-          : prevOriginal?.image?.[3]?.url ||
-              (prevSong as any)?.image?.[2]?.url ||
-              prevOriginal?.image?.[0]?.url;
+        const prev = queue[currentIndex - 1];
+        const rawPrev =
+          prev?.artwork ||
+          (prev as any)?.image?.[2]?.url ||
+          (prev as any)?.image?.[0]?.url;
+        return upgradeArtworkTo500(rawPrev) || rawPrev;
       }
       return undefined;
     }, [currentIndex, queue]);
 
     const nextTrackImage = React.useMemo(() => {
       if (currentIndex < queue.length - 1 && queue[currentIndex + 1]) {
-        const nextSong = queue[currentIndex + 1];
-        const nextOriginal = (nextSong as any)?.extraPayload?.song || nextSong;
-        const nLocal =
-          (nextSong as any)?.localArtworkPath || nextOriginal?.localArtworkPath;
-        return nLocal
-          ? nLocal.startsWith("file://")
-            ? nLocal
-            : `file://${nLocal}`
-          : nextOriginal?.image?.[3]?.url ||
-              (nextSong as any)?.image?.[2]?.url ||
-              nextOriginal?.image?.[0]?.url;
+        const next = queue[currentIndex + 1];
+        const rawNext =
+          next?.artwork ||
+          (next as any)?.image?.[2]?.url ||
+          (next as any)?.image?.[0]?.url;
+        return upgradeArtworkTo500(rawNext) || rawNext;
       }
       return undefined;
     }, [currentIndex, queue]);
@@ -196,7 +196,7 @@ const FullPlayer = React.memo(
       ) {
         return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
       }
-      return url;
+      return forceHighQualityImageUrl(url) || url;
     }, [originalSong]);
 
     if (!currentTrack) {
