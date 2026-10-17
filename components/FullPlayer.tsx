@@ -28,10 +28,7 @@ import MoreIcon from "@/assets/app-icons/more.svg";
 import TextTicker from "react-native-text-ticker";
 // 🟢 CORRECT (For default exports)
 import defaultCover from "@/assets/app-icons/defualt-cover.png";
-import {
-  forceHighQualityImageUrl,
-  getHighQualityArtwork,
-} from "@/src/utils/artwork";
+import { forceHighQualityImageUrl } from "@/src/utils/artwork";
 import ArtistCredits from "./ArtistCredits";
 import LyricsPreview from "./LyricsPreview";
 import SwipeArtwork from "./SwipeArtwork";
@@ -211,13 +208,11 @@ const FullPlayer = React.memo(
       "Artist";
     const bioDisplayText =
       label || copyright || "No artist biography available.";
-
     return (
       <GestureHandlerRootView
         style={[
           {
-            backgroundColor:
-              accentColor?.dominant || accentColor?.average || "#222222",
+            backgroundColor: accentColor?.average || accentColor?.average,
           },
           //   styles.container,
           { flex: 1 },
@@ -227,8 +222,7 @@ const FullPlayer = React.memo(
           style={[
             styles.container,
             {
-              backgroundColor:
-                accentColor?.average || accentColor?.dominant || "#222222",
+              backgroundColor: accentColor?.average || accentColor?.vibrant,
             },
           ]}
           bounces={true}

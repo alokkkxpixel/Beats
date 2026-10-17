@@ -58,70 +58,14 @@ export const upgradeArtworkTo500 = (url?: string | null): string => {
     );
 };
 
-/**
- * Universally normalizes track artwork so every resolution variant in image[],
- * artwork property, and extraPayload.song are converted to high-definition 500x500.
- */
-export const normalizeTrackArtwork = <T extends any>(track: T): T => {
-  if (!track || typeof track !== "object") return track;
-
-  const raw = track as any;
-  let image = raw.image;
-
-  if (Array.isArray(image)) {
-    image = image.map((img: any) => {
-      if (typeof img === "string") {
-        return upgradeArtworkTo500(img);
-      }
-      if (img && typeof img === "object") {
-        return {
-          ...img,
-          url: upgradeArtworkTo500(img.url),
-        };
-      }
-      return img;
-    });
-  } else if (typeof image === "string") {
-    image = upgradeArtworkTo500(image);
-  }
-
-  let resolvedArtwork = "";
-  if (raw.localArtworkPath) {
-    resolvedArtwork = formatArtworkUri(raw.localArtworkPath);
-  } else if (typeof raw.artwork === "string" && raw.artwork.trim()) {
-    resolvedArtwork = upgradeArtworkTo500(raw.artwork);
-  } else if (Array.isArray(image) && image.length > 0) {
-    const last = image[image.length - 1];
-    resolvedArtwork = typeof last === "string" ? last : last?.url || "";
-  } else if (typeof image === "string") {
-    resolvedArtwork = image;
-  }
-
-  const normalized: any = {
-    ...raw,
-    image,
-    artwork: resolvedArtwork,
-  };
-
-  if (normalized.extraPayload?.song) {
-    normalized.extraPayload = {
-      ...normalized.extraPayload,
-      song: normalizeTrackArtwork(normalized.extraPayload.song),
-    };
-  }
-
-  return normalized;
-};
-
 const mapToTrackItem = (
   song: SongDetail & { localArtworkPath?: string | null },
   audioQuality: AudioQualityPreference = getAudioQualityPreference(),
 ): TrackItem => {
-  const normalizedSong = normalizeTrackArtwork(song);
-  const networkUrl = getPreferredTrackUrl(normalizedSong, audioQuality);
+  const networkUrl = getPreferredTrackUrl(song, audioQuality);
 
   // Clean undefined properties from song object to prevent JSI conversion errors on native side
-  const cleanSong = { ...normalizedSong };
+  const cleanSong = { ...song };
   Object.keys(cleanSong).forEach((key) => {
     if (
       (cleanSong as any)[key] === undefined ||
@@ -131,40 +75,35 @@ const mapToTrackItem = (
     }
   });
 
+  // Ensure high quality 500x500 artwork for system media controls, notifications, and lock screen
+  const rawArtwork =
+    formatArtworkUri(song.localArtworkPath) ||
+    (Array.isArray(song.image) && song.image.length > 0
+      ? typeof song.image[2] === "object" && song.image[2]?.url
+        ? song.image[2].url
+        : typeof song.image[song.image.length - 1] === "string"
+          ? (song.image[song.image.length - 1] as unknown as string)
+          : (song.image[song.image.length - 1] as any)?.url || ""
+      : typeof song.image === "string"
+        ? song.image
+        : song.artwork || "");
+
+  const mediaControlArtwork = upgradeArtworkTo500(rawArtwork) || rawArtwork;
+
   const tempTrackItem: TrackItem = {
-    id: normalizedSong.id,
-    title: normalizedSong.name,
+    id: song.id,
+    title: song.name,
     artist:
-      normalizedSong.primaryArtists ||
-      normalizedSong.artists?.primary?.[0]?.name ||
+      song.primaryArtists ||
+      song.artists?.primary?.[0]?.name ||
       "Unknown Artist",
     album:
-      typeof normalizedSong.album === "string"
-        ? normalizedSong.album
-        : normalizedSong.album?.name || "Unknown Album",
-    duration: normalizedSong.duration || 0,
+      typeof song.album === "string"
+        ? song.album
+        : song.album?.name || "Unknown Album",
+    duration: song.duration || 0,
     url: networkUrl,
-    artwork:
-      formatArtworkUri(normalizedSong.localArtworkPath) ||
-      normalizedSong.artwork ||
-      (Array.isArray(normalizedSong.image) && normalizedSong.image.length > 0
-        ? typeof normalizedSong.image[normalizedSong.image.length - 1] ===
-          "string"
-          ? upgradeArtworkTo500(
-              normalizedSong.image[
-                normalizedSong.image.length - 1
-              ] as unknown as string,
-            )
-          : upgradeArtworkTo500(
-              (
-                normalizedSong.image[
-                  normalizedSong.image.length - 1
-                ] as unknown as any
-              )?.url,
-            )
-        : typeof normalizedSong.image === "string"
-          ? upgradeArtworkTo500(normalizedSong.image)
-          : ""),
+    artwork: mediaControlArtwork,
     extraPayload: { song: cleanSong as any },
   };
 
@@ -467,7 +406,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setCurrentTrack: async (track, contextQueue) => {
     try {
       // Normalize the track first to handle both full SongDetail and partial listing/search items
-      const normalizedTrack = normalizeTrackArtwork({
+      const normalizedTrack = {
         ...track,
         id: track.id,
         name: track.name || (track as any).title || "",
@@ -483,7 +422,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             ? track.album
             : track.album?.name || (track as any).album || "",
         url: track.url || (track as any).perma_url || "",
-      });
+      };
 
       // 1. If we have a context queue (like an album/playlist), use it instead of suggestions
       if (contextQueue && contextQueue.length > 0) {
@@ -595,7 +534,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           fullTrack.url,
         );
         if (response.success && response.data[0]) {
-          fullTrack = normalizeTrackArtwork(response.data[0]);
+          fullTrack = response.data[0];
           // Update store with full details
           set({
             currentTrack: fullTrack,
@@ -644,25 +583,23 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (!tracks || tracks.length === 0) return;
 
     try {
-      const normalizedQueue = tracks.map((track) =>
-        normalizeTrackArtwork({
-          ...track,
-          id: track.id,
-          name: track.name || (track as any).title || "",
-          image: track.image,
-          primaryArtists:
-            track.primaryArtists ||
-            track.artists?.primary?.[0]?.name ||
-            (track as any).subtitle ||
-            (track as any).artist ||
-            "Unknown Artist",
-          album:
-            typeof track.album === "string"
-              ? track.album
-              : track.album?.name || (track as any).album || "",
-          url: track.url || (track as any).perma_url || "",
-        }),
-      );
+      const normalizedQueue = tracks.map((track) => ({
+        ...track,
+        id: track.id,
+        name: track.name || (track as any).title || "",
+        image: track.image,
+        primaryArtists:
+          track.primaryArtists ||
+          track.artists?.primary?.[0]?.name ||
+          (track as any).subtitle ||
+          (track as any).artist ||
+          "Unknown Artist",
+        album:
+          typeof track.album === "string"
+            ? track.album
+            : track.album?.name || (track as any).album || "",
+        url: track.url || (track as any).perma_url || "",
+      }));
 
       const normalizedSelectedTrack =
         normalizedQueue[startIndex] || normalizedQueue[0];
@@ -744,7 +681,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           fullTrack.url,
         );
         if (response.success && response.data[0]) {
-          fullTrack = normalizeTrackArtwork(response.data[0]);
+          fullTrack = response.data[0];
 
           const updatedQueue = [...normalizedQueue];
           updatedQueue[startIndex] = fullTrack;
@@ -829,9 +766,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       }
 
       // Filter out songs already in queue to avoid duplicates
-      let newSongs = suggestions
-        .filter((s) => !queue.some((q) => q.id === s.id))
-        .map(normalizeTrackArtwork);
+      let newSongs = suggestions.filter(
+        (s) => !queue.some((q) => q.id === s.id),
+      );
 
       // If we got fewer than 8 new songs, chain recommendations from the last suggestion
       if (newSongs.length < 8 && suggestions.length > 0) {
