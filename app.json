@@ -41,7 +41,7 @@
       "package": "com.alokkkxpixel.beats"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "bundler": "metro",
       "favicon": "./assets/icons/appIcon.png"
     },
