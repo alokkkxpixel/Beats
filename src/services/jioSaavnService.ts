@@ -612,6 +612,10 @@ export const SaavnService = {
         },
       });
 
+      if (!response.ok) {
+        throw new Error(`Home previews HTTP error: ${response.status}`);
+      }
+
       const json = await response.json();
 
       const rawTopPlaylists: AlbumResponse[] = json?.top_playlists || [];
@@ -810,7 +814,7 @@ export const SaavnService = {
       };
     } catch (error) {
       console.error("❌ API Fetch Error:", error);
-      return EMPTY;
+      throw error;
     }
   },
 
@@ -830,11 +834,15 @@ export const SaavnService = {
         },
       });
 
+      if (!response.ok) {
+        throw new Error(`Special for you HTTP error: ${response.status}`);
+      }
+
       const data: SpecialForYou = await response.json();
       return data;
     } catch (error) {
       console.error("Fetch failed:", error);
-      return null;
+      throw error;
     }
   },
 

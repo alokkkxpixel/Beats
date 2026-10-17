@@ -119,7 +119,7 @@ export default function QuickPicksSection({
     return chunks;
   }, [data]);
 
-  if (columns.length === 0) return <></>;
+  if (columns.length === 0) return <View style={{ height: 0 }} />;
 
   return (
     <View style={styles.section}>

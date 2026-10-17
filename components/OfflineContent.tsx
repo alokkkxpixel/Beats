@@ -3,8 +3,13 @@ import { View, Text, Pressable, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
+import { queryClient } from "@/src/lib/query-client";
 
-export default function OfflineContent() {
+interface OfflineContentProps {
+  onRetry?: () => void;
+}
+
+export default function OfflineContent({ onRetry }: OfflineContentProps = {}) {
   const router = useRouter();
   const { height } = useWindowDimensions();
   const isShortScreen = height < 700;
@@ -68,6 +73,13 @@ export default function OfflineContent() {
             type: "info",
             text1: "Checking connection...",
           });
+          if (onRetry) {
+            onRetry();
+          } else {
+            queryClient.invalidateQueries({ queryKey: ["home-previews"] });
+            queryClient.invalidateQueries({ queryKey: ["special-for-you"] });
+            queryClient.invalidateQueries({ queryKey: ["community-playlists-home"] });
+          }
         }}
         style={{
           backgroundColor: "#1c1c1e",

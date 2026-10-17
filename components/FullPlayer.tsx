@@ -292,7 +292,7 @@ const FullPlayer = React.memo(
                 duration={15000}
                 animationType="scroll"
                 loop
-                bounce={false}` 
+                bounce={false}
                 repeatSpacer={50}
                 scrollSpeed={100}
                 marqueeDelay={1000}

@@ -26,8 +26,8 @@ export function AuthSync() {
       clerkUser: user ?? null,
     });
     if (isLoaded) {
-      storage.set("is-user-signed-in", !!isSignedIn);
       if (isSignedIn && user) {
+        storage.set("is-user-signed-in", true);
         // Detect primary OAuth provider from external accounts
         const externalAccounts: any[] = user.externalAccounts ?? [];
         let provider: string | null = null;
@@ -55,9 +55,10 @@ export function AuthSync() {
           provider,
         };
         storage.set("cached-user-data", JSON.stringify(cachedUser));
-      } else if (!isSignedIn) {
-        storage.remove("cached-user-data");
       }
+      // Note: We intentionally do NOT delete "is-user-signed-in" or "cached-user-data"
+      // when !isSignedIn. During offline mode or token refreshes, Clerk reports
+      // isSignedIn=false temporarily. Explicit sign-out in profile.tsx cleans this up.
     }
   }, [isLoaded, isSignedIn, user, syncFromClerk]);
 

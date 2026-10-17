@@ -162,13 +162,19 @@ export default function Index() {
 
   // Fix: Hooks must run before any conditional return
   const sections = React.useMemo(() => {
-    const items = [];
-    items.push({
-      id: "quick",
-      title: "Quick Picks",
-      type: "quickPicks",
-      data: data?.quick_picks,
-    });
+    if (!data) return [];
+
+    const items: any[] = [];
+
+    if (data.quick_picks && data.quick_picks.length > 0) {
+      items.push({
+        id: "quick",
+        title: "Quick Picks",
+        type: "quickPicks",
+        data: data.quick_picks,
+      });
+    }
+
     if (recentActivity && recentActivity.length > 0) {
       items.push({
         id: "recentlyPlayed",
@@ -177,87 +183,140 @@ export default function Index() {
         data: recentActivity,
       });
     }
-    items.push(
-      {
+
+    if (data.newtrending && data.newtrending.length > 0) {
+      items.push({
         id: "trending",
         title: "New & Trending",
         type: "trending",
-        data: data?.newtrending || [],
-      },
-      {
+        data: data.newtrending,
+      });
+    }
+
+    if (data.city_mod?.data && data.city_mod.data.length > 0) {
+      items.push({
         id: "citymod",
-        title: data?.city_mod?.title,
-        subtitle: data?.city_mod?.subtitle,
+        title: data.city_mod.title,
+        subtitle: data.city_mod.subtitle,
         type: "cityHot",
-        data: data?.city_mod?.data || [],
-      },
-      {
+        data: data.city_mod.data,
+      });
+    }
+
+    if (SpecialForYouData?.list && SpecialForYouData.list.length > 0) {
+      items.push({
         id: "foryou",
         title: "For You",
         subtitle: "Music just for you",
         type: "foryou",
-        data: SpecialForYouData?.list || [],
-      },
-      {
+        data: SpecialForYouData.list,
+      });
+    }
+
+    if (data.topPlaylists && data.topPlaylists.length > 0) {
+      items.push({
         id: "playlists",
         title: "Top Playlists",
         type: "playlists",
-        data: data?.topPlaylists || [],
-      },
-      {
+        data: data.topPlaylists,
+      });
+    }
+
+    if (data.artist_recos?.data && data.artist_recos.data.length > 0) {
+      items.push({
         id: "artist_recos",
-        title: data?.artist_recos?.title as string,
+        title: data.artist_recos.title as string,
         type: "artistrecos",
-        data: data?.artist_recos?.data || [],
-      },
-      {
+        data: data.artist_recos.data,
+      });
+    }
+
+    if (data.newreleases && data.newreleases.length > 0) {
+      items.push({
         id: "albums",
         title: "New Releases",
         type: "albums",
-        data: data?.newreleases || [],
-      },
-      { id: "charts", title: "Top Charts", type: "charts", data: data?.charts || [] },
-        ...(communityPlaylists && communityPlaylists.length > 0
-        ? [
-            {
-              id: "from_the_community",
-              title: "From the Community",
-              type: "playlists",
-              data: communityPlaylists,
-            },
-          ]
-        : []),
-      {
+        data: data.newreleases,
+      });
+    }
+
+    if (data.charts && data.charts.length > 0) {
+      items.push({
+        id: "charts",
+        title: "Top Charts",
+        type: "charts",
+        data: data.charts,
+      });
+    }
+
+    if (communityPlaylists && communityPlaylists.length > 0) {
+      items.push({
+        id: "from_the_community",
+        title: "From the Community",
+        type: "playlists",
+        data: communityPlaylists,
+      });
+    }
+
+    if (
+      data["promo:vx:data:68"]?.data &&
+      data["promo:vx:data:68"].data.length > 0
+    ) {
+      items.push({
         id: "promo:vx:data:68",
-        title: data?.["promo:vx:data:68"]?.title,
-        subtitle: data?.["promo:vx:data:68"]?.subtitle,
+        title: data["promo:vx:data:68"].title,
+        subtitle: data["promo:vx:data:68"].subtitle,
         type: "promo:vx:data:68",
-        data: data?.["promo:vx:data:68"]?.data || [],
-      },
-      {
+        data: data["promo:vx:data:68"].data,
+      });
+    }
+
+    if (moodsAndGenres && moodsAndGenres.length > 0) {
+      items.push({
         id: "moodsAndGenres",
         title: "Moods and Genres",
         subtitle: "Discover new music",
         type: "moodsAndGenres",
-        data: moodsAndGenres || [],
-      },
-      {
+        data: moodsAndGenres,
+      });
+    }
+
+    if (
+      data["promo:vx:data:185"]?.data &&
+      data["promo:vx:data:185"].data.length > 0
+    ) {
+      items.push({
         id: "promo:vx:data:185",
-        title: data?.["promo:vx:data:185"]?.title,
-        subtitle: data?.["promo:vx:data:185"]?.subtitle,
+        title: data["promo:vx:data:185"].title,
+        subtitle: data["promo:vx:data:185"].subtitle,
         type: "promo:vx:data:185",
-        data: data?.["promo:vx:data:185"]?.data || [],
-      },
-      {
+        data: data["promo:vx:data:185"].data,
+      });
+    }
+
+    if (
+      data["promo:vx:data:69"]?.data &&
+      data["promo:vx:data:69"].data.length > 0
+    ) {
+      items.push({
         id: "promo:vx:data:69",
-        title: data?.["promo:vx:data:69"]?.title,
-        subtitle: data?.["promo:vx:data:69"]?.subtitle,
+        title: data["promo:vx:data:69"].title,
+        subtitle: data["promo:vx:data:69"].subtitle,
         type: "promo:vx:data:69",
-        data: data?.["promo:vx:data:69"]?.data || [],
-      },
-    );
+        data: data["promo:vx:data:69"].data,
+      });
+    }
+
     return items;
-  }, [data, SpecialForYouData, moodsAndGenres, recentActivity, communityPlaylists]);
+  }, [
+    data,
+    SpecialForYouData,
+    moodsAndGenres,
+    recentActivity,
+    communityPlaylists,
+  ]);
+
+  const hasSections = sections && sections.length > 0;
 
   // Loading State is handled inline below to keep the header and background visible
 
@@ -310,16 +369,16 @@ export default function Index() {
         <Header title="Beats" />
       </Animated.View>
 
-      {isOffline ? (
+      {isOffline && !hasSections ? (
         <View
           style={{
             flex: 1,
             paddingTop: TOTAL_HEADER_HEIGHT,
           }}
         >
-          <OfflineContent />
+          <OfflineContent onRetry={handleRefresh} />
         </View>
-      ) : isLoading || !data ? (
+      ) : isLoading && !hasSections ? (
         <View
           style={{
             flex: 1,
@@ -329,6 +388,15 @@ export default function Index() {
           }}
         >
           <ActivityIndicator size="large" color="white" />
+        </View>
+      ) : !hasSections ? (
+        <View
+          style={{
+            flex: 1,
+            paddingTop: TOTAL_HEADER_HEIGHT,
+          }}
+        >
+          <OfflineContent onRetry={handleRefresh} />
         </View>
       ) : (
         <AnimatedFlashList
@@ -356,6 +424,7 @@ export default function Index() {
             paddingBottom: 250,
           }}
           renderItem={({ item }: any) => {
+            if (!item) return <View style={{ height: 0 }} />;
             if (item.type === "recentlyPlayed")
               return <RecentlyPlayedSection data={item.data} />;
             if (item.type === "quickPicks")

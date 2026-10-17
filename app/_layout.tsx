@@ -56,8 +56,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       storage.getBoolean("is-user-signed-in") ?? false;
 
     // Treat user as signed in if they are offline (to bypass auth check and load the offline UI),
-    // or if they are signed in via Clerk.
-    const effectivelySignedIn = isSignedIn || isOffline;
+    // or if they are signed in via Clerk, or if they have previously signed in.
+    const effectivelySignedIn =
+      isSignedIn || isOffline || isUserSignedInCached;
 
     if (!effectivelySignedIn && !inAuthGroup) {
       router.replace("/onboarding");
@@ -71,7 +72,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [isSignedIn, isLoaded, segments, isOffline]);
 
   React.useEffect(() => {
-    if (isLoaded || isOffline) {
+    const isUserSignedInCached =
+      storage.getBoolean("is-user-signed-in") ?? false;
+    if (isLoaded || isOffline || isUserSignedInCached) {
       setHasRenderedChildren(true);
     }
   }, [isLoaded, isOffline]);
@@ -97,7 +100,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  if (isOffline) {
+  const isUserSignedInCached =
+    storage.getBoolean("is-user-signed-in") ?? false;
+
+  if (isOffline || isUserSignedInCached) {
     return <>{children}</>;
   }
 

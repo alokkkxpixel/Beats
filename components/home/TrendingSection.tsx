@@ -57,7 +57,7 @@ export default function TrendingSection({
   const isShortScreen = height < 700;
   const cardSize = isShortScreen ? 110 : 135;
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
-  if (!data || data.length === 0) return <></>;
+  if (!data || data.length === 0) return <View style={{ height: 0 }} />;
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const [failedImages, setFailedImages] = React.useState<Set<string>>(
     new Set(),

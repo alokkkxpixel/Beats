@@ -1,5 +1,6 @@
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import React, { useEffect, useRef } from "react";
+import Toast from "react-native-toast-message";
 import {
     useNowPlaying,
     useOnPlaybackProgressChange,
@@ -28,13 +29,37 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
   // ── Ref: fire single-song suggestion fetch exactly once per track ────────────
   const hasFetchedSingleTrackSuggestions = useRef(false);
 
-  // Sync playing/paused/loading state to store
+  // Sync playing/paused/loading state to store with buffering timeout protection
   useEffect(() => {
     const isPlaying = playbackState.state === "playing";
     const isBuffering = playbackState.state === "buffering";
     setPlaying(isPlaying);
     setLoading(isBuffering);
-  }, [playbackState.state, setPlaying, setLoading]);
+
+    if (playbackState.reason === "error") {
+      setPlaying(false);
+      setLoading(false);
+      Toast.show({
+        type: "error",
+        text1: "Playback error",
+        text2: "Unable to stream audio. Please play downloaded tracks.",
+      });
+      return;
+    }
+
+    if (isBuffering) {
+      const timeout = setTimeout(() => {
+        // If still buffering after 12 seconds, network is dead or connection stalled
+        setLoading(false);
+        Toast.show({
+          type: "info",
+          text1: "Buffering taking long...",
+          text2: "Check your internet connection or play downloaded songs.",
+        });
+      }, 12000);
+      return () => clearTimeout(timeout);
+    }
+  }, [playbackState.state, playbackState.reason, setPlaying, setLoading]);
 
   // ── Progress sync + single-song suggestion trigger ───────────────────────────
   // All store reads are imperative (getState) — this effect does NOT subscribe

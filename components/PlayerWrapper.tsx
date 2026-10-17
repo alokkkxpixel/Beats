@@ -246,7 +246,7 @@ const QueueSheetLayer = React.memo(() => {
   );
 
   const queueSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = React.useMemo(() => ["50%", "100%"], []);
+  const snapPoints = React.useMemo(() => ["100%"], []);
 
   useEffect(() => {
     if (isQueueOpen) queueSheetRef.current?.snapToIndex(0);

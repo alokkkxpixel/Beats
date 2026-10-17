@@ -167,11 +167,11 @@ export default function ExploreScreen() {
         <Header title="Explore" />
       </Animated.View>
 
-      {isOffline ? (
+      {isOffline && !data ? (
         <View style={{ flex: 1, paddingTop: TOTAL_HEADER_HEIGHT }}>
           <OfflineContent />
         </View>
-      ) : isLoading ? (
+      ) : isLoading && !data ? (
         <View
           style={{
             flex: 1,
@@ -182,6 +182,10 @@ export default function ExploreScreen() {
           }}
         >
           <ActivityIndicator size="large" color="white" />
+        </View>
+      ) : !data ? (
+        <View style={{ flex: 1, paddingTop: TOTAL_HEADER_HEIGHT }}>
+          <OfflineContent />
         </View>
       ) : (
         <Animated.ScrollView

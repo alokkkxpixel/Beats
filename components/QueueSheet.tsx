@@ -19,6 +19,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TextTicker from "react-native-text-ticker";
 import PlayingIndicator from "./PlayingIndicator";
 
@@ -33,6 +34,7 @@ function getLuminance(hex: string): number {
 }
 
 const QueueSheet = () => {
+  const insets = useSafeAreaInsets();
   const queue = usePlayerStore((state) => state.queue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
@@ -273,7 +275,10 @@ const QueueSheet = () => {
         renderScrollComponent={renderScrollComponent}
         keyExtractor={(item) => item.id}
         renderItem={renderTrackItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: Math.max(insets.bottom, 16) + 95 },
+        ]}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={renderListFooter}
       />
@@ -285,6 +290,7 @@ const QueueSheet = () => {
           {
             backgroundColor: accentColor.average,
             borderTopColor: "rgba(255, 255, 255, 0.49)",
+            paddingBottom: Math.max(insets.bottom, 16) + 6,
           },
         ]}
       >

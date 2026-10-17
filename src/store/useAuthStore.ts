@@ -59,7 +59,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!isLoaded) return;
 
     if (!isSignedIn || !clerkUser) {
-      set({ user: null, isSignedIn: false, isLoaded: true });
+      const cachedUser = getInitialUser();
+      const cachedSignedIn = getInitialIsSignedIn();
+      set({
+        user: cachedUser,
+        isSignedIn: cachedSignedIn,
+        isLoaded: true,
+      });
       return;
     }
 

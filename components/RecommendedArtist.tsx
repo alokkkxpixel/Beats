@@ -26,7 +26,7 @@ export default function RecommendedArtist({
   const cardSize = isShortScreen ? 88 : 105;
   const navigation = useNavigation<any>();
 
-  if (!data || data.length === 0) return <></>;
+  if (!data || data.length === 0) return <View style={{ height: 0 }} />;
   const renderItem = ({ item }: { item: any }) => {
     // console.log("item", JSON.stringify(item.image_url, null, 2));
     // Normalization logic for artist objects

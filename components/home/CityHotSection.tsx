@@ -31,7 +31,7 @@ export default function CityHotSection({
   const navigation = useNavigation<any>();
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
-  if (!data || data.length === 0) return <></>;
+  if (!data || data.length === 0) return <View style={{ height: 0 }} />;
   const getImageUri = (img: any): string => {
     let url = "";
     if (Array.isArray(img)) {
