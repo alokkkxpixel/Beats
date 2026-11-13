@@ -90,14 +90,16 @@ export default function SpeedDialGrid({ data }: SpeedDialGridProps) {
 
   const handleItemPress = (item: Lists) => {
     if (item.type === "song") {
-      const partialTrack = {
+      const trackToPlay = {
+        ...item,
         id: item.id,
         name: item.title,
         image: item.image,
         primaryArtists: item.subtitle || "",
         url: item.perma_url || item.url || "",
+        downloadUrl: (item as any).downloadUrl,
       };
-      setCurrentTrack(partialTrack as any);
+      setCurrentTrack(trackToPlay as any);
     } else if (item.type === "playlist") {
       router.push({
         pathname: "/playlist-detail",

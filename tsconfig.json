@@ -15,6 +15,11 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "nativewind-env.d.ts"
-, "components/MusicBottomSheet.jsx", "app/music-lang-change.jsx"  ]
+    "nativewind-env.d.ts",
+    "components/MusicBottomSheet.jsx",
+    "app/music-lang-change.jsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

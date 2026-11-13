@@ -221,14 +221,16 @@ export default function TrendingSection({
       const isCurrent = currentTrack?.id === item.id;
       const handlePress = () => {
         if (itemType === "song") {
-          const partialTrack = {
+          const trackToPlay = {
+            ...item,
             id: id,
             name: displayTitle,
             image: displayImage,
             primaryArtists: artists || displaySubtitle,
             url: url,
+            downloadUrl: item.downloadUrl,
           };
-          setCurrentTrack(partialTrack as any);
+          setCurrentTrack(trackToPlay as any);
         } else {
           if (route === "artist/[id]") {
             navigation.navigate("artist/[id]", navParams);

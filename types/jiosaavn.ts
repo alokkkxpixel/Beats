@@ -122,7 +122,7 @@ export interface GlobalSearchData {
     position: number;
   };
   topQuery: {
-    results: SearchSong[];
+    results: (SearchSong | SearchAlbum | SearchArtist | SearchPlaylist | any)[];
     position: number;
   };
 }

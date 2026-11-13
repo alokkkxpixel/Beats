@@ -124,9 +124,15 @@ const GlobalAudioPlayer = React.memo(function GlobalAudioPlayer() {
     // latest committed state, not the React-render-cycle snapshot.
     const { currentTrack, queue } = usePlayerStore.getState();
 
-    if (nativeTrack.id === currentTrack?.id) return;
+    const rawNativeId = nativeTrack.id.includes(":")
+      ? nativeTrack.id.split(":").pop()!
+      : nativeTrack.id;
 
-    const newIndex = queue.findIndex((t) => t.id === nativeTrack.id);
+    if (rawNativeId === currentTrack?.id || nativeTrack.id === currentTrack?.id) return;
+
+    const newIndex = queue.findIndex(
+      (t) => t.id === rawNativeId || t.id === nativeTrack.id,
+    );
     if (newIndex === -1) return;
 
     usePlayerStore.setState({

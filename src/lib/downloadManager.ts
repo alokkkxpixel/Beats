@@ -20,17 +20,4 @@ export const configureDownloadManager = () => {
   useDownloadStore.getState().refreshDownloadedTracks();
 };
 
-export const requestNotificationPermission = async () => {
-  if (Platform.OS === "android" && Platform.Version >= 33) {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } catch (error) {
-      console.error("Error requesting notification permission:", error);
-      return false;
-    }
-  }
-  return true;
-};
+export { requestNotificationPermission } from "@/src/lib/permissions";

@@ -1,0 +1,10 @@
+declare namespace NodeJS {
+  interface ProcessEnv {
+    EXPO_PUBLIC_MUSIC_API_URL?: string;
+    EXPO_PUBLIC_LRCLIB_API_URL?: string;
+    EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY?: string;
+    EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID?: string;
+    EXPO_PUBLIC_CLERK_GOOGLE_ANDROID_CLIENT_ID?: string;
+    EXPO_PUBLIC_GOOGLE_CLIENT_SECRET?: string;
+  }
+}

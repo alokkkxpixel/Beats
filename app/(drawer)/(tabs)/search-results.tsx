@@ -145,10 +145,9 @@ export default function SearchResultsScreen() {
   );
 
   const handleResultPress = (item: any) => {
-    const type = item.type || selectedCategory.slice(0, -1);
-    if (type === "song") {
-      setCurrentTrack(item);
-    } else if (type === "album") {
+    const rawType = item.type || (selectedCategory !== "all" ? selectedCategory.slice(0, -1) : "");
+    const type = String(rawType || "").toLowerCase();
+    if (type === "album") {
       router.push({
         pathname: "/album-detail",
         params: { albumId: item.id, albumUrl: item.url },
@@ -163,6 +162,8 @@ export default function SearchResultsScreen() {
         pathname: "/artist/[id]",
         params: { id: item.id, url: item.url },
       });
+    } else {
+      setCurrentTrack(item);
     }
   };
 

@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isSignedIn) {
-    return <Redirect href="/sign-in" />;
+    return <Redirect href={"/onboarding" as any} />;
   }
 
   return <>{children}</>;

@@ -11,14 +11,16 @@ import {
   SpecialForYou,
 } from "../../types/jiosaavn";
 import {
+  buildImageQualities,
   mapAutocompleteToGlobalSearch,
   mapRawAlbumToAlbumDetail,
   mapRawPlaylistToPlaylistDetail,
   mapRawSongToSongDetail,
 } from "../utils/jiosaavnTransform";
 import { decodeHtmlEntities, recursiveClean } from "../utils/transform";
+import { MUSIC_API_URL, LRCLIB_API_URL } from "../../constants/api";
 
-const JIOSAAVN_API = "https://www.jiosaavn.com/api.php";
+const JIOSAAVN_API = MUSIC_API_URL;
 const DEFAULT_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -332,7 +334,11 @@ export const jioSaavnService = {
     }
   },
 
-  getSongByIdandLink: async (ids: string, link?: string): Promise<any> => {
+  getSongByIdandLink: async (
+    ids: string,
+    link?: string,
+    fallbackTitle?: string,
+  ): Promise<any> => {
     try {
       const token = extractTokenFromPermalink(link);
 
@@ -345,7 +351,11 @@ export const jioSaavnService = {
           const songsList = json?.songs || (Array.isArray(json) ? json : []);
           if (songsList.length > 0) {
             const mapped = songsList.map(mapRawSongToSongDetail);
-            return { success: true, data: mapped };
+            if (
+              mapped.some((s: any) => s.downloadUrl && s.downloadUrl.length > 0)
+            ) {
+              return { success: true, data: mapped };
+            }
           }
         } catch (tokenErr) {
           console.warn(
@@ -356,28 +366,59 @@ export const jioSaavnService = {
       }
 
       // Strategy 2: Directly fetch by song id(s)
-      const url = `${JIOSAAVN_API}?__call=song.getDetails&pids=${ids}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
-      const response = await fetch(url, { headers: DEFAULT_HEADERS });
-      const data = await response.json();
+      if (ids) {
+        try {
+          const url = `${JIOSAAVN_API}?__call=song.getDetails&pids=${encodeURIComponent(
+            ids,
+          )}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
+          const response = await fetch(url, { headers: DEFAULT_HEADERS });
+          const data = await response.json();
 
-      let songsList: any[] = [];
-      if (Array.isArray(data?.songs)) {
-        songsList = data.songs;
-      } else if (data && typeof data === "object") {
-        // If response is keyed by song id
-        if (data[ids]) {
-          songsList = [data[ids]];
-        } else {
-          // Look for any song object values
-          const values = Object.values(data).filter(
-            (v: any) => v && (v.id || v.song_id || v.title),
-          );
-          if (values.length > 0) songsList = values;
+          let songsList: any[] = [];
+          if (Array.isArray(data?.songs) && data.songs.length > 0) {
+            songsList = data.songs;
+          } else if (data && typeof data === "object") {
+            if (data[ids]) {
+              songsList = [data[ids]];
+            } else {
+              const values = Object.values(data).filter(
+                (v: any) => v && (v.id || v.song_id || v.title),
+              );
+              if (values.length > 0) songsList = values;
+            }
+          }
+
+          if (songsList.length > 0) {
+            const mapped = songsList.map(mapRawSongToSongDetail);
+            if (
+              mapped.some((s: any) => s.downloadUrl && s.downloadUrl.length > 0)
+            ) {
+              return { success: true, data: mapped };
+            }
+          }
+        } catch (pidErr) {
+          console.warn("song.getDetails failed, checking fallback:", pidErr);
         }
       }
 
-      const mapped = songsList.map(mapRawSongToSongDetail);
-      return { success: true, data: mapped };
+      // Strategy 3: Fallback search by song title / artist
+      if (fallbackTitle) {
+        try {
+          const searchRes = await jioSaavnService.searchSongs(
+            fallbackTitle,
+            0,
+            5,
+          );
+          const results = searchRes?.data?.results || [];
+          if (results.length > 0) {
+            return { success: true, data: results };
+          }
+        } catch (searchErr) {
+          console.warn("Fallback song search failed:", searchErr);
+        }
+      }
+
+      return { success: false, data: [] };
     } catch (error) {
       console.error("getSongByIdandLink failed:", error);
       return { success: false, data: [] };
@@ -485,21 +526,73 @@ export const jioSaavnService = {
       if (rawSongs.length > 0) {
         for (const raw of rawSongs) {
           const mapped = mapRawSongToSongDetail(raw);
-          if (mapped?.id && !seenIds.has(mapped.id)) {
+          if (
+            mapped?.id &&
+            !seenIds.has(mapped.id) &&
+            mapped.downloadUrl &&
+            mapped.downloadUrl.length > 0
+          ) {
             seenIds.add(mapped.id);
             results.push(mapped);
           }
         }
       }
 
-      // If we already have enough recommendations (at least 12 or limit), return them
+      // If we got fewer than 15 recommendations, chain from the last suggestion
+      if (results.length > 0 && results.length < Math.min(limit, 20)) {
+        try {
+          const pivotSong = results[results.length - 1];
+          if (pivotSong?.id && pivotSong.id !== id) {
+            const chainUrl = `${JIOSAAVN_API}?__call=reco.getreco&_format=json&_marker=0&api_version=4&ctx=android&pid=${encodeURIComponent(
+              pivotSong.id,
+            )}&modules=false`;
+            const chainRes = await fetch(chainUrl, {
+              headers: DEFAULT_HEADERS,
+            });
+            const chainData = await chainRes.json();
+            let chainRaw: any[] = [];
+            if (chainData && typeof chainData === "object") {
+              if (Array.isArray(chainData[pivotSong.id]))
+                chainRaw = chainData[pivotSong.id];
+              else if (Array.isArray(chainData)) chainRaw = chainData;
+              else {
+                for (const v of Object.values(chainData)) {
+                  if (Array.isArray(v) && v.length > 0) {
+                    chainRaw = v;
+                    break;
+                  }
+                }
+              }
+            }
+            for (const raw of chainRaw) {
+              const mapped = mapRawSongToSongDetail(raw);
+              if (
+                mapped?.id &&
+                !seenIds.has(mapped.id) &&
+                mapped.downloadUrl &&
+                mapped.downloadUrl.length > 0
+              ) {
+                seenIds.add(mapped.id);
+                results.push(mapped);
+                if (results.length >= limit) break;
+              }
+            }
+          }
+        } catch (chainErr) {
+          console.warn("Chain reco failed:", chainErr);
+        }
+      }
+
+      // If we already have enough recommendations, return them
       if (results.length >= Math.min(limit, 12)) {
         return { success: true, data: results.slice(0, limit) };
       }
 
       // 2. Supplement/Fallback: Search similar songs using the song's primary artist
       try {
-        const detailUrl = `${JIOSAAVN_API}?__call=song.getDetails&pids=${id}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
+        const detailUrl = `${JIOSAAVN_API}?__call=song.getDetails&pids=${encodeURIComponent(
+          id,
+        )}&_format=json&_marker=0&api_version=4&ctx=web6dot0`;
         const detailRes = await fetch(detailUrl, { headers: DEFAULT_HEADERS });
         const detailData = await detailRes.json();
         const song = detailData?.songs?.[0];
@@ -511,7 +604,12 @@ export const jioSaavnService = {
           const searchRes = await jioSaavnService.searchSongs(artist, 0, 20);
           const searchSongs = searchRes?.data?.results || [];
           for (const s of searchSongs) {
-            if (s?.id && !seenIds.has(s.id)) {
+            if (
+              s?.id &&
+              !seenIds.has(s.id) &&
+              s.downloadUrl &&
+              s.downloadUrl.length > 0
+            ) {
               seenIds.add(s.id);
               results.push(s);
               if (results.length >= limit) break;
@@ -533,18 +631,63 @@ export const jioSaavnService = {
     trackName: string,
     artistCandidates: any[],
   ): Promise<any> => {
+    if (!trackName) return null;
+
+    const headers = {
+      "User-Agent": "BeatsApp/1.0.0 (https://github.com/)",
+    };
+
+    const extractLyric = (data: any): string | null => {
+      if (!data) return null;
+      if (Array.isArray(data)) {
+        const item = data.find((d: any) => d?.syncedLyrics || d?.plainLyrics);
+        return item?.syncedLyrics || item?.plainLyrics || null;
+      }
+      return data?.syncedLyrics || data?.plainLyrics || null;
+    };
+
+    // Clean track name (strip "(From ...)", "[feat. ...]", etc.) for better matches
+    const cleanedTrack = trackName
+      .replace(
+        /\s*[\(\[][^()\[\]]*(?:feat|ft|from|original|soundtrack|version|remix|official|audio|video)[^()\[\]]*[\)\]]/gi,
+        "",
+      )
+      .trim();
+
+    const trackCandidates = [trackName, cleanedTrack].filter(
+      (t, index, arr) => t && arr.indexOf(t) === index,
+    );
+
+    // 1. Try exact /api/get for each artist candidate and track variation
     for (const artist of artistCandidates) {
+      if (!artist) continue;
+      for (const track of trackCandidates) {
+        try {
+          const response = await fetch(
+            `${LRCLIB_API_URL}/api/get?artist_name=${encodeURIComponent(String(artist).trim())}&track_name=${encodeURIComponent(String(track).trim())}`,
+            { headers },
+          );
+
+          if (!response.ok) {
+            continue;
+          }
+
+          const data = await response.json();
+          const lyric = extractLyric(data);
+          if (lyric) return lyric;
+        } catch (error) {
+          console.log(`Failed /api/get for ${artist} - ${track}`, error);
+        }
+      }
+    }
+
+    // 2. Fallback to /api/search with track_name and artist_name
+    for (const artist of artistCandidates) {
+      if (!artist) continue;
       try {
         const response = await fetch(
-          `https://lrclib.net/api/search?track_name=${encodeURIComponent(
-            trackName as string,
-          )}&artist_name=${encodeURIComponent(artist as string)}`,
-          {
-            headers: {
-              "User-Agent":
-                "BeatsApp/1.0.0 (https://github.com/alokkkxpixel/Beats)",
-            },
-          },
+          `${LRCLIB_API_URL}/api/search?track_name=${encodeURIComponent(cleanedTrack || trackName)}&artist_name=${encodeURIComponent(String(artist).trim())}`,
+          { headers },
         );
 
         if (!response.ok) {
@@ -552,14 +695,29 @@ export const jioSaavnService = {
         }
 
         const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const lyric = data[0]?.syncedLyrics || data[0]?.plainLyrics;
-          if (lyric) return lyric;
-        }
+        const lyric = extractLyric(data);
+        if (lyric) return lyric;
       } catch (error) {
-        console.log(`Failed for ${artist}`, error);
+        console.log(`Failed /api/search for ${artist}`, error);
       }
     }
+
+    // 3. Fallback to /api/search?q= query
+    try {
+      const response = await fetch(
+        `${LRCLIB_API_URL}/api/search?q=${encodeURIComponent(`${cleanedTrack || trackName}`)}`,
+        { headers },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const lyric = extractLyric(data);
+        if (lyric) return lyric;
+      }
+    } catch (error) {
+      console.log(`Failed /api/search query fallback`, error);
+    }
+
     return null;
   },
 };
@@ -624,38 +782,28 @@ export const SaavnService = {
       const rawCharts: any[] = json?.charts || [];
 
       const mapImage = (item: any) => {
-        let url = item.image || "";
-        if (!url) return ["", "", ""];
-
-        if (url.startsWith("http://")) {
-          url = url.replace("http://", "https://");
+        let url =
+          item?.image ||
+          item?.artwork ||
+          item?.cover ||
+          item?.album_image ||
+          item?.details?.image ||
+          "";
+        if (Array.isArray(url)) {
+          url = url[2]?.url || url[1]?.url || url[0]?.url || url[url.length - 1] || "";
         }
-        url = url.split("?")[0];
-
-        const hasResolution = /-(50x50|150x150|500x500)\.jpg$/i.test(url);
-        if (!hasResolution) {
-          return [url, url, url];
-        }
-
-        const base = url
-          .replace(/-(50x50|150x150|500x500)\.jpg$/i, "")
-          .replace(/\.(jpg|jpeg|png)$/i, "");
-
-        return [
-          `${base}-50x50.jpg`,
-          `${base}-150x150.jpg`,
-          `${base}-500x500.jpg`,
-        ];
+        return buildImageQualities(typeof url === "string" ? url : "");
       };
 
       const mapItem = (item: any) => {
         if (!item) return item;
         const target = item.details || item;
+        const itemImage = mapImage(target);
         const upgraded = {
           ...item,
           title: decodeHtmlEntities(item.title || item.name),
           subtitle: decodeHtmlEntities(item.subtitle),
-          image: mapImage(target),
+          image: itemImage,
           url: target.perma_url || item.url,
           type: target.type || item.type,
           more_info: item.more_info
@@ -669,6 +817,7 @@ export const SaavnService = {
           return {
             ...detailed,
             ...upgraded,
+            image: detailed.image && detailed.image.length > 0 ? detailed.image : itemImage,
             downloadUrl: detailed.downloadUrl,
           };
         }

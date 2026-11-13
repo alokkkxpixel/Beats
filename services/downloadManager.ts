@@ -43,7 +43,7 @@ export async function downloadFile(
 ): Promise<string> {
   const downloadRes = await FileSystem.downloadAsync(
     remoteUrl,
-    `${FileSystem.documentDirectory}${localFileName}`,
+    `${FileSystem.Paths.document.uri}/${localFileName}`,
   );
   if (downloadRes.status !== 200) {
     throw new Error(`Download failed with status ${downloadRes.status}`);

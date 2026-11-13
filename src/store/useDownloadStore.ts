@@ -1,5 +1,5 @@
 import { getPreferredTrackUrl } from "@/src/lib/audioQuality";
-import { requestNotificationPermission } from "@/src/lib/downloadManager";
+import { requestNotificationPermission } from "@/src/lib/permissions";
 import {
   deleteDownloadedTrackMetadata,
   getAudioQualityPreference,
@@ -79,6 +79,7 @@ interface DownloadProgress {
 interface DownloadState {
   downloadedTracks: Set<string>;
   downloadProgress: Map<string, DownloadProgress>;
+  preparingDownloads: Set<string>;
   isDownloading: boolean;
 
   // Actions
@@ -91,6 +92,7 @@ interface DownloadState {
   checkDownloadStatus: (trackId: string) => Promise<boolean>;
   refreshDownloadedTracks: () => Promise<void>;
   getDownloadProgress: (trackId: string) => DownloadProgress | undefined;
+  isPreparingDownload: (trackId: string) => boolean;
 }
 
 const mapToTrackItem = (song: SongDetail) => {
@@ -228,19 +230,54 @@ const registerDownloadListeners = () => {
 export const useDownloadStore = create<DownloadState>((set, get) => ({
   downloadedTracks: new Set(),
   downloadProgress: new Map(),
+  preparingDownloads: new Set(),
   isDownloading: false,
 
-  downloadTrack: async (track: SongDetail, playlistId?: string) => {
-    try {
-      // console.log("Starting download for track:", track.id, track.name);
+  isPreparingDownload: (trackId: string) => {
+    return get().preparingDownloads.has(trackId);
+  },
 
+  downloadTrack: async (track: SongDetail, playlistId?: string) => {
+    const trackId = track?.id;
+    if (!trackId) return;
+
+    const current = get();
+
+    // Prevent duplicate downloads if already downloaded
+    if (current.downloadedTracks.has(trackId)) {
+      ToastAndroid.show("Song is already downloaded", ToastAndroid.SHORT);
+      return;
+    }
+
+    // Debounce: prevent multiple requests if already preparing
+    if (current.preparingDownloads.has(trackId)) {
+      return;
+    }
+
+    // Debounce: prevent duplicate if download is already in progress or pending
+    const existingProgress = current.downloadProgress.get(trackId);
+    if (
+      existingProgress &&
+      (existingProgress.state === "downloading" ||
+        existingProgress.state === "pending")
+    ) {
+      return;
+    }
+
+    // Immediately mark track as preparing download so buttons disable and show loading
+    set((state) => {
+      const nextPreparing = new Set(state.preparingDownloads);
+      nextPreparing.add(trackId);
+      return { preparingDownloads: nextPreparing };
+    });
+
+    try {
       // Request notification permission before downloading
       await requestNotificationPermission();
 
       let fullTrack = track;
       const isPartial = !track.downloadUrl || track.downloadUrl.length === 0;
       if (isPartial) {
-        // console.log("Track details are partial, fetching full details for download...");
         const response = await jioSaavnService.getSongByIdandLink(
           track.id,
           track.url || (track as any).perma_url || "",
@@ -264,8 +301,6 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
       }
 
       const trackItem = mapToTrackItem(fullTrack);
-      // console.log("Track item mapped:", trackItem);
-
       saveDownloadedTrackMetadata(track.id, fullTrack);
 
       set((state) => ({
@@ -282,8 +317,6 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
         trackItem,
         playlistId || "downloads",
       );
-
-      // console.log("Download started with ID:", downloadId);
 
       set({
         isDownloading: true,
@@ -311,6 +344,13 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
           downloadProgress: newProgress,
           isDownloading: computeIsDownloading(newProgress),
         };
+      });
+    } finally {
+      // Always unmark preparing so state is clean
+      set((state) => {
+        const nextPreparing = new Set(state.preparingDownloads);
+        nextPreparing.delete(trackId);
+        return { preparingDownloads: nextPreparing };
       });
     }
   },
@@ -503,9 +543,12 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
         newDownloaded.delete(trackId);
         const newProgress = new Map(state.downloadProgress);
         newProgress.delete(trackId);
+        const newPreparing = new Set(state.preparingDownloads);
+        newPreparing.delete(trackId);
         return {
           downloadedTracks: newDownloaded,
           downloadProgress: newProgress,
+          preparingDownloads: newPreparing,
           isDownloading: computeIsDownloading(newProgress),
         };
       });

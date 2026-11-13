@@ -32,7 +32,10 @@ export default function CityHotSection({
   const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
 
   if (!data || data.length === 0) return <View style={{ height: 0 }} />;
-  const getImageUri = (img: any): string => {
+  const DEFAULT_ARTIST_IMG =
+    "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+
+  const getImageUri = (img: any, isArtist: boolean = false): string => {
     let url = "";
     if (Array.isArray(img)) {
       const target = img[2] || img[1] || img[0] || "";
@@ -40,27 +43,34 @@ export default function CityHotSection({
         typeof target === "string" ? target : target?.url || target?.uri || "";
     } else if (typeof img === "string") {
       url = img;
+    } else if (img && typeof img === "object") {
+      url = img.url || img.uri || "";
     }
 
-    if (url) {
-      if (url.startsWith("http://")) {
-        url = url.replace("http://", "https://");
-      }
-      if (url.includes("150x150")) {
-        return url.replace("150x150", "500x500");
-      }
-      if (url.includes("50x50")) {
-        return url.replace("50x50", "500x500");
-      }
-      if (url.includes("150-150")) {
-        return url.replace("150-150", "500-500");
-      }
-      return url;
+    if (!url || url.includes("share-image-2.png")) {
+      return isArtist ? DEFAULT_ARTIST_IMG : "";
     }
-    if (url === "https://static.saavncdn.com/_i/share-image-2.png" || !url) {
-      return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+
+    if (url.startsWith("http://")) {
+      url = url.replace("http://", "https://");
     }
-    return "";
+
+    if (url.includes("_150x150")) {
+      return url.replace("_150x150", "_500x500");
+    }
+    if (url.includes("-150x150")) {
+      return url.replace("-150x150", "-500x500");
+    }
+    if (url.includes("_50x50")) {
+      return url.replace("_50x50", "_500x500");
+    }
+    if (url.includes("-50x50")) {
+      return url.replace("-50x50", "-500x500");
+    }
+    if (url.includes("150-150")) {
+      return url.replace("150-150", "500-500");
+    }
+    return url;
   };
   const renderItem = ({ item }: { item: any }) => {
     const isArtist = item.type === "artist";
@@ -73,14 +83,16 @@ export default function CityHotSection({
 
     const handlePress = () => {
       if (itemType === "song") {
-        const partialTrack = {
+        const trackToPlay = {
+          ...item,
           id: id,
           name: displayTitle,
           image: displayImage,
           primaryArtists: displaySubtitle || "",
           url: url,
+          downloadUrl: item.downloadUrl,
         };
-        setCurrentTrack(partialTrack as any);
+        setCurrentTrack(trackToPlay as any);
       } else if (itemType === "artist" || url?.includes("/artist/")) {
         navigation.navigate("artist/[id]", { id: Number(id), url: url });
       } else {
@@ -114,8 +126,10 @@ export default function CityHotSection({
         >
           <Image
             source={
-              getImageUri(displayImage)
-                ? { uri: getImageUri(displayImage) }
+              getImageUri(displayImage, isArtist)
+                ? { uri: getImageUri(displayImage, isArtist) }
+                : isArtist
+                ? { uri: DEFAULT_ARTIST_IMG }
                 : defaultCover
             }
             style={styles.image}

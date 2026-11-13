@@ -110,6 +110,65 @@ const mapToTrackItem = (
   return tempTrackItem;
 };
 
+const normalizeTitle = (title?: string) =>
+  (title || "")
+    .toLowerCase()
+    .replace(
+      /\s*[\(\[][^()\[\]]*(?:feat|ft|from|original|soundtrack|version|remix|official|audio|video)?[^()\[\]]*[\)\]]/gi,
+      "",
+    )
+    .replace(/[^\p{L}\p{N}]/gu, "")
+    .trim();
+
+const normalizeArtist = (artist?: any): string => {
+  if (!artist) return "";
+  if (typeof artist === "string") {
+    return artist
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]/gu, "")
+      .trim();
+  }
+  if (Array.isArray(artist)) {
+    return artist
+      .map((a) => normalizeArtist(a.name || a))
+      .filter(Boolean)
+      .join("");
+  }
+  return "";
+};
+
+const isSameSong = (a: any, b: any): boolean => {
+  if (!a || !b) return false;
+  if (a.id && b.id && String(a.id) === String(b.id)) return true;
+
+  const tA = normalizeTitle(a.name || a.title);
+  const tB = normalizeTitle(b.name || b.title);
+  if (!tA || !tB) return false;
+
+  if (tA === tB) {
+    const artA = normalizeArtist(
+      a.primaryArtists || a.artist || a.artists?.primary || a.artists?.all,
+    );
+    const artB = normalizeArtist(
+      b.primaryArtists || b.artist || b.artists?.primary || b.artists?.all,
+    );
+    if (!artA || !artB || artA.includes(artB) || artB.includes(artA)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+let suggestionTimer: ReturnType<typeof setTimeout> | null = null;
+
+const clearSuggestionTimer = () => {
+  if (suggestionTimer) {
+    clearTimeout(suggestionTimer);
+    suggestionTimer = null;
+  }
+};
+
 const shuffleSongs = (songs: SongDetail[]) => {
   const shuffled = [...songs];
 
@@ -190,11 +249,17 @@ interface PlayerState {
   isFetchingSuggestions: boolean;
 
   // --- Actions ---
-  setCurrentTrack: (track: SongDetail, contextQueue?: SongDetail[]) => void;
+  setCurrentTrack: (
+    track: SongDetail,
+    contextQueue?: SongDetail[],
+    fromQueue?: boolean,
+  ) => Promise<void>;
+  playFromQueue: (index: number) => Promise<void>;
+  ensureQueueSyncedAndPlay: (targetIndex: number) => Promise<void>;
   setAudioQuality: (quality: AudioQualityPreference) => Promise<void>;
 
   setQueue: (tracks: SongDetail[], startIndex?: number) => void;
-  fetchAndAppendSuggestions: (trackId: string) => Promise<void>;
+  fetchAndAppendSuggestions: (trackId: string, limit?: number) => Promise<void>;
   expandFullPlayer: () => void;
   setSelectedSongOption: (track: SongDetail | null) => void;
   minimizeFullPlayer: () => void;
@@ -402,8 +467,94 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
+  // Play track specifically selected from QueueSheet
+  playFromQueue: async (index: number) => {
+    const { queue, currentIndex } = get();
+    if (index < 0 || index >= queue.length || index === currentIndex) return;
+
+    const targetTrack = queue[index];
+    set({
+      isLoading: true,
+      currentIndex: index,
+      currentTrack: targetTrack,
+      position: 0,
+      duration: targetTrack.duration || 0,
+      isPlaying: true,
+    });
+
+    try {
+      const skipped = await TrackPlayer.skipToIndex(index);
+      if (skipped) {
+        await TrackPlayer.seek(0);
+        await TrackPlayer.play();
+      } else {
+        await get().ensureQueueSyncedAndPlay(index);
+      }
+    } catch (e) {
+      console.warn("playFromQueue skip failed, resyncing queue:", e);
+      await get().ensureQueueSyncedAndPlay(index);
+    } finally {
+      set({ isLoading: false });
+      get().persistPlayerState();
+    }
+  },
+
+  // Fallback to guarantee native player has all queue tracks loaded and plays targetIndex
+  ensureQueueSyncedAndPlay: async (targetIndex: number) => {
+    try {
+      const { queue, audioQuality } = get();
+      if (!queue || queue.length === 0 || targetIndex < 0 || targetIndex >= queue.length) return;
+
+      const targetTrack = queue[targetIndex];
+
+      const playlistId = await PlayerQueue.createPlaylist(
+        `Queue_${Date.now()}`,
+        "Playback Queue",
+      );
+
+      set({
+        activePlaylistId: playlistId,
+        currentIndex: targetIndex,
+        currentTrack: targetTrack,
+        isLoading: true,
+        isPlaying: true,
+        duration: targetTrack.duration || 0,
+      });
+
+      const trackItems = await Promise.all(
+        queue.map(async (item) => {
+          let localArtworkPath = (item as any).localArtworkPath;
+          if (!localArtworkPath) {
+            try {
+              const isItemDownloaded = await DownloadManager.isTrackDownloaded(item.id);
+              if (isItemDownloaded) {
+                const downloadedTrack = await DownloadManager.getDownloadedTrack(item.id);
+                localArtworkPath = downloadedTrack?.localArtworkPath;
+              }
+            } catch {}
+          }
+          return mapToTrackItem({ ...item, localArtworkPath }, audioQuality);
+        }),
+      );
+
+      await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
+      await PlayerQueue.loadPlaylist(playlistId, targetIndex);
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await TrackPlayer.skipToIndex(targetIndex);
+      await TrackPlayer.seek(0);
+      await TrackPlayer.play();
+
+      set({ isLoading: false });
+      get().persistPlayerState();
+    } catch (e) {
+      console.error("Error in ensureQueueSyncedAndPlay:", e);
+      set({ isLoading: false });
+    }
+  },
+
   // Set individual track and start playing
-  setCurrentTrack: async (track, contextQueue) => {
+  setCurrentTrack: async (track, contextQueue, fromQueue = false) => {
     try {
       // Normalize the track first to handle both full SongDetail and partial listing/search items
       const normalizedTrack = {
@@ -422,9 +573,22 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             ? track.album
             : track.album?.name || (track as any).album || "",
         url: track.url || (track as any).perma_url || "",
+        downloadUrl: track.downloadUrl,
       };
 
-      // 1. If we have a context queue (like an album/playlist), use it instead of suggestions
+      // 1. If explicitly selected from Queue Sheet, skip directly within the existing queue
+      if (fromQueue) {
+        const { queue: currentQueue } = get();
+        const existingIndex = currentQueue.findIndex(
+          (t) => t.id === normalizedTrack.id,
+        );
+        if (existingIndex !== -1) {
+          await get().playFromQueue(existingIndex);
+          return;
+        }
+      }
+
+      // 2. If we have a context queue (like an album/playlist), use it instead of suggestions
       if (contextQueue && contextQueue.length > 0) {
         const index = contextQueue.findIndex(
           (t) => t.id === normalizedTrack.id,
@@ -435,33 +599,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       }
 
-      // 2. Check if the track exists in the current queue (for manual selection from queue sheet)
-      const { queue: currentQueue, activePlaylistId } = get();
-      const existingIndex = currentQueue.findIndex(
-        (t) => t.id === normalizedTrack.id,
-      );
-
-      if (existingIndex !== -1 && activePlaylistId) {
-        // Track exists in current queue, just skip to it
-        set({
-          currentTrack: currentQueue[existingIndex] as any,
-          currentIndex: existingIndex,
-          position: 0,
-          isLoading: true,
-          isFullPlayerOpen: true,
-          isPlaying: true,
-        });
-
-        await TrackPlayer.skipToIndex(existingIndex);
-        await TrackPlayer.seek(0);
-        await TrackPlayer.play();
-
-        set({ isLoading: false });
-        get().persistPlayerState();
-        return;
-      }
-
-      // 3. Update store metadata IMMEDIATELY with the normalized track (new single track)
+      // 3. User selected a song to play (Home, Quick Picks, City Hot, Search, etc.)
+      // Always start fresh playback with a dedicated queue and real recommendations for THIS song!
       set({
         currentTrack: normalizedTrack as any,
         queue: [normalizedTrack] as any,
@@ -529,20 +668,46 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         !isDownloaded;
 
       if (isPartial) {
-        const response = await jioSaavnService.getSongByIdandLink(
-          fullTrack.id,
-          fullTrack.url,
-        );
-        if (response.success && response.data[0]) {
-          fullTrack = response.data[0];
-          // Update store with full details
+        let fetchedTrack: SongDetail | null = null;
+        try {
+          const response = await jioSaavnService.getSongByIdandLink(
+            fullTrack.id,
+            fullTrack.url,
+            `${fullTrack.name} ${fullTrack.primaryArtists || ""}`.trim(),
+          );
+          if (response.success && response.data?.[0]) {
+            fetchedTrack = response.data[0];
+          }
+        } catch (fetchErr) {
+          console.warn("Failed to fetch full song details:", fetchErr);
+        }
+
+        // Secondary fallback search if needed
+        if (!fetchedTrack && fullTrack.name) {
+          try {
+            const query = `${fullTrack.name} ${fullTrack.primaryArtists || ""}`.trim();
+            const searchRes = await jioSaavnService.searchSongs(query, 0, 5);
+            const found =
+              searchRes?.data?.results?.find(
+                (s: SongDetail) =>
+                  s.id === fullTrack.id ||
+                  s.name.toLowerCase() === fullTrack.name.toLowerCase(),
+              ) || searchRes?.data?.results?.[0];
+            if (found && found.downloadUrl?.length) {
+              fetchedTrack = found;
+            }
+          } catch (searchErr) {
+            console.warn("Secondary search fallback failed:", searchErr);
+          }
+        }
+
+        if (fetchedTrack) {
+          fullTrack = fetchedTrack;
           set({
             currentTrack: fullTrack,
             queue: [fullTrack],
             duration: fullTrack.duration || 0,
           });
-        } else {
-          throw new Error("Failed to fetch song details");
         }
       }
 
@@ -558,7 +723,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       set({ activePlaylistId: playlistId });
       await PlayerQueue.addTracksToPlaylist(playlistId, trackItems);
-      await PlayerQueue.loadPlaylist(playlistId);
+      await PlayerQueue.loadPlaylist(playlistId, 0);
 
       // 4. Force skip to the first track
       await TrackPlayer.skipToIndex(0);
@@ -568,9 +733,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       set({ isLoading: false });
       get().persistPlayerState();
 
-      // Immediately fetch suggestions for autoplay so queue is well populated
+      // Schedule fetching suggestions after 10 seconds of playback (max 10 fresh songs)
+      clearSuggestionTimer();
       if (fullTrack.id) {
-        get().fetchAndAppendSuggestions(fullTrack.id);
+        suggestionTimer = setTimeout(() => {
+          const { currentTrack, isAutoplayEnabled } = get();
+          if (isAutoplayEnabled && currentTrack?.id === fullTrack.id) {
+            get().fetchAndAppendSuggestions(fullTrack.id, 10);
+          }
+        }, 10000);
       }
     } catch (error) {
       console.error("Error playing track:", error);
@@ -581,6 +752,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   // Set a whole queue (e.g. from an album or playlist)
   setQueue: async (tracks, startIndex = 0) => {
     if (!tracks || tracks.length === 0) return;
+    clearSuggestionTimer();
 
     try {
       const normalizedQueue = tracks.map((track) => ({
@@ -742,19 +914,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  fetchAndAppendSuggestions: async (trackId: string) => {
+  fetchAndAppendSuggestions: async (trackId: string, limit: number = 10) => {
     try {
       const {
-        queue,
         activePlaylistId,
         isFetchingSuggestions,
         isAutoplayEnabled,
+        audioQuality,
       } = get();
       if (!activePlaylistId || isFetchingSuggestions || !isAutoplayEnabled)
         return;
 
       set({ isFetchingSuggestions: true });
 
+      // Request recommendations for this track
       const response = await jioSaavnService.getSuggestedSongs(trackId, 25);
       const suggestions: SongDetail[] = Array.isArray(response)
         ? response
@@ -765,36 +938,39 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         return;
       }
 
-      // Filter out songs already in queue to avoid duplicates
-      let newSongs = suggestions.filter(
-        (s) => !queue.some((q) => q.id === s.id),
-      );
+      // Filter to only songs with valid audio URL / downloadUrl to avoid unplayable tracks
+      const playableSuggestions = suggestions.filter((s) => {
+        const preferred = getPreferredTrackUrl(s, audioQuality);
+        return (
+          preferred &&
+          (preferred.includes("saavncdn.com") ||
+            preferred.includes(".mp4") ||
+            preferred.includes(".mp3") ||
+            preferred.includes(".m4a") ||
+            preferred.includes(".aac") ||
+            preferred.startsWith("file://") ||
+            preferred.startsWith("/"))
+        );
+      });
 
-      // If we got fewer than 8 new songs, chain recommendations from the last suggestion
-      if (newSongs.length < 8 && suggestions.length > 0) {
-        try {
-          const pivotSong = suggestions[suggestions.length - 1];
-          if (pivotSong?.id && pivotSong.id !== trackId) {
-            const extraRes = await jioSaavnService.getSuggestedSongs(
-              pivotSong.id,
-              25,
-            );
-            const extraList: SongDetail[] = Array.isArray(extraRes)
-              ? extraRes
-              : extraRes?.data || [];
+      const currentQueue = get().queue;
+      const currentPlaylistId = get().activePlaylistId;
 
-            for (const item of extraList) {
-              if (
-                !queue.some((q) => q.id === item.id) &&
-                !newSongs.some((s) => s.id === item.id)
-              ) {
-                newSongs.push(item);
-                if (newSongs.length >= 20) break;
-              }
-            }
-          }
-        } catch (chainErr) {
-          console.warn("Error chaining recommendations:", chainErr);
+      if (currentPlaylistId !== activePlaylistId) {
+        set({ isFetchingSuggestions: false });
+        return;
+      }
+
+      // Discard repeating songs: check both ID and normalized title/artist
+      const newSongs: SongDetail[] = [];
+      for (const item of playableSuggestions) {
+        const isDuplicate =
+          currentQueue.some((q) => isSameSong(q, item)) ||
+          newSongs.some((s) => isSameSong(s, item));
+
+        if (!isDuplicate) {
+          newSongs.push(item);
+          if (newSongs.length >= limit) break; // Limit to fresh 10 songs
         }
       }
 
@@ -803,12 +979,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         return;
       }
 
-      const updatedQueue = [...queue, ...newSongs];
+      const latestQueue = get().queue;
+      const updatedQueue = [...latestQueue, ...newSongs];
       set({ queue: updatedQueue });
 
       // Add to native player queue
       const trackItems = newSongs.map((item) =>
-        mapToTrackItem(item, get().audioQuality),
+        mapToTrackItem(item, audioQuality),
       );
       await PlayerQueue.addTracksToPlaylist(activePlaylistId, trackItems);
       set({ isFetchingSuggestions: false });
@@ -854,8 +1031,78 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   next: async () => {
     try {
-      await TrackPlayer.skipToNext();
-      // Store update will be handled by GlobalAudioPlayer sync
+      clearSuggestionTimer();
+      const { currentIndex, queue, isAutoplayEnabled } = get();
+      if (!queue || queue.length === 0) return;
+
+      const targetIndex = currentIndex + 1;
+
+      // When approaching the end of queue, prefetch more suggestions
+      if (targetIndex >= queue.length - 2 && isAutoplayEnabled) {
+        const lastTrack = queue[queue.length - 1] || queue[currentIndex];
+        if (lastTrack?.id) {
+          get().fetchAndAppendSuggestions(lastTrack.id, 10);
+        }
+      }
+
+      if (targetIndex >= queue.length) {
+        console.log("Reached end of queue");
+        return;
+      }
+
+      const targetTrack = queue[targetIndex];
+
+      // 1. Try native skipToNext
+      let nativeSkipped = false;
+      try {
+        await TrackPlayer.skipToNext();
+        await new Promise((r) => setTimeout(r, 120));
+        const state = await TrackPlayer.getState();
+        const currentNativeId = state.currentTrack?.id;
+        const normalizedNativeId = currentNativeId?.includes(":")
+          ? currentNativeId.split(":").pop()
+          : currentNativeId;
+
+        if (normalizedNativeId === targetTrack.id) {
+          nativeSkipped = true;
+          set({
+            currentIndex: targetIndex,
+            currentTrack: targetTrack,
+            position: 0,
+            duration: targetTrack.duration || 0,
+            isPlaying: true,
+          });
+        }
+      } catch (err) {
+        console.warn("skipToNext native call failed:", err);
+      }
+
+      // 2. If native skipToNext didn't land on targetTrack, use skipToIndex
+      if (!nativeSkipped) {
+        let indexed = false;
+        try {
+          indexed = await TrackPlayer.skipToIndex(targetIndex);
+          if (indexed) {
+            await TrackPlayer.seek(0);
+            await TrackPlayer.play();
+            set({
+              currentIndex: targetIndex,
+              currentTrack: targetTrack,
+              position: 0,
+              duration: targetTrack.duration || 0,
+              isPlaying: true,
+            });
+          }
+        } catch (err) {
+          console.warn("skipToIndex failed:", err);
+        }
+
+        // 3. If native playlist didn't have the track loaded yet, resync and play
+        if (!indexed) {
+          console.log("Resyncing remaining queue for next track:", targetTrack.name);
+          await get().ensureQueueSyncedAndPlay(targetIndex);
+        }
+      }
     } catch (error) {
       console.error("Error skipping to next:", error);
     }
@@ -863,11 +1110,68 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   previous: async (force = false) => {
     try {
-      const { position } = get();
-      if (force || position <= 3) {
-        await TrackPlayer.skipToPrevious();
-      } else {
+      clearSuggestionTimer();
+      const { position, currentIndex, queue } = get();
+      if (position > 3 && !force) {
         await TrackPlayer.seek(0);
+        set({ position: 0 });
+        return;
+      }
+
+      const prevIndex = currentIndex - 1;
+      if (prevIndex < 0) {
+        await TrackPlayer.seek(0);
+        set({ position: 0 });
+        return;
+      }
+
+      const targetTrack = queue[prevIndex];
+      let nativeSkipped = false;
+      try {
+        await TrackPlayer.skipToPrevious();
+        await new Promise((r) => setTimeout(r, 120));
+        const state = await TrackPlayer.getState();
+        const currentNativeId = state.currentTrack?.id;
+        const normalizedNativeId = currentNativeId?.includes(":")
+          ? currentNativeId.split(":").pop()
+          : currentNativeId;
+
+        if (normalizedNativeId === targetTrack.id) {
+          nativeSkipped = true;
+          set({
+            currentIndex: prevIndex,
+            currentTrack: targetTrack,
+            position: 0,
+            duration: targetTrack.duration || 0,
+            isPlaying: true,
+          });
+        }
+      } catch (err) {
+        console.warn("skipToPrevious native call failed:", err);
+      }
+
+      if (!nativeSkipped) {
+        let indexed = false;
+        try {
+          indexed = await TrackPlayer.skipToIndex(prevIndex);
+          if (indexed) {
+            await TrackPlayer.seek(0);
+            await TrackPlayer.play();
+            set({
+              currentIndex: prevIndex,
+              currentTrack: targetTrack,
+              position: 0,
+              duration: targetTrack.duration || 0,
+              isPlaying: true,
+            });
+          }
+        } catch (err) {
+          console.warn("skipToIndex failed in previous:", err);
+        }
+
+        if (!indexed) {
+          await get().ensureQueueSyncedAndPlay(prevIndex);
+        }
       }
     } catch (error) {
       console.error("Error skipping to previous:", error);

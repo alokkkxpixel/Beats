@@ -1,0 +1,36 @@
+diff --git a/node_modules/react-native-lyric/src/components/lyric.tsx b/node_modules/react-native-lyric/src/components/lyric.tsx
+index d22c010..19b9716 100644
+--- a/node_modules/react-native-lyric/src/components/lyric.tsx
++++ b/node_modules/react-native-lyric/src/components/lyric.tsx
+@@ -54,7 +54,7 @@ const Lyric = React.forwardRef<
+ >(function Lrc(
+   {
+     lrc,
+-    lineRenderer = ({lrcLine: {content}, active}) => (
++    lineRenderer = ({lrcLine: {content}, active}: {lrcLine: {content: any}; active: any}) => (
+       <Text
+         style={{
+           textAlign: 'center',
+@@ -75,8 +75,8 @@ const Lyric = React.forwardRef<
+     height = 500,
+     style,
+     ...props
+-  }: Props,
+-  ref,
++  }: any,
++  ref: any,
+ ) {
+   const lrcRef = useRef<ScrollView>(null);
+   const lrcLineList = useLrc(lrc);
+diff --git a/node_modules/react-native-lyric/tsconfig.json b/node_modules/react-native-lyric/tsconfig.json
+index ce18048..a12b6df 100644
+--- a/node_modules/react-native-lyric/tsconfig.json
++++ b/node_modules/react-native-lyric/tsconfig.json
+@@ -7,7 +7,6 @@
+     "allowUnreachableCode": false,
+     "allowUnusedLabels": false,
+     "esModuleInterop": true,
+-    "importsNotUsedAsValues": "error",
+     "forceConsistentCasingInFileNames": true,
+     "jsx": "react",
+     "lib": ["esnext"],

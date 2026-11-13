@@ -10,7 +10,14 @@ import BottomSheet, {
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useSegments } from "expo-router";
 import React, { useCallback, useEffect, useRef } from "react";
-import { BackHandler, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  BackHandler,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import QueueSheet from "./QueueSheet";
@@ -238,6 +245,7 @@ const AudioDeviceSheetLayer = React.memo(() => {
 AudioDeviceSheetLayer.displayName = "AudioDeviceSheetLayer";
 
 const QueueSheetLayer = React.memo(() => {
+  const insets = useSafeAreaInsets();
   const { isQueueOpen, minimizeQueue } = usePlayerStore(
     useShallow((s) => ({
       isQueueOpen: s.isQueueOpen,
@@ -268,13 +276,14 @@ const QueueSheetLayer = React.memo(() => {
 
   return (
     <View
-      style={[StyleSheet.absoluteFill, { zIndex: isQueueOpen ? 6000 : -1 }]}
-      pointerEvents="box-none"
+      style={[styles.sheetContainer, { zIndex: isQueueOpen ? 6000 : -1 }]}
+      pointerEvents={isQueueOpen ? "auto" : "none"}
     >
       <BottomSheet
         ref={queueSheetRef}
         index={-1}
         snapPoints={snapPoints}
+        topInset={insets.top}
         enablePanDownToClose={true}
         enableDynamicSizing={false}
         animateOnMount={false}
@@ -292,7 +301,9 @@ const QueueSheetLayer = React.memo(() => {
   );
 });
 QueueSheetLayer.displayName = "QueueSheetLayer";
+
 const LyricsSheetLayer = React.memo(() => {
+  const insets = useSafeAreaInsets();
   const { isLyricsOpen, minimizeLyrics } = usePlayerStore(
     useShallow((s) => ({
       isLyricsOpen: s.isLyricsOpen,
@@ -323,13 +334,14 @@ const LyricsSheetLayer = React.memo(() => {
 
   return (
     <View
-      style={[StyleSheet.absoluteFill, { zIndex: isLyricsOpen ? 6000 : -1 }]}
-      pointerEvents="box-none"
+      style={[styles.sheetContainer, { zIndex: isLyricsOpen ? 6000 : -1 }]}
+      pointerEvents={isLyricsOpen ? "auto" : "none"}
     >
       <BottomSheet
         ref={lyricsSheetRef}
         index={-1}
         snapPoints={snapPoints}
+        topInset={insets.top}
         enablePanDownToClose={true}
         enableDynamicSizing={false}
         animateOnMount={false}

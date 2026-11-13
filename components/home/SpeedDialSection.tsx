@@ -18,7 +18,6 @@ export default function SpeedDialSection(): React.JSX.Element {
       <FlashList
         data={speedDialItems}
         horizontal
-        estimatedItemSize={96}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
         keyExtractor={(item) => item.id}

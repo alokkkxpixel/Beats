@@ -3,12 +3,13 @@
     "name": "Beats",
     "slug": "Beats",
     "updates": {
-      "url": "https://u.expo.dev/3fe6ce9c-d129-4d67-9f0c-e5e45ffea59c"
+      "url": "https://u.expo.dev/3fe6ce9c-d129-4d67-9f0c-e5e45ffea59c",
+      "checkAutomatically": "NEVER"
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "version": "1.1.1",
+    "version": "1.1.6",
     "orientation": "portrait",
     "icon": "./assets/icons/appIcon.png",
     "scheme": "beats",
@@ -26,6 +27,7 @@
         "monochromeImage": "./assets/icons/ic_launcher_monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true,
       "permissions": [
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
@@ -78,7 +80,6 @@
       ],
       "expo-web-browser",
       "expo-asset",
-      "expo-audio",
       "expo-image",
       "expo-secure-store",
       "@clerk/expo"

@@ -29,6 +29,9 @@ import TextTicker from "react-native-text-ticker";
 // 🟢 CORRECT (For default exports)
 import defaultCover from "@/assets/app-icons/defualt-cover.png";
 import { forceHighQualityImageUrl } from "@/src/utils/artwork";
+import { formatPlayCount } from "@/src/utils/transform";
+import { useArtist } from "@/src/hooks/useQueries";
+import { LinearGradient } from "expo-linear-gradient";
 import ArtistCredits from "./ArtistCredits";
 import LyricsPreview from "./LyricsPreview";
 import SwipeArtwork from "./SwipeArtwork";
@@ -113,27 +116,39 @@ const FullPlayer = React.memo(
         : null) ||
       originalSong?.subtitle ||
       "Unknown Artist";
-    const localPath =
-      (currentTrack as any)?.localArtworkPath || originalSong?.localArtworkPath;
-    const rawTrackImage = localPath
-      ? localPath.startsWith("file://")
-        ? localPath
-        : `file://${localPath}`
-      : currentTrack?.artwork ||
-        originalSong?.artwork ||
-        (currentTrack as any)?.image?.[2]?.url ||
-        originalSong?.image?.[2]?.url ||
-        originalSong?.image?.[0]?.url;
+
+    const extractArtworkUrl = (t: any): string => {
+      if (!t) return "";
+      const orig = (t as any)?.extraPayload?.song || t;
+      const local = (t as any)?.localArtworkPath || orig?.localArtworkPath;
+      if (local) {
+        return local.startsWith("file://") ? local : `file://${local}`;
+      }
+      if (typeof t?.artwork === "string" && t.artwork) return t.artwork;
+      if (typeof orig?.artwork === "string" && orig.artwork) return orig.artwork;
+
+      const img = t?.image || orig?.image;
+      if (typeof img === "string" && img) return img;
+      if (Array.isArray(img) && img.length > 0) {
+        // Check 500x500 first (index 2 or last item), then 150x150, then 50x50
+        const order = [img[2], img[img.length - 1], img[1], img[0]];
+        for (const item of order) {
+          if (typeof item === "string" && item.trim()) return item.trim();
+          if (item && typeof item === "object" && typeof item.url === "string" && item.url.trim()) {
+            return item.url.trim();
+          }
+        }
+      }
+      return "";
+    };
+
+    const rawTrackImage = extractArtworkUrl(currentTrack);
     const trackImage = upgradeArtworkTo500(rawTrackImage) || rawTrackImage;
 
     // Get previous and next track images for carousel
     const previousTrackImage = React.useMemo(() => {
       if (currentIndex > 0 && queue[currentIndex - 1]) {
-        const prev = queue[currentIndex - 1];
-        const rawPrev =
-          prev?.artwork ||
-          (prev as any)?.image?.[2]?.url ||
-          (prev as any)?.image?.[0]?.url;
+        const rawPrev = extractArtworkUrl(queue[currentIndex - 1]);
         return upgradeArtworkTo500(rawPrev) || rawPrev;
       }
       return undefined;
@@ -141,11 +156,7 @@ const FullPlayer = React.memo(
 
     const nextTrackImage = React.useMemo(() => {
       if (currentIndex < queue.length - 1 && queue[currentIndex + 1]) {
-        const next = queue[currentIndex + 1];
-        const rawNext =
-          next?.artwork ||
-          (next as any)?.image?.[2]?.url ||
-          (next as any)?.image?.[0]?.url;
+        const rawNext = extractArtworkUrl(queue[currentIndex + 1]);
         return upgradeArtworkTo500(rawNext) || rawNext;
       }
       return undefined;
@@ -171,15 +182,81 @@ const FullPlayer = React.memo(
       [handleCloseSheet, router],
     );
 
+    const primaryArtistObj = React.useMemo(() => {
+      return (
+        originalSong?.artists?.primary?.[0] ||
+        (originalSong as any)?.artistMap?.primary_artists?.[0] ||
+        (originalSong as any)?.more_info?.artistMap?.primary_artists?.[0] ||
+        (originalSong as any)?.artists?.all?.[0] ||
+        (currentTrack as any)?.artists?.primary?.[0] ||
+        null
+      );
+    }, [originalSong, currentTrack]);
+
+    const artistId = React.useMemo(() => {
+      const id =
+        primaryArtistObj?.id ||
+        (originalSong as any)?.artistId ||
+        (currentTrack as any)?.artistId ||
+        null;
+      return id ? String(id) : null;
+    }, [primaryArtistObj, originalSong, currentTrack]);
+
+    const artistUrl = React.useMemo(() => {
+      return (
+        primaryArtistObj?.url ||
+        primaryArtistObj?.perma_url ||
+        (originalSong as any)?.artistUrl ||
+        null
+      );
+    }, [primaryArtistObj, originalSong]);
+
+    const { data: artistData } = useArtist(artistId, artistUrl);
+
     const handleArtistPress = useCallback(() => {
-      const artist = originalSong?.artists?.primary?.[0];
-      navigateToArtist(artist);
-    }, [originalSong, navigateToArtist]);
+      const targetArtist = primaryArtistObj || originalSong?.artists?.primary?.[0];
+      if (targetArtist?.id) {
+        navigateToArtist(targetArtist);
+      } else if (artistId) {
+        navigateToArtist({
+          id: artistId,
+          name: primaryArtistObj?.name || originalSong?.artists?.primary?.[0]?.name || "Artist",
+          url: artistUrl,
+        });
+      }
+    }, [primaryArtistObj, originalSong, navigateToArtist, artistId, artistUrl]);
 
-    const getArtistImage = useCallback(() => {
-      const rawImage = originalSong?.artists?.primary?.[0]?.image;
+    const getArtistCoverImage = useCallback(() => {
+      // 1. Check fetched artist details image
+      if (artistData?.image) {
+        let img: any = artistData.image;
+        let url = "";
+        if (Array.isArray(img)) {
+          url = img[2]?.url || img[1]?.url || img[0]?.url || "";
+        } else if (typeof img === "string") {
+          url = img;
+        }
+        if (
+          url &&
+          !url.includes("share-image-2.png") &&
+          !url.includes("default-artist")
+        ) {
+          if (url.includes("150x150")) {
+            url = url.replace("150x150", "500x500");
+          } else if (url.includes("50x50")) {
+            url = url.replace("50x50", "500x500");
+          }
+          return forceHighQualityImageUrl(url) || url;
+        }
+      }
+
+      // 2. Check primary artist on song object
+      const rawImage =
+        primaryArtistObj?.image ||
+        originalSong?.artists?.primary?.[0]?.image ||
+        originalSong?.artists?.all?.[0]?.image;
+
       let url = "";
-
       if (Array.isArray(rawImage)) {
         url = rawImage[2]?.url || rawImage[1]?.url || rawImage[0]?.url || "";
       } else if (typeof rawImage === "string") {
@@ -187,14 +264,25 @@ const FullPlayer = React.memo(
       }
 
       if (
-        !url ||
-        url.includes("share-image-2.png") ||
-        url.includes("default-artist")
+        url &&
+        !url.includes("share-image-2.png") &&
+        !url.includes("default-artist")
       ) {
-        return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+        if (url.includes("150x150")) {
+          url = url.replace("150x150", "500x500");
+        } else if (url.includes("50x50")) {
+          url = url.replace("50x50", "500x500");
+        }
+        return forceHighQualityImageUrl(url) || url;
       }
-      return forceHighQualityImageUrl(url) || url;
-    }, [originalSong]);
+
+      // 3. Fallback to song's high quality cover art so it never looks blank or broken
+      if (trackImage) {
+        return trackImage;
+      }
+
+      return "https://staticweb6.jiosaavn.com/web6/jioindw/dist/1776919632/_i/default_images/default-artist-500x500.jpg";
+    }, [artistData, primaryArtistObj, originalSong, trackImage]);
 
     if (!currentTrack) {
       return null;
@@ -202,12 +290,18 @@ const FullPlayer = React.memo(
     const label = originalSong?.label;
     const copyright = originalSong?.copyright;
     const aboutArtist =
+      artistData?.name ||
+      primaryArtistObj?.name ||
       originalSong?.artists?.primary?.[0]?.name ||
       originalSong?.artist ||
       (currentTrack as any)?.primaryArtists ||
       "Artist";
     const bioDisplayText =
-      label || copyright || "No artist biography available.";
+      (artistData as any)?.bio?.[0]?.text ||
+      (artistData as any)?.description ||
+      label ||
+      copyright ||
+      "Tap to view artist profile, top tracks, and albums.";
     return (
       <GestureHandlerRootView
         style={[
@@ -359,19 +453,35 @@ const FullPlayer = React.memo(
             <View
               style={[
                 styles.artistHeader,
-                { height: Math.min(height * 0.22, 200) },
+                { height: Math.min(height * 0.24, 220) },
               ]}
             >
               <Image
-                source={{ uri: getArtistImage() }}
+                source={{ uri: getArtistCoverImage() }}
                 style={styles.artistPhoto}
                 contentFit="cover"
+                transition={300}
               />
-              <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
+              <LinearGradient
+                colors={["rgba(0,0,0,0.45)", "transparent", "rgba(24,24,27,0.95)"]}
+                locations={[0, 0.45, 1]}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View style={styles.artistCardBadge}>
+                <Text style={styles.artistCardLabel}>ABOUT THE ARTIST</Text>
+              </View>
             </View>
             <View style={styles.artistDetailsBody}>
               <Text style={styles.artistNameText}>{aboutArtist}</Text>
-              <Text style={styles.artistDescription}>{bioDisplayText}</Text>
+              {artistData?.fanCount || artistData?.followerCount ? (
+                <Text style={styles.artistListeners}>
+                  {formatPlayCount(artistData.fanCount || artistData.followerCount || 0)}{" "}
+                  monthly listeners
+                </Text>
+              ) : null}
+              <Text style={styles.artistDescription} numberOfLines={3}>
+                {bioDisplayText}
+              </Text>
             </View>
           </Pressable>
 
@@ -523,11 +633,12 @@ const styles = StyleSheet.create({
   },
   artistCard: {
     marginHorizontal: 20,
-    marginTop: 40,
-    borderRadius: 16,
+    marginTop: 36,
+    borderRadius: 18,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(24, 24, 27, 0.85)",
   },
   artistHeader: {
     position: "relative",
@@ -537,25 +648,42 @@ const styles = StyleSheet.create({
   artistPhoto: {
     ...StyleSheet.absoluteFillObject,
   },
-  artistCardLabel: {
+  artistCardBadge: {
     position: "absolute",
-    top: 15,
-    left: 15,
-    color: "white",
-    fontSize: 11,
+    top: 14,
+    left: 14,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  artistCardLabel: {
+    color: "#FFFFFF",
+    fontSize: 10,
     fontWeight: "800",
+    letterSpacing: 0.8,
   },
   artistDetailsBody: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    backgroundColor: "rgba(24, 24, 27, 0.95)",
   },
   artistNameText: {
     color: "white",
     fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 4,
+  },
+  artistListeners: {
+    color: "#A1A1AA",
+    fontSize: 13,
+    fontWeight: "500",
+    marginBottom: 8,
   },
   artistDescription: {
-    color: "#CCCCCC",
+    color: "#D4D4D8",
     fontSize: 14,
     lineHeight: 20,
   },

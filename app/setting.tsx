@@ -14,7 +14,10 @@ import { useAuth, useUser } from "@clerk/expo";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { useAppUpdate } from "@/src/hooks/useAppUpdate";
+import { UpdateModal } from "@/components/home/UpdateModal";
 import {
+  ActivityIndicator,
   FlatList,
   Linking,
   Pressable,
@@ -32,6 +35,27 @@ export default function SettingsScreen() {
   const [storageUsed, setStorageUsed] = useState<string>("0 B");
   const [musicLanguages, setMusicLanguages] = useState<string>("");
   const appVersion = Constants.expoConfig?.version || "2.0.0";
+  const {
+    updateInfo,
+    isChecking,
+    isDownloading,
+    downloadProgress,
+    isModalVisible,
+    setIsModalVisible,
+    handleUpdate,
+    handleDismiss,
+    checkUpdates,
+  } = useAppUpdate();
+
+  const handleCheckUpdate = async () => {
+    ToastAndroid.show("Checking for updates...", ToastAndroid.SHORT);
+    const info = await checkUpdates(true);
+    if (info?.isAvailable) {
+      setIsModalVisible(true);
+    } else {
+      ToastAndroid.show("You're on the latest version of Beats! ✨", ToastAndroid.LONG);
+    }
+  };
   const loadStorageData = async () => {
     const data = await calculateStorageUsage();
     setStorageUsed(formatBytes(data.total));
@@ -224,15 +248,45 @@ export default function SettingsScreen() {
               </Text>
               <Text className="text-zinc-400 text-base">{appVersion}</Text>
             </View>
-            <SettingItem
-              label="Check for updates"
-              onPress={() =>
-                Linking.openURL("https://github.com/alokkkxpixel/Beats")
-              }
-            />
+            {/* Check for updates — custom row with dot badge */}
+            <Pressable
+              onPress={handleCheckUpdate}
+              className="flex-row items-center justify-between py-4 border-b border-zinc-800"
+            >
+              <View className="flex-row items-center" style={{ gap: 8 }}>
+                <Text className="text-white text-base font-sans-medium">
+                  Check for updates
+                </Text>
+                {updateInfo?.isAvailable && !isChecking && (
+                  <View
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: 4,
+                      backgroundColor: "#ffffff",
+                    }}
+                  />
+                )}
+              </View>
+              <View className="flex-row items-center" style={{ gap: 8 }}>
+                {isChecking ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : null}
+                <ForwardArrow width={20} height={20} fill="#fff" />
+              </View>
+            </Pressable>
             <SettingItem label="About" onPress={() => router.push("/about")} />
           </>
         )}
+      />
+      <UpdateModal
+        visible={isModalVisible}
+        updateInfo={updateInfo}
+        isDownloading={isDownloading}
+        downloadProgress={downloadProgress}
+        onUpdate={handleUpdate}
+        onDismiss={handleDismiss}
+        onClose={() => setIsModalVisible(false)}
       />
     </View>
   );

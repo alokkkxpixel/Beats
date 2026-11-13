@@ -1,9 +1,11 @@
 import ChevronIcon from "@/assets/app-icons/chevron-left.svg";
 import Categories from "@/components/explore/Categories";
 import Header from "@/components/Header";
+import OfflineContent from "@/components/OfflineContent";
 import { useHomePreviews } from "@/src/hooks/useQueries";
 import { usePlayerStore } from "@/src/store/usePlayerStore";
 import { NewRelease } from "@/types/jiosaavn";
+import { useNetInfo } from "@react-native-community/netinfo";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -26,15 +28,19 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNetInfo } from "@react-native-community/netinfo";
-import OfflineContent from "@/components/OfflineContent";
 
 const { width } = Dimensions.get("window");
 
-// Handles both array image format [50x50, 150x150, 500x500] and plain strings
+// Handles both array image format [50x50, 150x150, 500x500] and plain strings or quality objects
 const getImageUri = (img: any): string => {
-  if (Array.isArray(img)) return img[2] || img[1] || img[0] || "";
+  if (Array.isArray(img)) {
+    const target = img[2] || img[1] || img[0] || "";
+    return typeof target === "string"
+      ? target
+      : target?.url || target?.uri || "";
+  }
   if (typeof img === "string" && img) return img;
+  if (img && typeof img === "object") return img.url || img.uri || "";
   return "";
 };
 
@@ -145,7 +151,7 @@ export default function ExploreScreen() {
           styles.albumSubtitle,
           isShortScreen && { fontSize: 10, lineHeight: 13 },
         ]}
-        className="capitalize font-sans-light"
+        className="capitalize font-sans-light "
         numberOfLines={2}
       >
         {item.subtitle ||
@@ -202,10 +208,16 @@ export default function ExploreScreen() {
 
           {/* New Albums Section */}
           <View
-            style={[styles.sectionHeader, isShortScreen && { marginBottom: 10 }]}
+            style={[
+              styles.sectionHeader,
+              isShortScreen && { marginBottom: 10 },
+            ]}
           >
             <Text
-              style={[styles.sectionTitle, { fontSize: isShortScreen ? 18 : 22 }]}
+              style={[
+                styles.sectionTitle,
+                { fontSize: isShortScreen ? 18 : 22 },
+              ]}
               className="font-sans-semibold"
             >
               New albums and singles
@@ -218,7 +230,16 @@ export default function ExploreScreen() {
             />
           </View>
 
-          <View style={{ height: isShortScreen ? 200 : 240, marginBottom: 4 }}>
+          <View
+            style={{
+              height: isShortScreen ? 200 : 250,
+              marginBottom: 10,
+              // backgroundColor: "red",
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <FlatList
               data={data?.raw_new_releases || []}
               horizontal
@@ -304,6 +325,8 @@ export function TopGenre({
         <FlashList
           data={data}
           horizontal
+          estimatedItemSize={width * 0.7 + 12}
+          keyExtractor={(_, index) => `genre-col-${index}`}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item: columnItems }: { item: any[] }) => (

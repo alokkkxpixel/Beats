@@ -1,8 +1,9 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import {
+  ActivityIndicator,
   Alert,
   Easing,
   Pressable,
@@ -42,7 +43,11 @@ export default function MusicBottomSheet() {
   const isDownloaded = useDownloadStore((s) =>
     activeSong?.id ? s.downloadedTracks.has(activeSong.id) : false,
   );
+  const isPreparing = useDownloadStore((s) =>
+    activeSong?.id ? s.preparingDownloads.has(activeSong.id) : false,
+  );
   const progress = getDownloadProgress(activeSong?.id);
+  const lastDownloadTapRef = useRef(0);
 
   const router = useRouter();
   const addToQueue = usePlayerStore((s) => s.addToQueue);
@@ -260,30 +265,45 @@ export default function MusicBottomSheet() {
             },
           },
         ]
-      : progress?.state === "downloading"
+      : isPreparing
         ? [
             {
-              icon: DownloadIcon,
-              label: `Downloading (${Math.round(progress.progress * 100)}%)`,
+              icon: (props) => <ActivityIndicator size="small" color="#fff" />,
+              label: "Starting download...",
+              disabled: true,
               fnx: () => {},
             },
           ]
-        : [
-            {
-              icon: DownloadIcon,
-              label: "Download",
-              fnx: async () => {
-                minizeMoreOption();
-                Toast.show({
-                  type: "success",
-                  text1: "Downloading started !",
-                  text2: "Check your downloads for more info",
-                });
-                ToastAndroid.show("Download started", ToastAndroid.LONG);
-                await downloadTrack(activeSong);
+        : progress?.state === "downloading" || progress?.state === "pending"
+          ? [
+              {
+                icon: (props) => <ActivityIndicator size="small" color="#fff" />,
+                label: `Downloading (${Math.round((progress.progress || 0) * 100)}%)`,
+                disabled: true,
+                fnx: () => {},
               },
-            },
-          ]),
+            ]
+          : [
+              {
+                icon: DownloadIcon,
+                label: "Download",
+                fnx: async () => {
+                  const now = Date.now();
+                  if (now - lastDownloadTapRef.current < 1500) {
+                    return; // Debounce rapid multiple clicks within 1.5s
+                  }
+                  lastDownloadTapRef.current = now;
+
+                  Toast.show({
+                    type: "success",
+                    text1: "Starting download...",
+                    text2: "Check your downloads for more info",
+                  });
+                  ToastAndroid.show("Download started", ToastAndroid.SHORT);
+                  await downloadTrack(activeSong);
+                },
+              },
+            ]),
     {
       icon: AlbumIcon,
       label: "Go to album",
@@ -382,13 +402,16 @@ export default function MusicBottomSheet() {
         {menuItems.map((item, i) => (
           <Pressable
             key={i}
+            disabled={item.disabled}
             onPress={() => {
+              if (item.disabled) return;
               if (item.fnx) {
                 item.fnx();
               } else {
                 minizeMoreOption();
               }
             }}
+            style={{ opacity: item.disabled ? 0.5 : 1 }}
             className="flex-row items-center py-4"
           >
             <item.icon width={24} height={24} fill="white" />

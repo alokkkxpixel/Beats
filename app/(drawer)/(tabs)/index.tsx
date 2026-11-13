@@ -38,6 +38,9 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { TopGenre } from "./explore";
+import { useAppUpdate } from "@/src/hooks/useAppUpdate";
+import { UpdateBanner } from "@/components/home/UpdateBanner";
+import { UpdateModal } from "@/components/home/UpdateModal";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as any;
 
@@ -63,6 +66,17 @@ export default function Index() {
   const translateY = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const lastContentOffset = useSharedValue(0);
+
+  const {
+    updateInfo,
+    isDownloading: isUpdateDownloading,
+    downloadProgress: updateProgress,
+    isBannerVisible,
+    isModalVisible,
+    setIsModalVisible,
+    handleUpdate: handleApplyUpdate,
+    handleDismiss: handleDismissUpdate,
+  } = useAppUpdate();
 
   // 1. Fetch Home Data using TanStack Query
   const { data, isLoading, refetch: refetchHomePreviews } = useHomePreviews();
@@ -415,6 +429,18 @@ export default function Index() {
             />
           }
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            isBannerVisible && updateInfo?.isAvailable ? (
+              <UpdateBanner
+                updateInfo={updateInfo}
+                isDownloading={isUpdateDownloading}
+                downloadProgress={updateProgress}
+                onUpdate={handleApplyUpdate}
+                onDismiss={() => handleDismissUpdate(3)}
+                onOpenDetails={() => setIsModalVisible(true)}
+              />
+            ) : null
+          }
           keyExtractor={(item: any) => item.id}
           getItemType={(item: any) => item.type}
           drawDistance={400}

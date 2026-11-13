@@ -49,6 +49,8 @@ const PlayerControls = React.memo(() => {
     toggleShuffle,
     isPlaying,
     isLoading,
+    next,
+    previous,
   } = usePlayerStore(
     useShallow((s) => ({
       currentTrack: s.currentTrack,
@@ -58,6 +60,8 @@ const PlayerControls = React.memo(() => {
       toggleShuffle: s.toggleShuffle,
       isPlaying: s.isPlaying,
       isLoading: s.isLoading,
+      next: s.next,
+      previous: s.previous,
     })),
   );
 
@@ -70,6 +74,7 @@ const PlayerControls = React.memo(() => {
     checkDownloadStatus,
     downloadedTracks,
     downloadProgress,
+    preparingDownloads,
   } = useDownloadStore();
 
   useEffect(() => {
@@ -84,41 +89,61 @@ const PlayerControls = React.memo(() => {
   const progress = currentTrack?.id
     ? downloadProgress.get(currentTrack.id)
     : undefined;
+  const isPreparing = currentTrack?.id
+    ? preparingDownloads.has(currentTrack.id)
+    : false;
+
+  const lastDownloadTapRef = useRef<number>(0);
 
   const handleDownloadPress = useCallback(async () => {
     if (!currentTrack) return;
 
+    const now = Date.now();
+    if (now - lastDownloadTapRef.current < 1500) {
+      return; // Debounce rapid multiple clicks within 1.5s
+    }
+    lastDownloadTapRef.current = now;
+
     if (isDownloaded) {
+      ToastAndroid.show("Song is already downloaded", ToastAndroid.SHORT);
+      return;
+    }
+
+    if (isPreparing) {
       return;
     }
 
     if (progress?.state === "downloading") {
       await pauseDownload(progress.downloadId);
-      ToastAndroid.show("Download paused", ToastAndroid.LONG);
+      ToastAndroid.show("Download paused", ToastAndroid.SHORT);
       return;
     }
 
     if (progress?.state === "paused") {
       await resumeDownload(progress.downloadId);
-
-      ToastAndroid.show("Download resumed", ToastAndroid.LONG);
+      ToastAndroid.show("Download resumed", ToastAndroid.SHORT);
       return;
     }
 
-    if (progress?.state === "pending" || progress?.state === "failed") {
+    if (progress?.state === "pending") {
+      return;
+    }
+
+    if (progress?.state === "failed") {
       await cancelDownload(progress.downloadId);
     }
 
     Toast.show({
       type: "success",
-      text1: "Downloading started !",
+      text1: "Starting download...",
       text2: "Check your downloads for more info",
     });
-    ToastAndroid.show("Download started", ToastAndroid.LONG);
+    ToastAndroid.show("Download started", ToastAndroid.SHORT);
     await downloadTrack(currentTrack);
   }, [
     currentTrack,
     isDownloaded,
+    isPreparing,
     progress,
     downloadTrack,
     deleteDownload,
@@ -173,14 +198,6 @@ const PlayerControls = React.memo(() => {
     else await TrackPlayer.play();
   }, [isPlaying]);
 
-  const next = useCallback(async () => {
-    await TrackPlayer.skipToNext();
-  }, []);
-
-  const previous = useCallback(async () => {
-    await TrackPlayer.skipToPrevious();
-  }, []);
-
   const cycleRepeatMode = useCallback(async () => {
     const currentMode = await TrackPlayer.getRepeatMode();
     const nextMode: RepeatMode =
@@ -204,6 +221,21 @@ const PlayerControls = React.memo(() => {
   const renderDownloadIcon = () => {
     if (isDownloaded) {
       return <DownloadOfflineIcon width={28} height={28} fill="white" />;
+    }
+
+    if (isPreparing) {
+      return (
+        <View className="flex-row items-center">
+          <ActivityIndicator
+            size="small"
+            color="#fff"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>
+            Starting...
+          </Text>
+        </View>
+      );
     }
 
     if (progress?.state === "downloading" || progress?.state === "pending") {
@@ -240,7 +272,7 @@ const PlayerControls = React.memo(() => {
     }
 
     return (
-      <DownloadCircleIcon width={28} height={28} fill="white" opacity={0.5} />
+      <DownloadCircleIcon width={28} height={28} fill="white" opacity={0.6} />
     );
   };
 
@@ -254,7 +286,7 @@ const PlayerControls = React.memo(() => {
             <ShuffleIcon width={25} height={25} fill="#FFF" />
           )}
         </Pressable>
-        <Pressable onPress={previous}>
+        <Pressable onPress={() => previous()}>
           <SkipPreviousIcon width={50} height={50} fill="white" />
         </Pressable>
         <Pressable
@@ -274,7 +306,7 @@ const PlayerControls = React.memo(() => {
             <PlayIcon width={70} height={70} fill="white" />
           )}
         </Pressable>
-        <Pressable onPress={next}>
+        <Pressable onPress={() => next()}>
           <SkipNextIcon width={50} height={50} fill="white" />
         </Pressable>
         <Pressable onPress={cycleRepeatMode} hitSlop={12}>
@@ -286,8 +318,12 @@ const PlayerControls = React.memo(() => {
         style={[styles.footerControls, { marginVertical: responsiveMargin }]}
       >
         <Pressable
-          style={styles.deviceIndicator}
+          style={[
+            styles.deviceIndicator,
+            (isPreparing || progress?.state === "pending") && { opacity: 0.5 },
+          ]}
           onPress={handleDownloadPress}
+          disabled={isPreparing || progress?.state === "pending"}
           hitSlop={10}
         >
           {renderDownloadIcon()}

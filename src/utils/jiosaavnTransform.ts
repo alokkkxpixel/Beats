@@ -78,12 +78,14 @@ export function buildImageQualities(imageUrl?: string | null): ImageQuality[] {
   }
 
   const ext = resMatch[2] ? `.${resMatch[2]}` : ".jpg";
-  const base = url.slice(0, resMatch.index);
+  const matchIndex = resMatch.index ?? 0;
+  const base = url.slice(0, matchIndex);
+  const sep = url.charAt(matchIndex) === "_" ? "_" : "-";
 
   return [
-    { quality: "50x50", url: `${base}-50x50${ext}` },
-    { quality: "150x150", url: `${base}-150x150${ext}` },
-    { quality: "500x500", url: `${base}-500x500${ext}` },
+    { quality: "50x50", url: `${base}${sep}50x50${ext}` },
+    { quality: "150x150", url: `${base}${sep}150x150${ext}` },
+    { quality: "500x500", url: `${base}${sep}500x500${ext}` },
   ];
 }
 
@@ -302,6 +304,73 @@ export function mapAutocompleteToGlobalSearch(raw: any): GlobalSearchData {
       description: decodeHtmlEntities(p.description || p.subtitle || ""),
     }));
 
+  const mapTopQuery = (list: any[]) =>
+    (list || []).map((item: any) => {
+      const itemType = (item.type || "").toLowerCase();
+      if (itemType === "album") {
+        return {
+          id: String(item.id || ""),
+          title: decodeHtmlEntities(item.title || item.name || ""),
+          image: buildImageQualities(item.image),
+          artist: decodeHtmlEntities(item.more_info?.artist || item.subtitle || ""),
+          url: item.perma_url || item.url || "",
+          type: "album",
+          description: decodeHtmlEntities(item.description || item.subtitle || ""),
+          subtitle: decodeHtmlEntities(
+            item.subtitle || item.description || item.more_info?.artist || "Album",
+          ),
+          year: String(item.more_info?.year || item.year || ""),
+          language: item.more_info?.language || "",
+          songIds: item.more_info?.song_pids || "",
+        };
+      }
+      if (itemType === "artist") {
+        return {
+          id: String(item.id || ""),
+          title: decodeHtmlEntities(item.name || item.title || ""),
+          image: buildImageQualities(item.image),
+          type: "artist",
+          description: decodeHtmlEntities(item.description || item.subtitle || ""),
+          subtitle: decodeHtmlEntities(
+            item.subtitle || item.description || item.role || "Artist",
+          ),
+          url: item.perma_url || item.url || "",
+        };
+      }
+      if (itemType === "playlist") {
+        return {
+          id: String(item.id || ""),
+          title: decodeHtmlEntities(item.title || item.name || ""),
+          image: buildImageQualities(item.image),
+          url: item.perma_url || item.url || "",
+          language: item.more_info?.language || "",
+          type: "playlist",
+          description: decodeHtmlEntities(item.description || item.subtitle || ""),
+          subtitle: decodeHtmlEntities(item.subtitle || item.description || "Playlist"),
+        };
+      }
+      return {
+        id: String(item.id || ""),
+        title: decodeHtmlEntities(item.title || item.name || ""),
+        image: buildImageQualities(item.image),
+        album: decodeHtmlEntities(item.more_info?.album || item.subtitle || ""),
+        url: item.perma_url || item.url || "",
+        type: item.type || "song",
+        description: decodeHtmlEntities(item.description || item.subtitle || ""),
+        subtitle: decodeHtmlEntities(
+          item.subtitle ||
+            item.more_info?.album ||
+            item.more_info?.primary_artists ||
+            "Song",
+        ),
+        primaryArtists: decodeHtmlEntities(
+          item.more_info?.primary_artists || item.more_info?.singers || "",
+        ),
+        singers: decodeHtmlEntities(item.more_info?.singers || ""),
+        language: item.more_info?.language || "",
+      };
+    });
+
   return {
     albums: {
       results: mapAlbums(raw?.albums?.data || []),
@@ -320,7 +389,7 @@ export function mapAutocompleteToGlobalSearch(raw: any): GlobalSearchData {
       position: raw?.playlists?.position ?? 0,
     },
     topQuery: {
-      results: mapSongs(raw?.topquery?.data || []),
+      results: mapTopQuery(raw?.topquery?.data || []),
       position: raw?.topquery?.position ?? 0,
     },
   };

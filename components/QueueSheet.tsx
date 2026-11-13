@@ -17,6 +17,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,9 +36,12 @@ function getLuminance(hex: string): number {
 
 const QueueSheet = () => {
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const sheetContentHeight = windowHeight - insets.top - 24;
+
   const queue = usePlayerStore((state) => state.queue);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
-  const setCurrentTrack = usePlayerStore((state) => state.setCurrentTrack);
+  const playFromQueue = usePlayerStore((state) => state.playFromQueue);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const togglePlay = usePlayerStore((state) => state.togglePlay);
   const isQueueOpen = usePlayerStore((state) => state.isQueueOpen);
@@ -133,15 +137,8 @@ const QueueSheet = () => {
     return "transparent";
   }, [accentColor]);
 
-  // Fetch suggestions when queue is small and sheet is opened
-  useEffect(() => {
-    if (isQueueOpen && queue.length === 1 && currentTrack) {
-      fetchAndAppendSuggestions(currentTrack.id);
-    }
-  }, [isQueueOpen, queue.length, currentTrack, fetchAndAppendSuggestions]);
-
   const renderTrackItem = useCallback(
-    ({ item }: { item: SongDetail; index: number }) => {
+    ({ item, index }: { item: SongDetail; index: number }) => {
       const isCurrent = item.id === currentTrack?.id;
       const artistName =
         item.primaryArtists ||
@@ -149,18 +146,26 @@ const QueueSheet = () => {
         "Unknown Artist";
 
       const views = formatPlayCount(item.playCount);
-
-      // REMOVED: setQueueImage(item.image?.[1]?.url) state mutation is completely gone!
+      const coverUri =
+        item.image?.[1]?.url ||
+        item.image?.[0]?.url ||
+        (Array.isArray(item.image) && typeof item.image[1] === "string"
+          ? item.image[1]
+          : Array.isArray(item.image) && typeof item.image[0] === "string"
+            ? item.image[0]
+            : typeof item.image === "string"
+              ? item.image
+              : (item as any)?.artwork || "");
 
       return (
         <Pressable
           style={[styles.trackItem, isCurrent && styles.currentTrackItem]}
-          onPress={() => !isCurrent && setCurrentTrack(item)}
+          onPress={() => !isCurrent && playFromQueue(index)}
         >
           {/* Cover */}
           <View style={styles.imageContainer}>
             <Image
-              source={{ uri: item.image?.[1]?.url || item.image?.[0]?.url }}
+              source={{ uri: coverUri }}
               style={styles.trackArt}
             />
 
@@ -218,7 +223,7 @@ const QueueSheet = () => {
         </Pressable>
       );
     },
-    [currentTrack?.id, isPlaying, setCurrentTrack, togglePlay],
+    [currentTrack?.id, isPlaying, playFromQueue, togglePlay],
   );
 
   const albumName =
@@ -243,7 +248,15 @@ const QueueSheet = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: accentColor.average }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          height: sheetContentHeight,
+          backgroundColor: accentColor.average,
+        },
+      ]}
+    >
       {/* Universal protection overlay for bright backgrounds */}
       <View
         style={[
@@ -269,19 +282,21 @@ const QueueSheet = () => {
         </TextTicker>
       </View>
 
-      <FlashList
-        ref={flatListRef}
-        data={queue}
-        renderScrollComponent={renderScrollComponent}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTrackItem}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: Math.max(insets.bottom, 16) + 95 },
-        ]}
-        showsVerticalScrollIndicator={false}
-        ListFooterComponent={renderListFooter}
-      />
+      <View style={styles.listContainer}>
+        <FlashList
+          ref={flatListRef}
+          data={queue}
+          renderScrollComponent={renderScrollComponent}
+          keyExtractor={(item) => item.id}
+          renderItem={renderTrackItem}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: 16 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={renderListFooter}
+        />
+      </View>
 
       {/* Styled the bottom controller bar background to blend properly with the dynamic layout */}
       <View
@@ -346,14 +361,17 @@ const QueueSheet = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "#121212",
+    height: "100%",
+  },
+  listContainer: {
+    flex: 1,
   },
   listFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 20,
-    marginBottom: 40,
+    marginBottom: 20,
   },
   playingOverlay: {
     height: "100%",
@@ -394,7 +412,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 20,
   },
   trackItem: {
     flexDirection: "row",
@@ -437,13 +455,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: "row",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    // backgroundColor: "#1e1e1e",
     paddingTop: 12,
-    paddingBottom: 35,
     justifyContent: "space-around",
     borderTopWidth: 1,
     borderTopColor: "#252525",

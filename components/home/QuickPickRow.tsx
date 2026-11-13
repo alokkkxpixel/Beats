@@ -33,14 +33,17 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const isCurrent = currentTrack?.id === item.id;
   const handlePlay = (id: string, link?: string) => {
-    const partialTrack = {
-      id: id,
-      name: item.title,
-      image: item.cover,
-      primaryArtists: item.artist,
-      url: link || item.url,
+    const raw = item as any;
+    const trackToPlay = {
+      ...raw,
+      id: id || raw.id,
+      name: raw.title || raw.name,
+      image: raw.cover || raw.image,
+      primaryArtists: raw.artist || raw.primaryArtists,
+      url: link || raw.url || raw.perma_url,
+      downloadUrl: raw.downloadUrl,
     };
-    setCurrentTrack(partialTrack as any);
+    setCurrentTrack(trackToPlay as any);
   };
 
   const handleOption = async (item: any) => {
@@ -83,7 +86,6 @@ function QuickPickRow({ item }: QuickPickRowProps): React.JSX.Element {
           { height: rowHeight, marginBottom: isShortScreen ? 8 : 12 },
           isActive && styles.activerow,
         ]}
-        //  className={clsx("base-styles", CurrentTrack?.id === item?.id && "bg-gray-600")}
         onPress={() => handlePlay(item.id, item.url)}
       >
         <View

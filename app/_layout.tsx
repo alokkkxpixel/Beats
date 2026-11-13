@@ -20,7 +20,11 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, LogBox, View } from "react-native";
+
+LogBox.ignoreLogs([
+  "Can't perform a React state update on a component that hasn't mounted yet",
+]);
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";

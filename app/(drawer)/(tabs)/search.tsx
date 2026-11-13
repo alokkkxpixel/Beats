@@ -90,25 +90,26 @@ export default function SearchScreen() {
     Keyboard.dismiss();
     addToHistory(item.title || item.name);
 
-    if (item.type === "song") {
-      setCurrentTrack(item);
+    const type = (item.type || "").toLowerCase();
+
+    if (type === "album") {
+      router.push({
+        pathname: "/album-detail",
+        params: { albumId: item.id, albumUrl: item.url },
+      });
+    } else if (type === "artist") {
+      router.push({
+        pathname: "/artist/[id]",
+        params: { id: item.id, url: item.url },
+      });
+    } else if (type === "playlist") {
+      router.push({
+        pathname: "/playlist-detail",
+        params: { playlistId: item.id, playlistUrl: item.url },
+      });
     } else {
-      if (item.type === "album") {
-        router.push({
-          pathname: "/album-detail",
-          params: { albumId: item.id, albumUrl: item.url },
-        });
-      } else if (item.type === "playlist") {
-        router.push({
-          pathname: "/playlist-detail",
-          params: { playlistId: item.id, playlistUrl: item.url },
-        });
-      } else if (item.type === "artist") {
-        router.push({
-          pathname: "/artist/[id]",
-          params: { id: item.id, url: item.url },
-        });
-      }
+      // Default / song
+      setCurrentTrack(item);
     }
   };
 
@@ -142,37 +143,54 @@ export default function SearchScreen() {
     </View>
   );
 
-  const renderResultItem = (item: any, isArtist: boolean = false) => (
-    <Pressable
-      key={item.id}
-      style={styles.resultItem}
-      onPress={() => handleResultPress(item)}
-    >
-      <Image
-        source={{ uri: item.image?.[1]?.url || item.image }}
-        style={[styles.resultImage, isArtist && styles.artistImage]}
-      />
-      <View style={styles.resultInfo}>
-        <Text
-          style={styles.resultTitle}
-          numberOfLines={1}
-          className="font-sans-medium"
-        >
-          {item.title || item.name}
-        </Text>
-        <Text
-          style={styles.resultSubtitle}
-          numberOfLines={1}
-          className="font-sans-light"
-        >
-          {item.subtitle || item.description || ""}
-        </Text>
-      </View>
-      {item.type === "song" && (
-        <PlayCircle size={22} color="#888" strokeWidth={1.5} />
-      )}
-    </Pressable>
-  );
+  const renderResultItem = (item: any, isArtist: boolean = false) => {
+    const type = (item.type || "").toLowerCase();
+    const isArtistType = isArtist || type === "artist";
+    const imageUri =
+      item.image?.[1]?.url ||
+      item.image?.[0]?.url ||
+      item.image?.[2]?.url ||
+      (typeof item.image === "string" ? item.image : "") ||
+      "";
+    const displaySubtitle =
+      item.subtitle ||
+      item.description ||
+      item.artist ||
+      item.primaryArtists ||
+      (type ? type.charAt(0).toUpperCase() + type.slice(1) : "");
+
+    return (
+      <Pressable
+        key={item.id}
+        style={styles.resultItem}
+        onPress={() => handleResultPress(item)}
+      >
+        <Image
+          source={{ uri: imageUri }}
+          style={[styles.resultImage, isArtistType && styles.artistImage]}
+        />
+        <View style={styles.resultInfo}>
+          <Text
+            style={styles.resultTitle}
+            numberOfLines={1}
+            className="font-sans-medium"
+          >
+            {item.title || item.name}
+          </Text>
+          <Text
+            style={styles.resultSubtitle}
+            numberOfLines={1}
+            className="font-sans-light"
+          >
+            {displaySubtitle}
+          </Text>
+        </View>
+        {type === "song" && (
+          <PlayCircle size={22} color="#888" strokeWidth={1.5} />
+        )}
+      </Pressable>
+    );
+  };
 
   return (
     <View className="flex-1 bg-[#050505]" style={{ paddingTop: insets.top }}>
