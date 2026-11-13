@@ -94,18 +94,19 @@
 
 ## 📥 Download & Installation
 
-The latest releases and pre-built APKs are hosted directly and securely on GitHub:
+The latest release and pre-built APK is hosted directly and securely on GitHub:
 
 <div align="center">
 
-  <a href="https://github.com/alokkkxpixel/Beats/releases/latest">
-    <img src="https://img.shields.io/badge/Download%20APK-Official%20GitHub%20Release-fa233b?style=for-the-badge&logo=android&logoColor=white" height="46" alt="Download Latest APK from GitHub Releases" />
+  <a href="https://github.com/alokkkxpixel/Beats/releases/download/v1.1.6/Beats-v1.1.6.apk">
+    <img src="https://img.shields.io/badge/Download%20APK-v1.1.6%20Direct%20Download-fa233b?style=for-the-badge&logo=android&logoColor=white" height="46" alt="Direct Download Beats v1.1.6 APK" />
   </a>
 
   <br/><br/>
 
   <p>
-    <a href="https://github.com/alokkkxpixel/Beats/releases"><b>Browse All Release Versions & Changelogs →</b></a>
+    <a href="https://github.com/alokkkxpixel/Beats/releases/tag/v1.1.6"><b>View v1.1.6 Release Notes</b></a> •
+    <a href="https://github.com/alokkkxpixel/Beats/releases"><b>All Releases & Changelogs →</b></a>
   </p>
 
 </div>
