@@ -46,24 +46,28 @@
 ## ✨ Features
 
 ### 🎧 Audio & Playback Engine
-* **High-Fidelity Audio:** Stream audio up to **320kbps** with configurable streaming and download qualities (96kbps, 160kbps, 320kbps).
-* **High-Performance Audio Engine:** Powered by `react-native-nitro-player` for low-latency buffering, gapless playback stability, lock screen media controls, and notification sync.
-* **Smart Queue & Dynamic Recommendations:** Infinite queue generation with auto-recommended tracks matching the active genre and vibes.
-* **Sleep Timer & Playback Controls:** Configurable sleep timer, quick seek, loop one/all, and shuffle modes.
+
+- **High-Fidelity Audio:** Stream audio up to **320kbps** with configurable streaming and download qualities (96kbps, 160kbps, 320kbps).
+- **High-Performance Audio Engine:** Powered by `react-native-nitro-player` for low-latency buffering, gapless playback stability, lock screen media controls, and notification sync.
+- **Smart Queue & Dynamic Recommendations:** Infinite queue generation with auto-recommended tracks matching the active genre and vibes.
+- **Sleep Timer & Playback Controls:** Configurable sleep timer, quick seek, loop one/all, and shuffle modes.
 
 ### 🎨 Modern & Polished Interface
-* **Clean Dark-Mode Aesthetic:** Pure `#050505` OLED-friendly dark styling with Inter typography and butter-smooth transitions.
-* **Real-Time Synced Lyrics:** Smooth, time-synchronized karaoke-style lyric scrolling powered by the LRCLIB ecosystem.
-* **Personalized Feeds & Regional Mixes:** Multi-language curation (Hindi, English, Punjabi, Tamil, Telugu, and more) plus City Top Hits, Trending Charts, and Curated Playlists.
+
+- **Clean Dark-Mode Aesthetic:** Pure `#050505` OLED-friendly dark styling with Inter typography and butter-smooth transitions.
+- **Real-Time Synced Lyrics:** Smooth, time-synchronized karaoke-style lyric scrolling powered by the LRCLIB ecosystem.
+- **Personalized Feeds & Regional Mixes:** Multi-language curation (Hindi, English, Punjabi, Tamil, Telugu, and more) plus City Top Hits, Trending Charts, and Curated Playlists.
 
 ### 💾 Library, Downloads & Offline Resilience
-* **True Offline Mode:** Download tracks directly to device storage with complete metadata, album covers, and instant offline playback.
-* **Favorites & Local Playlists:** Create custom playlists, mark liked tracks, and track recently played history.
-* **Storage & Cache Management:** Built-in settings dashboard to inspect storage usage and wipe search or query caches with a single tap.
+
+- **True Offline Mode:** Download tracks directly to device storage with complete metadata, album covers, and instant offline playback.
+- **Favorites & Local Playlists:** Create custom playlists, mark liked tracks, and track recently played history.
+- **Storage & Cache Management:** Built-in settings dashboard to inspect storage usage and wipe search or query caches with a single tap.
 
 ### ⚡ Seamless Updates & Cloud Sync
-* **Over-The-Air (OTA) Updates:** Get the latest enhancements and bug fixes instantly without needing to manually reinstall APKs.
-* **Clerk Authentication:** Optional cloud sync across devices with Google OAuth and Clerk identity protection.
+
+- **Over-The-Air (OTA) Updates:** Get the latest enhancements and bug fixes instantly without needing to manually reinstall APKs.
+- **Clerk Authentication:** Optional cloud sync across devices with Google OAuth and Clerk identity protection.
 
 ---
 
@@ -98,11 +102,11 @@ The latest release and pre-built APK is hosted directly and securely on GitHub:
 
 <div align="center">
 
-  <a href="https://github.com/alokkkxpixel/Beats/releases/download/v1.1.6/Beats-v1.1.6.apk">
+  <a href="https://github.com/alokkkxpixel/Beats/releases/download/v1.1.6/Beats-V1.1.6.apk">
     <img src="https://img.shields.io/badge/Download%20APK-v1.1.6%20Direct%20Download-fa233b?style=for-the-badge&logo=android&logoColor=white" height="46" alt="Direct Download Beats v1.1.6 APK" />
   </a>
 
-  <br/><br/>
+<br/><br/>
 
   <p>
     <a href="https://github.com/alokkkxpixel/Beats/releases/tag/v1.1.6"><b>View v1.1.6 Release Notes</b></a> •
@@ -114,48 +118,54 @@ The latest release and pre-built APK is hosted directly and securely on GitHub:
 <br/>
 
 > [!TIP]
+>
 > ### 🛡️ Notice for Mobile Browser Downloads
-> When you download an `.apk` file directly on an Android browser (such as Google Chrome), Android displays a standard warning: *"File might be harmful. Do you want to download [file].apk anyway?"*
-> 
+>
+> When you download an `.apk` file directly on an Android browser (such as Google Chrome), Android displays a standard warning: _"File might be harmful. Do you want to download [file].apk anyway?"_
+>
 > **Why does this happen?**
-> * Android automatically shows this generic prompt for **any `.apk` file downloaded from the internet** outside of Google Play, as a built-in operating system policy.
-> * **Beats is 100% open-source, verified, safe, and ad-free.** The files are compiled and published directly on GitHub.
-> * Simply tap **"Download anyway"**, and when prompted by your package installer, tap **"Allow from this source"** to complete the installation.
+>
+> - Android automatically shows this generic prompt for **any `.apk` file downloaded from the internet** outside of Google Play, as a built-in operating system policy.
+> - **Beats is 100% open-source, verified, safe, and ad-free.** The files are compiled and published directly on GitHub.
+> - Simply tap **"Download anyway"**, and when prompted by your package installer, tap **"Allow from this source"** to complete the installation.
 
 ---
 
 ## 🛠️ Architecture & Tech Stack
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Framework** | [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/) (SDK 52) & Expo Router |
-| **Audio Core** | [`react-native-nitro-player`](https://github.com/mrousavy/nitro) (C++ Nitro Module for low-latency audio) |
-| **State & Cache** | TanStack Query v5 + MMKV storage persister |
-| **Styling & Icons** | NativeWind / Tailwind CSS + SVG Vectors |
-| **Animations** | React Native Reanimated & Gesture Handler |
-| **Authentication** | [Clerk](https://clerk.com/) with Google OAuth |
-| **Lyrics & Metadata** | JioSaavn API + [LRCLIB](https://lrclib.net/) |
-| **OTA Delivery** | Expo Updates / EAS Updates |
+| Layer                 | Technologies                                                                                              |
+| :-------------------- | :-------------------------------------------------------------------------------------------------------- |
+| **Framework**         | [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/) (SDK 52) & Expo Router            |
+| **Audio Core**        | [`react-native-nitro-player`](https://github.com/mrousavy/nitro) (C++ Nitro Module for low-latency audio) |
+| **State & Cache**     | TanStack Query v5 + MMKV storage persister                                                                |
+| **Styling & Icons**   | NativeWind / Tailwind CSS + SVG Vectors                                                                   |
+| **Animations**        | React Native Reanimated & Gesture Handler                                                                 |
+| **Authentication**    | [Clerk](https://clerk.com/) with Google OAuth                                                             |
+| **Lyrics & Metadata** | JioSaavn API + [LRCLIB](https://lrclib.net/)                                                              |
+| **OTA Delivery**      | Expo Updates / EAS Updates                                                                                |
 
 ---
 
-## 💻 Getting Started (Development)
+<!-- ## 💻 Getting Started (Development)
 
 To run or build Beats locally on your machine:
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/alokkkxpixel/Beats.git
    cd Beats
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
-3. **Configure environment variables**  
+3. **Configure environment variables**
    Create a `.env` file in the root directory:
+
    ```env
    EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
    EXPO_PUBLIC_MUSIC_API_URL=https://www.jiosaavn.com/api.php
@@ -163,6 +173,7 @@ To run or build Beats locally on your machine:
    ```
 
 4. **Start the development server**
+
    ```bash
    npx expo start
    ```
@@ -172,7 +183,7 @@ To run or build Beats locally on your machine:
    eas build --profile preview --platform android
    ```
 
----
+--- -->
 
 ## ⚠️ Disclaimer
 
